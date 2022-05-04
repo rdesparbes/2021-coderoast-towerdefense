@@ -1,44 +1,18 @@
 import math
 import random
 import tkinter as tk
+from abc import ABC, abstractmethod
 from enum import Enum, auto
+from typing import Optional, List
 
 from PIL import Image, ImageTk
 
 from game import Game
 
+
 GRID_SIZE = 30  # the height and width of the array of blocks
 BLOCK_SIZE = 20  # pixels wide of each block
 MAP_SIZE = GRID_SIZE * BLOCK_SIZE
-blockGrid = [
-    [None for y in range(GRID_SIZE)] for x in range(GRID_SIZE)
-]  # creates the array for the grid
-TOWER_COST = {
-    "Arrow Shooter": 150,
-    "Bullet Shooter": 150,
-    "Tack Tower": 150,
-    "Power Tower": 200,
-}
-towerGrid = [[None for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
-pathList = []
-spawnx = 0
-spawny = 0
-monsters = []
-monstersByHealth = []
-monstersByHealthReversed = []
-monstersByDistance = []
-monstersByDistanceReversed = []
-monstersListList = [
-    monstersByHealth,
-    monstersByHealthReversed,
-    monstersByDistance,
-    monstersByDistanceReversed,
-]
-projectiles = []
-health = 100
-money = 5000000000
-selectedTower = "<None>"
-displayTower = None
 
 
 class TowerDefenseGameState(Enum):
@@ -53,9 +27,9 @@ class TowerDefenseGame(Game):
     ):
         super().__init__(title, width, height)
         self.state = TowerDefenseGameState.IDLE
-        self.displayboard = DisplayBoard(self)
-        self.infoboard = InfoBoard(self)
-        self.towerbox = TowerBox(self)
+        self.display_board = DisplayBoard(self)
+        self.info_board = InfoBoard(self)
+        self.tower_box = TowerBox(self)
 
     def initialize(self):
         self.add_object(Map())
@@ -64,13 +38,12 @@ class TowerDefenseGame(Game):
 
     def update(self):
         super().update()
-        self.displayboard.update()
+        self.display_board.update()
         for p in projectiles:
             p.update()
         for y in range(GRID_SIZE):
             for x in range(GRID_SIZE):
-                # updates each block one by one by going to its 'def update():' command
-                blockGrid[x][y].update()
+                get_block(x, y).update()
         for m in monsters:
             m.update()
         global monstersByHealth
@@ -78,15 +51,15 @@ class TowerDefenseGame(Game):
         global monstersByDistance
         global monstersByDistanceReversed
         global monstersListList
-        monstersByHealth = sorted(monsters, key=lambda x: x.health, reverse=True)
+        monstersByHealth = sorted(monsters, key=lambda _x: _x.health, reverse=True)
         monstersByDistance = sorted(
-            monsters, key=lambda x: x.distance_travelled, reverse=True
+            monsters, key=lambda _x: _x.distance_travelled, reverse=True
         )
         monstersByHealthReversed = sorted(
-            monsters, key=lambda x: x.health, reverse=False
+            monsters, key=lambda _x: _x.health, reverse=False
         )
         monstersByDistanceReversed = sorted(
-            monsters, key=lambda x: x.distance_travelled, reverse=False
+            monsters, key=lambda _x: _x.distance_travelled, reverse=False
         )
         monstersListList = [
             monstersByHealth,
@@ -97,23 +70,25 @@ class TowerDefenseGame(Game):
 
         for y in range(GRID_SIZE):
             for x in range(GRID_SIZE):
-                if towerGrid[x][y]:
-                    # updates each tower one by one by going to its 'def update():' command
-                    towerGrid[x][y].update()
+                tower = get_tower(x, y)
+                if tower is not None:
+                    tower.update()
 
     def paint(self):
         super().paint()
         for y in range(GRID_SIZE):
             for x in range(GRID_SIZE):
-                if towerGrid[x][y]:
-                    towerGrid[x][y].paint(self.canvas)
+                tower = get_tower(x, y)
+                if tower is not None:
+                    tower.paint(self.canvas)
         for i in range(len(monstersByDistanceReversed)):
             monstersByDistanceReversed[i].paint(self.canvas)
         for i in range(len(projectiles)):
             projectiles[i].paint(self.canvas)
-        if displayTower:
-            displayTower.paint_select(self.canvas)
-        self.displayboard.paint()
+        display_tower: Optional[Tower] = displayTower
+        if display_tower is not None:
+            display_tower.paint_select(self.canvas)
+        self.display_board.paint()
 
     def set_state(self, state: TowerDefenseGameState):
         self.state = state
@@ -130,32 +105,27 @@ class Map:
             grid_values = list(map(int, (map_file.read()).split()))
         for y in range(GRID_SIZE):
             for x in range(GRID_SIZE):
-                global blockGrid
                 block_number = grid_values[GRID_SIZE * y + x]
                 block_type = BLOCK_MAPPING[block_number]
-                blockGrid[x][y] = block_type(
+                block: Block = block_type(
                     x * BLOCK_SIZE + BLOCK_SIZE / 2,
                     y * BLOCK_SIZE + BLOCK_SIZE / 2,
                     block_number,
                     x,
                     y,
                 )  # creates a grid of Blocks
-                blockGrid[x][y].paint(drawn_map)
-        drawn_map.save("images/mapImages/" + map_name + ".png")
-        self.image = ImageTk.PhotoImage(
-            Image.open("images/mapImages/" + map_name + ".png")
-        )
+                block.paint(drawn_map)
+                set_block(x, y, block)
 
-    def save_map(self):
-        with open("firstMap.txt", "w") as map_file:
-            for y in range(GRID_SIZE):
-                for x in range(GRID_SIZE):
-                    map_file.write(blockGrid[x][y].block_type + " ")
+        # TODO: fix weird save/load
+        image_path = "images/mapImages/" + map_name + ".png"
+        drawn_map.save(image_path)
+        self.image = ImageTk.PhotoImage(Image.open(image_path))
 
     def update(self):
         pass
 
-    def paint(self, canvas):
+    def paint(self, canvas: tk.Canvas):
         canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
 
 
@@ -187,13 +157,13 @@ class Wavegenerator:
         global spawnx
         global spawny
         for x in range(GRID_SIZE):
-            if isinstance(blockGrid[x][0], PathBlock):
+            if isinstance(get_block(x, 0), PathBlock):
                 self.gridx = x
                 spawnx = x * BLOCK_SIZE + BLOCK_SIZE / 2
                 spawny = 0
                 return
         for y in range(GRID_SIZE):
-            if isinstance(blockGrid[0][y], PathBlock):
+            if isinstance(get_block(0, y), PathBlock):
                 self.gridy = y
                 spawnx = 0
                 spawny = y * BLOCK_SIZE + BLOCK_SIZE / 2
@@ -218,7 +188,7 @@ class Wavegenerator:
                 and self.gridx < GRID_SIZE - 1
                 and 0 <= self.gridy <= GRID_SIZE - 1
         ):
-            if isinstance(blockGrid[self.gridx + 1][self.gridy], PathBlock):
+            if isinstance(get_block(self.gridx + 1, self.gridy), PathBlock):
                 self.direction = 1
                 self.move()
                 return
@@ -228,7 +198,7 @@ class Wavegenerator:
                 and self.gridx > 0
                 and 0 <= self.gridy <= GRID_SIZE - 1
         ):
-            if isinstance(blockGrid[self.gridx - 1][self.gridy], PathBlock):
+            if isinstance(get_block(self.gridx - 1, self.gridy), PathBlock):
                 self.direction = 2
                 self.move()
                 return
@@ -238,7 +208,7 @@ class Wavegenerator:
                 and self.gridy < GRID_SIZE - 1
                 and 0 <= self.gridx <= GRID_SIZE - 1
         ):
-            if isinstance(blockGrid[self.gridx][self.gridy + 1], PathBlock):
+            if isinstance(get_block(self.gridx, self.gridy + 1), PathBlock):
                 self.direction = 3
                 self.move()
                 return
@@ -248,7 +218,7 @@ class Wavegenerator:
                 and self.gridy > 0
                 and 0 <= self.gridx <= GRID_SIZE - 1
         ):
-            if isinstance(blockGrid[self.gridx][self.gridy - 1], PathBlock):
+            if isinstance(get_block(self.gridx, self.gridy - 1), PathBlock):
                 self.direction = 4
                 self.move()
                 return
@@ -273,7 +243,7 @@ class Wavegenerator:
                 self.ticks = 0
                 self.spawn_monster()
 
-    def paint(self, canvas):
+    def paint(self, canvas: tk.Canvas):
         pass
 
 
@@ -330,7 +300,7 @@ class MyButton:
     def pressed(self):
         pass
 
-    def paint(self, canvas):
+    def paint(self, canvas: tk.Canvas):
         canvas.create_rectangle(
             self.x, self.y, self.x_two, self.y_two, fill="red", outline="black"
         )
@@ -361,6 +331,8 @@ class SellButton(MyButton):
 
     def pressed(self):
         global displayTower
+        if displayTower is None:
+            return
         displayTower.sold()
         displayTower = None
 
@@ -378,7 +350,7 @@ class UpgradeButton(MyButton):
 
 
 class InfoBoard:
-    def __init__(self, game):
+    def __init__(self, game: TowerDefenseGame):
         self.canvas = tk.Canvas(
             master=game.frame, width=162, height=174, bg="gray", highlightthickness=0
         )
@@ -398,22 +370,23 @@ class InfoBoard:
         self.canvas.delete(tk.ALL)  # clear the screen
         self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
         self.current_buttons = []
-        if displayTower is None:
+        display_tower: Optional[TargetingTower] = displayTower
+        if display_tower is None:
             return
 
         tower_image = ImageTk.PhotoImage(
             Image.open(
                 "images/towerImages/"
-                + displayTower.__class__.__name__
+                + display_tower.__class__.__name__
                 + "/"
-                + str(displayTower.level)
+                + str(display_tower.level)
                 + ".png"
             )
         )
-        self.canvas.create_text(80, 75, text=displayTower.name, font=("times", 20))
+        self.canvas.create_text(80, 75, text=display_tower.get_name(), font=("times", 20))
         self.canvas.create_image(5, 5, image=tower_image, anchor=tk.NW)
 
-        if issubclass(displayTower.__class__, TargetingTower):
+        if issubclass(display_tower.__class__, TargetingTower):
 
             self.current_buttons.append(TargetButton(26, 30, 35, 39, 0))
             self.canvas.create_text(
@@ -437,12 +410,12 @@ class InfoBoard:
 
             self.current_buttons.append(StickyButton(10, 40, 19, 49))
             self.current_buttons.append(SellButton(5, 145, 78, 168))
-            if displayTower.upgrade_cost:
+            if display_tower.upgrade_cost:
                 self.current_buttons.append(UpgradeButton(82, 145, 155, 168))
                 self.canvas.create_text(
                     120,
                     157,
-                    text="Upgrade: " + str(displayTower.upgrade_cost),
+                    text="Upgrade: " + str(display_tower.upgrade_cost),
                     font=("times", 12),
                     fill="light green",
                     anchor=tk.CENTER,
@@ -452,8 +425,8 @@ class InfoBoard:
                 28, 146, text="Sell", font=("times", 22), fill="light green", anchor=tk.NW
             )
 
-            self.current_buttons[displayTower.target_list].paint(self.canvas)
-            if displayTower.sticky_target:
+            self.current_buttons[display_tower.target_list].paint(self.canvas)
+            if display_tower.sticky_target:
                 self.current_buttons[4].paint(self.canvas)
 
     def display_generic(self):
@@ -475,7 +448,7 @@ class InfoBoard:
 
 
 class DisplayBoard:
-    def __init__(self, game):
+    def __init__(self, game: TowerDefenseGame):
         self.canvas = tk.Canvas(
             master=game.frame, width=600, height=80, bg="gray", highlightthickness=0
         )
@@ -497,7 +470,7 @@ class DisplayBoard:
 
 
 class TowerBox:
-    def __init__(self, game):
+    def __init__(self, game: TowerDefenseGame):
         self.game = game
         self.box = tk.Listbox(
             master=game.frame,
@@ -523,7 +496,7 @@ class TowerBox:
         global displayTower
         selectedTower = str(self.box.get(self.box.curselection()))
         displayTower = None
-        self.game.infoboard.display_generic()
+        self.game.info_board.display_generic()
 
 
 class Mouse:
@@ -560,13 +533,13 @@ class Mouse:
         if event.widget == self.game.canvas:
             self.xoffset = 0
             self.yoffset = 0
-        elif event.widget == self.game.infoboard.canvas:
+        elif event.widget == self.game.info_board.canvas:
             self.xoffset = MAP_SIZE
             self.yoffset = 0
-        elif event.widget == self.game.towerbox.box:
+        elif event.widget == self.game.tower_box.box:
             self.xoffset = MAP_SIZE
             self.yoffset = 174
-        elif event.widget == self.game.displayboard.canvas:
+        elif event.widget == self.game.display_board.canvas:
             self.yoffset = MAP_SIZE
             self.xoffset = 0
         self.x = event.x + self.xoffset  # sets the "Mouse" x to the real mouse's x
@@ -583,21 +556,22 @@ class Mouse:
                 0 <= self.gridx <= GRID_SIZE - 1
                 and 0 <= self.gridy <= GRID_SIZE - 1
         ):
-            blockGrid[self.gridx][self.gridy].hovered_over(self.pressed, self.game)
+            get_block(self.gridx, self.gridy).hovered_over(self.pressed, self.game)
         else:
-            self.game.displayboard.nextWaveButton.check_press(
+            self.game.display_board.nextWaveButton.check_press(
                 self.pressed, self.x - self.xoffset, self.y - self.yoffset
             )
-            self.game.infoboard.buttons_check(
+            self.game.info_board.buttons_check(
                 self.pressed, self.x - self.xoffset, self.y - self.yoffset
             )
 
-    def paint(self, canvas):
+    def paint(self, canvas: tk.Canvas):
         if (
                 0 <= self.gridx <= GRID_SIZE - 1
                 and 0 <= self.gridy <= GRID_SIZE - 1
         ):
-            if blockGrid[self.gridx][self.gridy].can_place:
+
+            if get_block(self.gridx, self.gridy).can_place:
                 canvas.create_image(
                     self.gridx * BLOCK_SIZE,
                     self.gridy * BLOCK_SIZE,
@@ -620,7 +594,7 @@ class HealthBar:
     def update(self):
         self.text = str(health)
 
-    def paint(self, canvas):
+    def paint(self, canvas: tk.Canvas):
         canvas.create_text(40, 40, text="Health: " + self.text, fill="black")
 
 
@@ -631,20 +605,20 @@ class MoneyBar:
     def update(self):
         self.text = str(money)
 
-    def paint(self, canvas):
+    def paint(self, canvas: tk.Canvas):
         canvas.create_text(240, 40, text="Money: " + self.text, fill="black")
 
 
-class Projectile:
-    def __init__(self, x, y, damage, speed):
+class Projectile(ABC):
+    def __init__(self, x, y, damage, speed, target, image):
         self.hit = False
         self.x = x
         self.y = y
         self.speed = BLOCK_SIZE / 2
         self.damage = damage
         self.speed = speed
-        # self.image = Image.open("images/projectileImages/"+self.__class__.__name__+ ".png")
-        # self.image = ImageTk.PhotoImage(self.image)
+        self.image = image
+        self.target = target
 
     def update(self):
         if self.target and not self.target.alive:
@@ -659,15 +633,28 @@ class Projectile:
         self.target.health -= self.damage
         projectiles.remove(self)
 
-    def paint(self, canvas):
+    def paint(self, canvas: tk.Canvas):
         canvas.create_image(self.x, self.y, image=self.image)
+
+    @abstractmethod
+    def move(self):
+        ...
+
+    @abstractmethod
+    def check_hit(self):
+        ...
 
 
 class TrackingBullet(Projectile):
-    def __init__(self, x, y, damage, speed, target):
-        super().__init__(x, y, damage, speed)
-        self.target = target
-        self.image = ImageTk.PhotoImage(Image.open("images/projectileImages/bullet.png"))
+    def __init__(self, x, y, damage, speed, target, image: Optional[ImageTk.PhotoImage] = None):
+        super().__init__(
+            x,
+            y,
+            damage,
+            speed,
+            target,
+            ImageTk.PhotoImage(Image.open("images/projectileImages/bullet.png")) if image is None else image,
+        )
 
     def move(self):
         length = (
@@ -688,9 +675,15 @@ class TrackingBullet(Projectile):
 
 class PowerShot(TrackingBullet):
     def __init__(self, x, y, damage, speed, target, slow):
-        super().__init__(x, y, damage, speed, target)
+        super().__init__(
+            x,
+            y,
+            damage,
+            speed,
+            target,
+            image=ImageTk.PhotoImage(Image.open("images/projectileImages/powerShot.png"))
+        )
         self.slow = slow
-        self.image = ImageTk.PhotoImage(Image.open("images/projectileImages/powerShot.png"))
 
     def got_monster(self):
         self.target.health -= self.damage
@@ -701,13 +694,17 @@ class PowerShot(TrackingBullet):
 
 class AngledProjectile(Projectile):
     def __init__(self, x, y, damage, speed, angle, given_range):
-        super().__init__(x, y, damage, speed)
+        super().__init__(
+            x,
+            y,
+            damage,
+            speed,
+            None,
+            image=ImageTk.PhotoImage(Image.open("images/projectileImages/arrow.png").rotate(math.degrees(angle)))
+        )
         self.x_change = speed * math.cos(angle)
         self.y_change = speed * math.sin(-angle)
         self.range = given_range
-        self.image = ImageTk.PhotoImage(Image.open("images/projectileImages/arrow.png").rotate(math.degrees(angle)))
-        self.target = None
-        self.speed = speed
         self.distance = 0
 
     def check_hit(self):
@@ -750,7 +747,7 @@ class Tower:
             "images/towerImages/" + self.__class__.__name__ + "/1.png"
         ))
 
-    def update(self):
+    def next_level(self):
         pass
 
     def upgrade(self):
@@ -765,7 +762,7 @@ class Tower:
         self.next_level()
 
     def sold(self):
-        towerGrid[self.gridx][self.gridy] = None
+        unset_tower(self.x, self.y)
 
     def paint_select(self, canvas):
         canvas.create_oval(
@@ -777,22 +774,17 @@ class Tower:
             outline="white",
         )
 
-    def paint(self, canvas):
+    def paint(self, canvas: tk.Canvas):
         canvas.create_image(self.x, self.y, image=self.image, anchor=tk.CENTER)
 
 
-class ShootingTower(Tower):
+class TargetingTower(Tower, ABC):
     def __init__(self, x, y, gridx, gridy):
         super().__init__(x, y, gridx, gridy)
         self.bullets_per_second = None
         self.ticks = 0
         self.damage = 0
         self.speed = None
-
-
-class TargetingTower(ShootingTower):
-    def __init__(self, x, y, gridx, gridy):
-        super().__init__(x, y, gridx, gridy)
         self.target = None
         self.target_list = 0
         self.sticky_target = False
@@ -829,17 +821,27 @@ class TargetingTower(ShootingTower):
     def update(self):
         self.prepare_shot()
 
+    @abstractmethod
+    def get_name(self) -> str:
+        ...
+
+    @abstractmethod
+    def shoot(self):
+        ...
+
 
 class ArrowShooterTower(TargetingTower):
     def __init__(self, x, y, gridx, gridy):
         super().__init__(x, y, gridx, gridy)
-        self.name = "Arrow Shooter"
         self.infotext = "ArrowShooterTower at [" + str(gridx) + "," + str(gridy) + "]."
         self.range = BLOCK_SIZE * 10
         self.bullets_per_second = 1
         self.damage = 10
         self.speed = BLOCK_SIZE
         self.upgrade_cost = 50
+
+    def get_name(self):
+        return "Arrow Shooter"
 
     def next_level(self):
         if self.level == 2:
@@ -867,12 +869,14 @@ class ArrowShooterTower(TargetingTower):
 class BulletShooterTower(TargetingTower):
     def __init__(self, x, y, gridx, gridy):
         super().__init__(x, y, gridx, gridy)
-        self.name = "Bullet Shooter"
         self.infotext = "BulletShooterTower at [" + str(gridx) + "," + str(gridy) + "]."
         self.range = BLOCK_SIZE * 6
         self.bullets_per_second = 4
         self.damage = 5
         self.speed = BLOCK_SIZE / 2
+
+    def get_name(self):
+        return "Bullet Shooter"
 
     def shoot(self):
         projectiles.append(
@@ -883,13 +887,15 @@ class BulletShooterTower(TargetingTower):
 class PowerTower(TargetingTower):
     def __init__(self, x, y, gridx, gridy):
         super().__init__(x, y, gridx, gridy)
-        self.name = "Power Tower"
         self.infotext = "PowerTower at [" + str(gridx) + "," + str(gridy) + "]."
         self.range = BLOCK_SIZE * 8
         self.bullets_per_second = 10
         self.damage = 1
         self.speed = BLOCK_SIZE
         self.slow = 3
+
+    def get_name(self):
+        return "Power Tower"
 
     def shoot(self):
         projectiles.append(
@@ -900,12 +906,14 @@ class PowerTower(TargetingTower):
 class TackTower(TargetingTower):
     def __init__(self, x, y, gridx, gridy):
         super().__init__(x, y, gridx, gridy)
-        self.name = "Tack Tower"
         self.infotext = "TackTower at [" + str(gridx) + "," + str(gridy) + "]."
         self.range = BLOCK_SIZE * 5
         self.bullets_per_second = 1
         self.damage = 10
         self.speed = BLOCK_SIZE
+
+    def get_name(self):
+        return "Tack Tower"
 
     def shoot(self):
         for i in range(8):
@@ -1002,7 +1010,7 @@ class Monster:
         self.alive = False
         monsters.remove(self)
 
-    def paint(self, canvas):
+    def paint(self, canvas: tk.Canvas):
         canvas.create_rectangle(
             self.x - self.axis,
             self.y - 3 * self.axis / 2,
@@ -1114,6 +1122,105 @@ class MonsterBig(Monster):
         self.axis = 3 * BLOCK_SIZE / 2
 
 
+class Block:
+    def __init__(
+            self, x, y, block_number, gridx, gridy, can_place=False
+    ):
+        self.x = x  # sets Block x to the given 'x'
+        self.y = y  # sets Block y to the given 'y'
+        self.can_place = can_place
+        self.block_number = block_number
+        self.gridx = gridx
+        self.gridy = gridy
+        self.axis = BLOCK_SIZE / 2
+
+    def hovered_over(self, click, game: TowerDefenseGame):
+        if click:
+            global money
+            tower = get_tower(self.gridx, self.gridy)
+            if tower:
+                if selectedTower == "<None>":
+                    tower.clicked = True
+                    global displayTower
+                    displayTower = tower
+                    game.info_board.display_specific()
+            elif (
+                    selectedTower != "<None>"
+                    and self.can_place
+                    and money >= TOWER_COST[selectedTower]
+            ):
+                tower_type = TOWER_MAPPING[selectedTower]
+                tower = tower_type(
+                    self.x, self.y, self.gridx, self.gridy
+                )
+                set_tower(self.gridx, self.gridy, tower)
+                money -= TOWER_COST[selectedTower]
+
+    def update(self):
+        pass
+
+    def paint(self, background: Image):
+        image = Image.open(
+            "images/blockImages/" + self.__class__.__name__ + ".png"
+        )
+        offset = (int(self.x - self.axis), int(self.y - self.axis))
+        background.paste(image, offset)
+
+
+class NormalBlock(Block):
+    def __init__(self, x, y, block_number, gridx, gridy):
+        super().__init__(x, y, block_number, gridx, gridy, can_place=True)
+
+
+class PathBlock(Block):
+    ...
+
+
+class WaterBlock(Block):
+    ...
+
+
+def get_block(x: int, y: int) -> Optional[Block]:
+    global blockGrid
+    return blockGrid[x][y]
+
+
+def set_block(x: int, y: int, block: Block) -> None:
+    global blockGrid
+    blockGrid[x][y] = block
+
+
+def get_tower(x: int, y: int) -> Optional[TargetingTower]:
+    return towerGrid[x][y]
+
+
+def set_tower(x: int, y: int, tower: TargetingTower) -> None:
+    global towerGrid
+    towerGrid[x][y] = tower
+
+
+def unset_tower(x: int, y: int) -> None:
+    global towerGrid
+    towerGrid[x][y] = None
+
+
+def main():
+    game = TowerDefenseGame()
+    game.initialize()
+    game.run()
+
+
+TOWER_COST = {
+    "Arrow Shooter": 150,
+    "Bullet Shooter": 150,
+    "Tack Tower": 150,
+    "Power Tower": 200,
+}
+BLOCK_MAPPING = [
+    NormalBlock,
+    PathBlock,
+    WaterBlock
+]
 MONSTER_MAPPING = [
     Monster1,
     Monster2,
@@ -1122,80 +1229,29 @@ MONSTER_MAPPING = [
     LeoMonster,
     MonsterBig,
 ]
-
-
-class Block:
-    def __init__(
-            self, x, y, block_number, gridx, gridy
-    ):  # when i define a "Block", this is what happens
-        self.x = x  # sets Block x to the given 'x'
-        self.y = y  # sets Block y to the given 'y'
-        self.can_place = True
-        self.block_number = block_number
-        self.gridx = gridx
-        self.gridy = gridy
-        self.axis = BLOCK_SIZE / 2
-
-    def hovered_over(self, click, game):
-        if click:
-            global towerGrid
-            global money
-            if towerGrid[self.gridx][self.gridy]:
-                if selectedTower == "<None>":
-                    towerGrid[self.gridx][self.gridy].clicked = True
-                    global displayTower
-                    displayTower = towerGrid[self.gridx][self.gridy]
-                    game.infoboard.display_specific()
-            elif (
-                    selectedTower != "<None>"
-                    and self.can_place
-                    and money >= TOWER_COST[selectedTower]
-            ):
-                tower_type = TOWER_MAPPING[selectedTower]
-                towerGrid[self.gridx][self.gridy] = tower_type(
-                    self.x, self.y, self.gridx, self.gridy
-                )
-                money -= TOWER_COST[selectedTower]
-
-    def update(self):
-        pass
-
-    def paint(self, draw):
-        image = Image.open(
-            "images/blockImages/" + self.__class__.__name__ + ".png"
-        )
-        offset = (int(self.x - self.axis), int(self.y - self.axis))
-        draw.paste(image, offset)
-
-
-class NormalBlock(Block):
-    def __init__(self, x, y, block_number, gridx, gridy):
-        super().__init__(x, y, block_number, gridx, gridy)
-
-
-class PathBlock(Block):
-    def __init__(self, x, y, block_number, gridx, gridy):
-        super().__init__(x, y, block_number, gridx, gridy)
-        self.can_place = False
-
-
-class WaterBlock(Block):
-    def __init__(self, x, y, block_number, gridx, gridy):
-        super().__init__(x, y, block_number, gridx, gridy)
-        self.can_place = False
-
-
-BLOCK_MAPPING = [
-    NormalBlock,
-    PathBlock,
-    WaterBlock
+blockGrid: List[List[Optional[Block]]] = [
+    [None for y in range(GRID_SIZE)] for x in range(GRID_SIZE)
 ]
-
-
-def main():
-    game = TowerDefenseGame()
-    game.initialize()
-    game.run()
+towerGrid: List[List[Optional[TargetingTower]]] = [[None for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
+pathList = []
+spawnx = 0
+spawny = 0
+monsters = []
+monstersByHealth = []
+monstersByHealthReversed = []
+monstersByDistance = []
+monstersByDistanceReversed = []
+monstersListList = [
+    monstersByHealth,
+    monstersByHealthReversed,
+    monstersByDistance,
+    monstersByDistanceReversed,
+]
+projectiles = []
+health = 100
+money = 5000000000
+selectedTower = "<None>"
+displayTower: Optional[TargetingTower] = None
 
 
 if __name__ == "__main__":
