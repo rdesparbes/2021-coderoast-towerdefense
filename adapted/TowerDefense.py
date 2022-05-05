@@ -3,7 +3,7 @@ import random
 import tkinter as tk
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import Optional, List, Type, Dict, Callable
+from typing import Optional, List, Type, Dict, Callable, Tuple
 
 from PIL import Image, ImageTk
 
@@ -136,77 +136,77 @@ class Wavegenerator:
         for x in range(GRID_SIZE):
             if isinstance(get_block(x, 0), PathBlock):
                 self.gridx = x
-                spawnx = x * BLOCK_SIZE + BLOCK_SIZE / 2
+                spawnx = x * BLOCK_SIZE + BLOCK_SIZE // 2
                 spawny = 0
                 return
         for y in range(GRID_SIZE):
             if isinstance(get_block(0, y), PathBlock):
                 self.gridy = y
                 spawnx = 0
-                spawny = y * BLOCK_SIZE + BLOCK_SIZE / 2
+                spawny = y * BLOCK_SIZE + BLOCK_SIZE // 2
                 return
 
     def move(self):
         global pathList
         pathList.append(self.direction)
-        if self.direction == 1:
+        if self.direction == Direction.EAST:
             self.gridx += 1
-        if self.direction == 2:
+        if self.direction == Direction.WEST:
             self.gridx -= 1
-        if self.direction == 3:
+        if self.direction == Direction.SOUTH:
             self.gridy += 1
-        if self.direction == 4:
+        if self.direction == Direction.NORTH:
             self.gridy -= 1
         self.decide_move()
 
     def decide_move(self):
         if (
-                self.direction != 2
+                self.direction != Direction.WEST
                 and self.gridx < GRID_SIZE - 1
                 and 0 <= self.gridy <= GRID_SIZE - 1
         ):
             if isinstance(get_block(self.gridx + 1, self.gridy), PathBlock):
-                self.direction = 1
+                self.direction = Direction.EAST
                 self.move()
                 return
 
         if (
-                self.direction != 1
+                self.direction != Direction.EAST
                 and self.gridx > 0
                 and 0 <= self.gridy <= GRID_SIZE - 1
         ):
             if isinstance(get_block(self.gridx - 1, self.gridy), PathBlock):
-                self.direction = 2
+                self.direction = Direction.WEST
                 self.move()
                 return
 
         if (
-                self.direction != 4
+                self.direction != Direction.NORTH
                 and self.gridy < GRID_SIZE - 1
                 and 0 <= self.gridx <= GRID_SIZE - 1
         ):
             if isinstance(get_block(self.gridx, self.gridy + 1), PathBlock):
-                self.direction = 3
+                self.direction = Direction.SOUTH
                 self.move()
                 return
 
         if (
-                self.direction != 3
+                self.direction != Direction.SOUTH
                 and self.gridy > 0
                 and 0 <= self.gridx <= GRID_SIZE - 1
         ):
             if isinstance(get_block(self.gridx, self.gridy - 1), PathBlock):
-                self.direction = 4
+                self.direction = Direction.NORTH
                 self.move()
                 return
 
         global pathList
-        pathList.append(5)
+        pathList.append(None)
 
     def spawn_monster(self):
-        monster_type = MONSTER_MAPPING[self.current_wave[self.current_monster]]
-        monsters.append(monster_type(0))
-        self.current_monster = self.current_monster + 1
+        monster_type: Type[Monster] = MONSTER_MAPPING[self.current_wave[self.current_monster]]
+        monsters.append(monster_type(distance=0))
+        self.current_monster += 1
 
     def update(self):
         if self.game.state == TowerDefenseGameState.WAIT_FOR_SPAWN:
@@ -912,7 +912,7 @@ class TackTower(TargetingTower):
 
 
 class Monster:
-    def __init__(self, distance):
+    def __init__(self, distance: int):
         self.alive = True
         self.image = None
         self.health = 0
@@ -947,30 +947,30 @@ class Monster:
             self.max_tick = 1
         self.tick += 1
 
-    def position_formula(self, distance):
+    def position_formula(self, distance: int) -> Tuple[int, int]:
         x_pos = spawnx
-        y_pos = spawny + BLOCK_SIZE / 2
-        blocks = int((distance - (distance % BLOCK_SIZE)) / BLOCK_SIZE)
+        y_pos = spawny + BLOCK_SIZE // 2
+        blocks = int((distance - (distance % BLOCK_SIZE)) // BLOCK_SIZE)
         if blocks != 0:
             for i in range(blocks):
-                if pathList[i] == 1:
+                if pathList[i] == Direction.EAST:
                     x_pos += BLOCK_SIZE
-                elif pathList[i] == 2:
+                elif pathList[i] == Direction.WEST:
                     x_pos -= BLOCK_SIZE
-                elif pathList[i] == 3:
+                elif pathList[i] == Direction.SOUTH:
                     y_pos += BLOCK_SIZE
-                else:
+                elif pathList[i] == Direction.NORTH:
                     y_pos -= BLOCK_SIZE
         if distance % BLOCK_SIZE != 0:
-            if pathList[blocks] == 1:
+            if pathList[blocks] == Direction.EAST:
                 x_pos += distance % BLOCK_SIZE
-            elif pathList[blocks] == 2:
+            elif pathList[blocks] == Direction.WEST:
                 x_pos -= distance % BLOCK_SIZE
-            elif pathList[blocks] == 3:
+            elif pathList[blocks] == Direction.SOUTH:
                 y_pos += distance % BLOCK_SIZE
-            else:
+            elif pathList[blocks] == Direction.NORTH:
                 y_pos -= distance % BLOCK_SIZE
-        if pathList[blocks] == 5:
+        if pathList[blocks] is None:
             self.got_through()
         return x_pos, y_pos
 
@@ -1185,17 +1185,24 @@ def set_block(x: int, y: int, block: Block) -> None:
 
 
 def get_tower(x: int, y: int) -> Optional[TargetingTower]:
-    return towerGrid[x][y]
+    return towerGrid.get((x, y), None)
 
 
 def set_tower(x: int, y: int, tower: TargetingTower) -> None:
     global towerGrid
-    towerGrid[x][y] = tower
+    towerGrid[x, y] = tower
 
 
 def unset_tower(x: int, y: int) -> None:
     global towerGrid
-    towerGrid[x][y] = None
+    del towerGrid[x, y]
+
+
+class Direction(Enum):
+    EAST = auto()
+    WEST = auto()
+    SOUTH = auto()
+    NORTH = auto()
 
 
 def main():
@@ -1235,8 +1242,8 @@ TARGETING_STRATEGIES: List[Callable[[], List[Monster]]] = [
 blockGrid: List[List[Optional[Block]]] = [
     [None for y in range(GRID_SIZE)] for x in range(GRID_SIZE)
 ]
-towerGrid: List[List[Optional[TargetingTower]]] = [[None for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
-pathList: List[int] = []
+towerGrid: Dict[Tuple[int, int], TargetingTower] = {}
+pathList: List[Optional[Direction]] = []
 spawnx: int = 0
 spawny: int = 0
 monsters: List[Monster] = []
