@@ -3,12 +3,11 @@ import random
 import tkinter as tk
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import Optional, List
+from typing import Optional, List, Type, Dict, Callable
 
 from PIL import Image, ImageTk
 
 from game import Game
-
 
 GRID_SIZE = 30  # the height and width of the array of blocks
 BLOCK_SIZE = 20  # pixels wide of each block
@@ -39,35 +38,13 @@ class TowerDefenseGame(Game):
     def update(self):
         super().update()
         self.display_board.update()
-        for p in projectiles:
-            p.update()
+        for projectile in projectiles:
+            projectile.update()
         for y in range(GRID_SIZE):
             for x in range(GRID_SIZE):
                 get_block(x, y).update()
-        for m in monsters:
-            m.update()
-        global monstersByHealth
-        global monstersByHealthReversed
-        global monstersByDistance
-        global monstersByDistanceReversed
-        global monstersListList
-        monstersByHealth = sorted(monsters, key=lambda _x: _x.health, reverse=True)
-        monstersByDistance = sorted(
-            monsters, key=lambda _x: _x.distance_travelled, reverse=True
-        )
-        monstersByHealthReversed = sorted(
-            monsters, key=lambda _x: _x.health, reverse=False
-        )
-        monstersByDistanceReversed = sorted(
-            monsters, key=lambda _x: _x.distance_travelled, reverse=False
-        )
-        monstersListList = [
-            monstersByHealth,
-            monstersByHealthReversed,
-            monstersByDistance,
-            monstersByDistanceReversed,
-        ]
-
+        for monster in monsters:
+            monster.update()
         for y in range(GRID_SIZE):
             for x in range(GRID_SIZE):
                 tower = get_tower(x, y)
@@ -81,10 +58,10 @@ class TowerDefenseGame(Game):
                 tower = get_tower(x, y)
                 if tower is not None:
                     tower.paint(self.canvas)
-        for i in range(len(monstersByDistanceReversed)):
-            monstersByDistanceReversed[i].paint(self.canvas)
-        for i in range(len(projectiles)):
-            projectiles[i].paint(self.canvas)
+        for monster in get_monsters_asc_distance():
+            monster.paint(self.canvas)
+        for projectile in projectiles:
+            projectile.paint(self.canvas)
         display_tower: Optional[Tower] = displayTower
         if display_tower is not None:
             display_tower.paint_select(self.canvas)
@@ -307,13 +284,13 @@ class MyButton:
 
 
 class TargetButton(MyButton):
-    def __init__(self, x, y, x_two, y_two, my_type):
+    def __init__(self, x, y, x_two, y_two, my_type: int):
         super().__init__(x, y, x_two, y_two)
-        self.type = my_type
+        self.type: int = my_type
 
     def pressed(self):
         global displayTower
-        displayTower.target_list = self.type
+        displayTower.targeting_strategy = self.type
 
 
 class StickyButton(MyButton):
@@ -425,7 +402,7 @@ class InfoBoard:
                 28, 146, text="Sell", font=("times", 22), fill="light green", anchor=tk.NW
             )
 
-            self.current_buttons[display_tower.target_list].paint(self.canvas)
+            self.current_buttons[display_tower.targeting_strategy].paint(self.canvas)
             if display_tower.sticky_target:
                 self.current_buttons[4].paint(self.canvas)
 
@@ -435,7 +412,7 @@ class InfoBoard:
             text = None
             tower_image = None
         else:
-            text = selectedTower + " cost: " + str(TOWER_COST[selectedTower])
+            text = selectedTower + " cost: " + str(TOWER_MAPPING[selectedTower].cost)
             tower_image = ImageTk.PhotoImage(
                 Image.open(
                     "images/towerImages/" + TOWER_MAPPING[selectedTower].__name__ + "/1.png"
@@ -734,6 +711,8 @@ class AngledProjectile(Projectile):
 
 
 class Tower:
+    cost: int = 150
+
     def __init__(self, x, y, gridx, gridy):
         self.upgrade_cost = None
         self.level = 1
@@ -786,11 +765,11 @@ class TargetingTower(Tower, ABC):
         self.damage = 0
         self.speed = None
         self.target = None
-        self.target_list = 0
+        self.targeting_strategy = 0
         self.sticky_target = False
 
     def prepare_shot(self):
-        check_list = monstersListList[self.target_list]
+        check_list = TARGETING_STRATEGIES[self.targeting_strategy]()
         if self.ticks != 20 / self.bullets_per_second:
             self.ticks += 1
         if not self.sticky_target:
@@ -821,8 +800,9 @@ class TargetingTower(Tower, ABC):
     def update(self):
         self.prepare_shot()
 
+    @staticmethod
     @abstractmethod
-    def get_name(self) -> str:
+    def get_name() -> str:
         ...
 
     @abstractmethod
@@ -840,7 +820,8 @@ class ArrowShooterTower(TargetingTower):
         self.speed = BLOCK_SIZE
         self.upgrade_cost = 50
 
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return "Arrow Shooter"
 
     def next_level(self):
@@ -875,7 +856,8 @@ class BulletShooterTower(TargetingTower):
         self.damage = 5
         self.speed = BLOCK_SIZE / 2
 
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return "Bullet Shooter"
 
     def shoot(self):
@@ -894,7 +876,8 @@ class PowerTower(TargetingTower):
         self.speed = BLOCK_SIZE
         self.slow = 3
 
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return "Power Tower"
 
     def shoot(self):
@@ -904,6 +887,8 @@ class PowerTower(TargetingTower):
 
 
 class TackTower(TargetingTower):
+    cost: int = 200
+
     def __init__(self, x, y, gridx, gridy):
         super().__init__(x, y, gridx, gridy)
         self.infotext = "TackTower at [" + str(gridx) + "," + str(gridy) + "]."
@@ -912,7 +897,8 @@ class TackTower(TargetingTower):
         self.damage = 10
         self.speed = BLOCK_SIZE
 
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return "Tack Tower"
 
     def shoot(self):
@@ -923,14 +909,6 @@ class TackTower(TargetingTower):
                     self.x, self.y, self.damage, self.speed, angle, self.range
                 )
             )
-
-
-TOWER_MAPPING = {
-    "Arrow Shooter": ArrowShooterTower,
-    "Bullet Shooter": BulletShooterTower,
-    "Tack Tower": TackTower,
-    "Power Tower": PowerTower,
-}
 
 
 class Monster:
@@ -1122,6 +1100,22 @@ class MonsterBig(Monster):
         self.axis = 3 * BLOCK_SIZE / 2
 
 
+def get_monsters_desc_health():
+    return sorted(monsters, key=lambda _x: _x.health, reverse=True)
+
+
+def get_monsters_desc_distance():
+    return sorted(monsters, key=lambda _x: _x.distance_travelled, reverse=True)
+
+
+def get_monsters_asc_health():
+    return sorted(monsters, key=lambda _x: _x.health, reverse=False)
+
+
+def get_monsters_asc_distance():
+    return sorted(monsters, key=lambda _x: _x.distance_travelled, reverse=False)
+
+
 class Block:
     def __init__(
             self, x, y, block_number, gridx, gridy, can_place=False
@@ -1147,14 +1141,14 @@ class Block:
             elif (
                     selectedTower != "<None>"
                     and self.can_place
-                    and money >= TOWER_COST[selectedTower]
+                    and money >= TOWER_MAPPING[selectedTower].cost
             ):
                 tower_type = TOWER_MAPPING[selectedTower]
                 tower = tower_type(
                     self.x, self.y, self.gridx, self.gridy
                 )
                 set_tower(self.gridx, self.gridy, tower)
-                money -= TOWER_COST[selectedTower]
+                money -= TOWER_MAPPING[selectedTower].cost
 
     def update(self):
         pass
@@ -1210,18 +1204,21 @@ def main():
     game.run()
 
 
-TOWER_COST = {
-    "Arrow Shooter": 150,
-    "Bullet Shooter": 150,
-    "Tack Tower": 150,
-    "Power Tower": 200,
+TOWER_MAPPING: Dict[str, Type[TargetingTower]] = {
+    tower_type.get_name(): tower_type
+    for tower_type in (
+        ArrowShooterTower,
+        BulletShooterTower,
+        TackTower,
+        PowerTower,
+    )
 }
-BLOCK_MAPPING = [
+BLOCK_MAPPING: List[Type[Block]] = [
     NormalBlock,
     PathBlock,
     WaterBlock
 ]
-MONSTER_MAPPING = [
+MONSTER_MAPPING: List[Type[Monster]] = [
     Monster1,
     Monster2,
     AlexMonster,
@@ -1229,30 +1226,25 @@ MONSTER_MAPPING = [
     LeoMonster,
     MonsterBig,
 ]
+TARGETING_STRATEGIES: List[Callable[[], List[Monster]]] = [
+    get_monsters_desc_health,
+    get_monsters_asc_health,
+    get_monsters_desc_distance,
+    get_monsters_asc_distance,
+]
 blockGrid: List[List[Optional[Block]]] = [
     [None for y in range(GRID_SIZE)] for x in range(GRID_SIZE)
 ]
 towerGrid: List[List[Optional[TargetingTower]]] = [[None for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
-pathList = []
-spawnx = 0
-spawny = 0
-monsters = []
-monstersByHealth = []
-monstersByHealthReversed = []
-monstersByDistance = []
-monstersByDistanceReversed = []
-monstersListList = [
-    monstersByHealth,
-    monstersByHealthReversed,
-    monstersByDistance,
-    monstersByDistanceReversed,
-]
-projectiles = []
-health = 100
-money = 5000000000
-selectedTower = "<None>"
+pathList: List[int] = []
+spawnx: int = 0
+spawny: int = 0
+monsters: List[Monster] = []
+projectiles: List[Projectile] = []
+health: int = 100
+money: int = 5000000000
+selectedTower: str = "<None>"
 displayTower: Optional[TargetingTower] = None
-
 
 if __name__ == "__main__":
     main()
