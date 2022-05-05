@@ -24,7 +24,7 @@ class TowerDefenseGame(Game):
     def __init__(
             self, title: str = "Tower Defense", width: int = MAP_SIZE, height: int = MAP_SIZE
     ):
-        super().__init__(title, width, height)
+        super().__init__(title, width, height, timestep=TIME_STEP)
         self.state = TowerDefenseGameState.IDLE
         self.display_board = DisplayBoard(self)
         self.info_board = InfoBoard(self)
@@ -338,8 +338,8 @@ class InfoBoard:
 
     def buttons_check(self, click, x, y):
         if click:
-            for i in range(len(self.current_buttons)):
-                if self.current_buttons[i].check_press(click, x, y):
+            for current_button in self.current_buttons:
+                if current_button.check_press(click, x, y):
                     self.display_specific()
                     return
 
@@ -685,12 +685,12 @@ class AngledProjectile(Projectile):
         self.distance = 0
 
     def check_hit(self):
-        for i in range(len(monsters)):
-            if (monsters[i].x - self.x) ** 2 + (monsters[i].y - self.y) ** 2 <= (
+        for monster in monsters:
+            if (monster.x - self.x) ** 2 + (monster.y - self.y) ** 2 <= (
                     BLOCK_SIZE
             ) ** 2:
                 self.hit = True
-                self.target = monsters[i]
+                self.target = monster
                 return
 
     def got_monster(self):
@@ -770,14 +770,14 @@ class TargetingTower(Tower, ABC):
 
     def prepare_shot(self):
         check_list = TARGETING_STRATEGIES[self.targeting_strategy]()
-        if self.ticks != 20 / self.bullets_per_second:
+        if self.ticks != FPS / self.bullets_per_second:
             self.ticks += 1
         if not self.sticky_target:
-            for i in range(len(check_list)):
+            for monster in check_list:
                 if (self.range + BLOCK_SIZE / 2) ** 2 >= (
-                        self.x - check_list[i].x
-                ) ** 2 + (self.y - check_list[i].y) ** 2:
-                    self.target = check_list[i]
+                        self.x - monster.x
+                ) ** 2 + (self.y - monster.y) ** 2:
+                    self.target = monster
         if self.target:
             if (
                     self.target.alive
@@ -785,17 +785,17 @@ class TargetingTower(Tower, ABC):
                     >= ((self.x - self.target.x) ** 2 + (self.y - self.target.y) ** 2)
                     ** 0.5
             ):
-                if self.ticks >= 20 / self.bullets_per_second:
+                if self.ticks >= FPS / self.bullets_per_second:
                     self.shoot()
                     self.ticks = 0
             else:
                 self.target = None
         elif self.sticky_target:
-            for i in range(len(check_list)):
+            for monster in check_list:
                 if (self.range + BLOCK_SIZE / 2) ** 2 >= (
-                        self.x - check_list[i].x
-                ) ** 2 + (self.y - check_list[i].y) ** 2:
-                    self.target = check_list[i]
+                        self.x - monster.x
+                ) ** 2 + (self.y - monster.y) ** 2:
+                    self.target = monster
 
     def update(self):
         self.prepare_shot()
@@ -896,14 +896,15 @@ class TackTower(TargetingTower):
         self.bullets_per_second = 1
         self.damage = 10
         self.speed = BLOCK_SIZE
+        self.projectile_count = 8
 
     @staticmethod
     def get_name():
         return "Tack Tower"
 
     def shoot(self):
-        for i in range(8):
-            angle = math.radians(i * 45)
+        for i in range(self.projectile_count):
+            angle = math.radians(i * 360 / self.projectile_count)
             projectiles.append(
                 AngledProjectile(
                     self.x, self.y, self.damage, self.speed, angle, self.range
@@ -912,7 +913,7 @@ class TackTower(TargetingTower):
 
 
 class Monster:
-    def __init__(self, distance: int):
+    def __init__(self, distance: float):
         self.alive = True
         self.image = None
         self.health = 0
@@ -947,10 +948,10 @@ class Monster:
             self.max_tick = 1
         self.tick += 1
 
-    def position_formula(self, distance: int) -> Tuple[int, int]:
+    def position_formula(self, distance: float) -> Tuple[int, int]:
         x_pos = spawnx
         y_pos = spawny + BLOCK_SIZE // 2
-        blocks = int((distance - (distance % BLOCK_SIZE)) // BLOCK_SIZE)
+        blocks = int((distance - (distance % BLOCK_SIZE)) / BLOCK_SIZE)
         if blocks != 0:
             for i in range(blocks):
                 if pathList[i] == Direction.EAST:
@@ -1225,6 +1226,8 @@ BLOCK_MAPPING: List[Type[Block]] = [
     PathBlock,
     WaterBlock
 ]
+TIME_STEP: int = 50
+FPS: int = 1000 // TIME_STEP
 MONSTER_MAPPING: List[Type[Monster]] = [
     Monster1,
     Monster2,
