@@ -219,52 +219,18 @@ class WaveGenerator:
         pass
 
 
-class NextWaveButton:
-    def __init__(self, game: TowerDefenseGame):
-        self.game = game
-        self.x = 450
-        self.y = 25
-        self.x_two = 550
-        self.y_two = 50
-
-    @property
-    def is_idle(self) -> bool:
-        return self.game.state is TowerDefenseGameState.IDLE
+class Button:
+    def __init__(self, x_min: int, y_min: int, x_max: int, y_max: int):
+        self.x_min = x_min
+        self.y_min = y_min
+        self.x_max = x_max
+        self.y_max = y_max
 
     def is_within_bounds(self, x: int, y: int) -> bool:
-        return self.x <= x <= self.x_two and self.y <= y <= self.y_two
+        return self.x_min <= x <= self.x_max and self.y_min <= y <= self.y_max
 
-    @property
-    def can_spawn(self) -> bool:
-        return self.is_idle and len(monsters) == 0
-
-    def check_press(self, click: bool, x: int, y: int):
-        if not self.is_within_bounds(x, y):
-            return
-        if not click or not self.can_spawn:
-            return
-        self.game.set_state(TowerDefenseGameState.WAIT_FOR_SPAWN)
-
-    def paint(self, canvas: tk.Canvas):
-        if self.is_idle and len(monsters) == 0:
-            color = "blue"
-        else:
-            color = "red"
-        canvas.create_rectangle(
-            self.x, self.y, self.x_two, self.y_two, fill=color, outline=color
-        )  # draws a rectangle where the pointer is
-        canvas.create_text(500, 37, text="Next Wave")
-
-
-class MyButton:
-    def __init__(self, x, y, x_two, y_two):
-        self.x = x
-        self.y = y
-        self.x_two = x_two
-        self.y_two = y_two
-
-    def check_press(self, click, x, y):
-        if self.x <= x <= self.x_two and self.y <= y <= self.y_two:
+    def press(self, x, y):
+        if self.is_within_bounds(x, y):
             self.pressed()
             return True
         return False
@@ -274,33 +240,56 @@ class MyButton:
 
     def paint(self, canvas: tk.Canvas):
         canvas.create_rectangle(
-            self.x, self.y, self.x_two, self.y_two, fill="red", outline="black"
+            self.x_min, self.y_min, self.x_max, self.y_max, fill="red", outline="black"
         )
 
 
-class TargetButton(MyButton):
-    def __init__(self, x, y, x_two, y_two, my_type: int):
-        super().__init__(x, y, x_two, y_two)
-        self.type: int = my_type
+class NextWaveButton(Button):
+    def __init__(self, x_min: int, y_min: int, x_max: int, y_max: int, game: TowerDefenseGame):
+        super().__init__(x_min, y_min, x_max, y_max)
+        self.game = game
+
+    @property
+    def is_idle(self) -> bool:
+        return self.game.state is TowerDefenseGameState.IDLE
+
+    @property
+    def can_spawn(self) -> bool:
+        return self.is_idle and len(monsters) == 0
+
+    def pressed(self) -> None:
+        if not self.can_spawn:
+            return
+        self.game.set_state(TowerDefenseGameState.WAIT_FOR_SPAWN)
+
+    def paint(self, canvas: tk.Canvas):
+        if self.is_idle and len(monsters) == 0:
+            color = "blue"
+        else:
+            color = "red"
+        canvas.create_rectangle(
+            self.x_min, self.y_min, self.x_max, self.y_max, fill=color, outline=color
+        )  # draws a rectangle where the pointer is
+        canvas.create_text(500, 37, text="Next Wave")
+
+
+class TargetButton(Button):
+    def __init__(self, x_min: int, y_min: int, x_max: int, y_max: int, targeting_strategy_index: int):
+        super().__init__(x_min, y_min, x_max, y_max)
+        self.targeting_strategy_index: int = targeting_strategy_index
 
     def pressed(self):
         global displayTower
-        displayTower.targeting_strategy = self.type
+        displayTower.targeting_strategy = self.targeting_strategy_index
 
 
-class StickyButton(MyButton):
-    def __init__(self, x, y, x_two, y_two):
-        super().__init__(x, y, x_two, y_two)
-
+class StickyButton(Button):
     def pressed(self):
         global displayTower
         displayTower.sticky_target = not displayTower.sticky_target
 
 
-class SellButton(MyButton):
-    def __init__(self, x, y, x_two, y_two):
-        super().__init__(x, y, x_two, y_two)
-
+class SellButton(Button):
     def pressed(self):
         global displayTower
         if displayTower is None:
@@ -309,10 +298,7 @@ class SellButton(MyButton):
         displayTower = None
 
 
-class UpgradeButton(MyButton):
-    def __init__(self, x, y, x_two, y_two):
-        super().__init__(x, y, x_two, y_two)
-
+class UpgradeButton(Button):
     def pressed(self):
         global displayTower
         if get_money() >= displayTower.upgrade_cost:
@@ -331,12 +317,11 @@ class InfoBoard:
         self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
         self.current_buttons = []
 
-    def buttons_check(self, click, x, y):
-        if click:
-            for current_button in self.current_buttons:
-                if current_button.check_press(click, x, y):
-                    self.display_specific()
-                    return
+    def press(self, x, y):
+        for current_button in self.current_buttons:
+            if current_button.press(x, y):
+                self.display_specific()
+                return
 
     def display_specific(self):
         self.canvas.delete(tk.ALL)  # clear the screen
@@ -426,7 +411,7 @@ class DisplayBoard:
         self.canvas.grid(row=2, column=0)
         self.health_bar = HealthBar()
         self.money_bar = MoneyBar()
-        self.next_wave_button = NextWaveButton(game)
+        self.next_wave_button = NextWaveButton(450, 25, 550, 50, game)
         self.paint()
 
     def update(self):
@@ -517,11 +502,9 @@ class Mouse:
 
     def clicked(self, event):
         self.pressed = True
-        self.image = self.pressed_image
 
     def released(self, event):
         self.pressed = False
-        self.image = self.can_press_image
 
     def motion(self, event):
         if event.widget == self.game.canvas:
@@ -542,20 +525,20 @@ class Mouse:
         self.gridy = int((self.y - (self.y % BLOCK_SIZE)) / BLOCK_SIZE)
 
     def update(self):
-        if (
-                0 <= self.gridx <= GRID_SIZE - 1
-                and 0 <= self.gridy <= GRID_SIZE - 1
-        ):
-            if self.pressed:
+        if self.pressed:
+            if (
+                    0 <= self.gridx <= GRID_SIZE - 1
+                    and 0 <= self.gridy <= GRID_SIZE - 1
+            ):
                 block: Block = get_block(self.gridx, self.gridy)
                 hovered_over(block, self.game.info_board)
-        else:
-            self.game.display_board.next_wave_button.check_press(
-                self.pressed, self.x - self.xoffset, self.y - self.yoffset
-            )
-            self.game.info_board.buttons_check(
-                self.pressed, self.x - self.xoffset, self.y - self.yoffset
-            )
+            else:
+                self.game.display_board.next_wave_button.press(
+                    self.x - self.xoffset, self.y - self.yoffset
+                )
+                self.game.info_board.press(
+                    self.x - self.xoffset, self.y - self.yoffset
+                )
 
     def paint(self, canvas: tk.Canvas):
         if (
