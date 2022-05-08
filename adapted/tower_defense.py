@@ -327,6 +327,7 @@ class InfoBoard:
         )
         self.canvas.grid(row=0, column=1)
         self.image = ImageTk.PhotoImage(Image.open("images/infoBoard.png"))
+        self.tower_image = None
         self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
         self.current_buttons = []
 
@@ -345,7 +346,7 @@ class InfoBoard:
         if display_tower is None:
             return
 
-        tower_image = ImageTk.PhotoImage(
+        self.tower_image = ImageTk.PhotoImage(
             Image.open(
                 "images/towerImages/"
                 + display_tower.__class__.__name__
@@ -355,7 +356,7 @@ class InfoBoard:
             )
         )
         self.canvas.create_text(80, 75, text=display_tower.get_name(), font=("times", 20))
-        self.canvas.create_image(5, 5, image=tower_image, anchor=tk.NW)
+        self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
 
         if isinstance(display_tower, TargetingTower):
             self.current_buttons.append(TargetButton(26, 30, 35, 39, 0))
@@ -403,10 +404,10 @@ class InfoBoard:
         self.current_buttons = []
         if selectedTower == "<None>":
             text = None
-            tower_image = None
+            self.tower_image = None
         else:
             text = selectedTower + " cost: " + str(TOWER_MAPPING[selectedTower].cost)
-            tower_image = ImageTk.PhotoImage(
+            self.tower_image = ImageTk.PhotoImage(
                 Image.open(
                     "images/towerImages/" + TOWER_MAPPING[selectedTower].__name__ + "/1.png"
                 )
@@ -414,7 +415,7 @@ class InfoBoard:
         self.canvas.delete(tk.ALL)  # clear the screen
         self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
         self.canvas.create_text(80, 75, text=text)
-        self.canvas.create_image(5, 5, image=tower_image, anchor=tk.NW)
+        self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
 
 
 class DisplayBoard:
