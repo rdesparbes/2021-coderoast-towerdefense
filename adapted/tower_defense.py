@@ -35,7 +35,7 @@ class TowerDefenseGame(Game):
     def initialize(self):
         self.add_object(Map())
         self.add_object(Mouse(self))
-        self.add_object(Wavegenerator(self))
+        self.add_object(WaveGenerator(self))
 
     def update(self):
         super().update()
@@ -107,7 +107,7 @@ class Map:
         canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
 
 
-class Wavegenerator:
+class WaveGenerator:
     def __init__(self, game: TowerDefenseGame):
         self.game = game
         self.current_wave = []
@@ -426,7 +426,7 @@ class DisplayBoard:
         self.canvas.grid(row=2, column=0)
         self.health_bar = HealthBar()
         self.money_bar = MoneyBar()
-        self.nextWaveButton = NextWaveButton(game)
+        self.next_wave_button = NextWaveButton(game)
         self.paint()
 
     def update(self):
@@ -437,7 +437,7 @@ class DisplayBoard:
         self.canvas.delete(tk.ALL)  # clear the screen
         self.health_bar.paint(self.canvas)
         self.money_bar.paint(self.canvas)
-        self.nextWaveButton.paint(self.canvas)
+        self.next_wave_button.paint(self.canvas)
 
 
 class TowerBox:
@@ -503,23 +503,25 @@ class Mouse:
         self.pressed = False
         game.root.bind(
             "<Button-1>", self.clicked
-        )  # whenever left mouse button is pressed, go to def released(event)
+        )
         game.root.bind(
             "<ButtonRelease-1>", self.released
-        )  # whenever left mouse button is released, go to def released(event)
+        )
         game.root.bind(
             "<Motion>", self.motion
-        )  # whenever left mouse button is dragged, go to def released(event)
-        self.image = ImageTk.PhotoImage(Image.open("images/mouseImages/HoveringCanPress.png"))
+        )
+        self.pressed_image = ImageTk.PhotoImage(Image.open("images/mouseImages/Pressed.png"))
+        self.can_press_image = ImageTk.PhotoImage(Image.open("images/mouseImages/HoveringCanPress.png"))
         self.cannot_press_image = ImageTk.PhotoImage(Image.open("images/mouseImages/HoveringCanNotPress.png"))
+        self.image = self.can_press_image
 
     def clicked(self, event):
-        self.pressed = True  # sets a variable
-        self.image = ImageTk.PhotoImage(Image.open("images/mouseImages/Pressed.png"))
+        self.pressed = True
+        self.image = self.pressed_image
 
     def released(self, event):
         self.pressed = False
-        self.image = ImageTk.PhotoImage(Image.open("images/mouseImages/HoveringCanPress.png"))
+        self.image = self.can_press_image
 
     def motion(self, event):
         if event.widget == self.game.canvas:
@@ -534,12 +536,8 @@ class Mouse:
         elif event.widget == self.game.display_board.canvas:
             self.yoffset = MAP_SIZE
             self.xoffset = 0
-        self.x = event.x + self.xoffset  # sets the "Mouse" x to the real mouse's x
-        self.y = event.y + self.yoffset  # sets the "Mouse" y to the real mouse's y
-        if self.x < 0:
-            self.x = 0
-        if self.y < 0:
-            self.y = 0
+        self.x = max(event.x + self.xoffset, 0)  # sets the "Mouse" x to the real mouse's x
+        self.y = max(event.y + self.yoffset, 0)  # sets the "Mouse" y to the real mouse's y
         self.gridx = int((self.x - (self.x % BLOCK_SIZE)) / BLOCK_SIZE)
         self.gridy = int((self.y - (self.y % BLOCK_SIZE)) / BLOCK_SIZE)
 
@@ -552,7 +550,7 @@ class Mouse:
                 block: Block = get_block(self.gridx, self.gridy)
                 hovered_over(block, self.game.info_board)
         else:
-            self.game.display_board.nextWaveButton.check_press(
+            self.game.display_board.next_wave_button.check_press(
                 self.pressed, self.x - self.xoffset, self.y - self.yoffset
             )
             self.game.info_board.buttons_check(
@@ -565,7 +563,7 @@ class Mouse:
                 and 0 <= self.gridy <= GRID_SIZE - 1
         ):
 
-            if get_block(self.gridx, self.gridy).can_place:
+            if get_block(self.gridx, self.gridy).is_constructible():
                 canvas.create_image(
                     self.gridx * BLOCK_SIZE,
                     self.gridy * BLOCK_SIZE,
