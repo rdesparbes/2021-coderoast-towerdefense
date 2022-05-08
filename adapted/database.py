@@ -3,73 +3,73 @@ from typing import Tuple, List, Optional, Dict
 from adapted.constants import Direction
 from adapted.tower import ITower
 
-health: int = 100
-money: int = 5_000_000_000
-spawnx: int = 0
-spawny: int = 0
-pathList: List[Optional[Direction]] = []
-towerGrid: Dict[Tuple[int, int], ITower] = {}
+_health: int = 100
+_money: int = 5_000_000_000
+_spawn_x: int = 0
+_spawn_y: int = 0
+_path_list: List[Optional[Direction]] = []
+_tower_grid: Dict[Tuple[int, int], ITower] = {}
 
 
 def get_health() -> int:
-    global health
-    return health
+    global _health
+    return _health
 
 
 def gain_health(health_gained: int) -> None:
-    global health
-    health += health_gained
+    global _health
+    _health += health_gained
 
 
 def lose_health(health_lost: int) -> None:
-    global health
-    health -= health_lost
+    global _health
+    _health -= health_lost
 
 
 def get_money() -> int:
-    global money
-    return money
+    global _money
+    return _money
 
 
 def earn_money(money_earned: int) -> None:
-    global money
-    money += money_earned
+    global _money
+    _money += money_earned
 
 
 def spend_money(spent_amount: int) -> None:
-    global money
-    money -= spent_amount
+    global _money
+    _money -= spent_amount
 
 
 def get_spawn() -> Tuple[int, int]:
-    global spawnx, spawny
-    return spawnx, spawny
+    global _spawn_x, _spawn_y
+    return _spawn_x, _spawn_y
 
 
 def set_spawn(x: int, y: int) -> None:
-    global spawnx, spawny
-    spawnx, spawny = x, y
+    global _spawn_x, _spawn_y
+    _spawn_x, _spawn_y = x, y
 
 
 def get_tower(x: int, y: int) -> Optional[ITower]:
-    return towerGrid.get((x, y), None)
+    return _tower_grid.get((x, y), None)
 
 
 def set_tower(x: int, y: int, tower: ITower) -> None:
-    global towerGrid
-    towerGrid[x, y] = tower
+    global _tower_grid
+    _tower_grid[x, y] = tower
 
 
 def unset_tower(x: int, y: int) -> None:
-    global towerGrid
-    del towerGrid[x, y]
+    global _tower_grid
+    del _tower_grid[x, y]
 
 
 def get_direction(path_index: int) -> Optional[Direction]:
-    global pathList
-    return pathList[path_index]
+    global _path_list
+    return _path_list[path_index]
 
 
 def append_direction(direction: Optional[Direction]) -> None:
-    global pathList
-    pathList.append(direction)
+    global _path_list
+    _path_list.append(direction)

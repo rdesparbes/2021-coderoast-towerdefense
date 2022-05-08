@@ -5,7 +5,7 @@ from typing import Tuple, Type, Optional, List, Callable
 from PIL import Image, ImageTk
 
 from adapted.constants import BLOCK_SIZE, Direction
-from adapted.database import lose_health, earn_money, get_spawn, pathList
+from adapted.database import lose_health, earn_money, get_spawn, get_direction
 
 
 class Monster:
@@ -47,24 +47,24 @@ class Monster:
         y_pos += BLOCK_SIZE // 2
         blocks = int((distance - (distance % BLOCK_SIZE)) / BLOCK_SIZE)
         for i in range(blocks):
-            if pathList[i] == Direction.EAST:
+            if get_direction(i) == Direction.EAST:
                 x_pos += BLOCK_SIZE
-            elif pathList[i] == Direction.WEST:
+            elif get_direction(i) == Direction.WEST:
                 x_pos -= BLOCK_SIZE
-            elif pathList[i] == Direction.SOUTH:
+            elif get_direction(i) == Direction.SOUTH:
                 y_pos += BLOCK_SIZE
-            elif pathList[i] == Direction.NORTH:
+            elif get_direction(i) == Direction.NORTH:
                 y_pos -= BLOCK_SIZE
         if distance % BLOCK_SIZE != 0:
-            if pathList[blocks] == Direction.EAST:
+            if get_direction(blocks) == Direction.EAST:
                 x_pos += distance % BLOCK_SIZE
-            elif pathList[blocks] == Direction.WEST:
+            elif get_direction(blocks) == Direction.WEST:
                 x_pos -= distance % BLOCK_SIZE
-            elif pathList[blocks] == Direction.SOUTH:
+            elif get_direction(blocks) == Direction.SOUTH:
                 y_pos += distance % BLOCK_SIZE
-            elif pathList[blocks] == Direction.NORTH:
+            elif get_direction(blocks) == Direction.NORTH:
                 y_pos -= distance % BLOCK_SIZE
-        if pathList[blocks] is None:
+        if get_direction(blocks) is None:
             self.got_through()
         return x_pos, y_pos
 

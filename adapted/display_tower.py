@@ -4,16 +4,16 @@ from adapted.tower import ITower
 from adapted.towers import TargetingTower
 
 
-displayTower: Optional[TargetingTower] = None
+_display_tower: Optional[TargetingTower] = None
 
 
 def get_display_tower() -> Optional[TargetingTower]:
-    global displayTower
-    return displayTower
+    global _display_tower
+    return _display_tower
 
 
 def set_display_tower(tower: Optional[ITower]) -> None:
-    global displayTower
-    displayTower = tower
+    global _display_tower
+    _display_tower = tower
 
 

@@ -3,14 +3,14 @@ from typing import List, Optional
 from adapted.blocks import Block
 from adapted.constants import GRID_SIZE
 
-blockGrid: List[List[Optional[Block]]] = [
-    [None for y in range(GRID_SIZE)] for x in range(GRID_SIZE)
+_block_grid: List[List[Optional[Block]]] = [
+    [None for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)
 ]
 
 
 def get_block(x: int, y: int) -> Optional[Block]:
-    return blockGrid[x][y]
+    return _block_grid[x][y]
 
 
 def set_block(x: int, y: int, block: Block) -> None:
-    blockGrid[x][y] = block
+    _block_grid[x][y] = block

@@ -1,11 +1,11 @@
-selectedTower: str = "<None>"
+_selected_tower: str = "<None>"
 
 
 def get_selected_tower() -> str:
-    global selectedTower
-    return selectedTower
+    global _selected_tower
+    return _selected_tower
 
 
 def set_selected_tower(selected_tower: str) -> None:
-    global selectedTower
-    selectedTower = selected_tower
+    global _selected_tower
+    _selected_tower = selected_tower
