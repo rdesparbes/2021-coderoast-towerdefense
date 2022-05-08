@@ -4,14 +4,12 @@ from typing import Optional, Type
 
 from PIL import Image, ImageTk
 
-import adapted.database
 from adapted.blocks import Block, BLOCK_MAPPING
 from adapted.constants import GRID_SIZE, BLOCK_SIZE, MAP_SIZE, TIME_STEP, Direction
-from adapted.database import get_health, get_money, spend_money, set_spawn, get_tower, set_tower
+from adapted.database import get_health, get_money, spend_money, set_spawn, get_tower, set_tower, append_direction
 from adapted.display_tower import set_display_tower, get_display_tower
 from adapted.grid import get_block, set_block
-from adapted.monsters import Monster, monsters, \
-    MONSTER_MAPPING, get_monsters_asc_distance
+from adapted.monsters import Monster, monsters, MONSTER_MAPPING, get_monsters_asc_distance
 from adapted.projectiles import projectiles
 from adapted.selected_tower import get_selected_tower, set_selected_tower
 from adapted.towers import TOWER_MAPPING, TargetingTower
@@ -146,7 +144,7 @@ class WaveGenerator:
                 return
 
     def move(self):
-        adapted.database.pathList.append(self.direction)
+        append_direction(self.direction)
         if self.direction == Direction.EAST:
             self.gridx += 1
         if self.direction == Direction.WEST:
@@ -198,7 +196,7 @@ class WaveGenerator:
                 self.move()
                 return
 
-        adapted.database.pathList.append(None)
+        append_direction(None)
 
     def spawn_monster(self):
         monster_type: Type[Monster] = MONSTER_MAPPING[self.current_wave[self.current_monster]]

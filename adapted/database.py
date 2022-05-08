@@ -63,3 +63,13 @@ def set_tower(x: int, y: int, tower: ITower) -> None:
 def unset_tower(x: int, y: int) -> None:
     global towerGrid
     del towerGrid[x, y]
+
+
+def get_direction(path_index: int) -> Optional[Direction]:
+    global pathList
+    return pathList[path_index]
+
+
+def append_direction(direction: Optional[Direction]) -> None:
+    global pathList
+    pathList.append(direction)
