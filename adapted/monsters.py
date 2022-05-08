@@ -70,7 +70,7 @@ class Monster:
 
     def killed(self):
         earn_money(self.value)
-        for i in range(self.respawn_count):
+        for _ in range(self.respawn_count):
             monsters.append(
                 self.respawn_type(self.distance_travelled + BLOCK_SIZE * (0.5 - random.random()))
             )
