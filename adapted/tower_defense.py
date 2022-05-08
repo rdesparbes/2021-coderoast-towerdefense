@@ -504,7 +504,6 @@ class Mouse:
         self.pressed_image = ImageTk.PhotoImage(Image.open("images/mouseImages/Pressed.png"))
         self.can_press_image = ImageTk.PhotoImage(Image.open("images/mouseImages/HoveringCanPress.png"))
         self.cannot_press_image = ImageTk.PhotoImage(Image.open("images/mouseImages/HoveringCanNotPress.png"))
-        self.image = self.can_press_image
 
     def clicked(self, event):
         self.pressed = True
@@ -556,7 +555,7 @@ class Mouse:
                 canvas.create_image(
                     self.gridx * BLOCK_SIZE,
                     self.gridy * BLOCK_SIZE,
-                    image=self.image,
+                    image=self.pressed_image if self.pressed else self.can_press_image,
                     anchor=tk.NW,
                 )
             else:
