@@ -1,5 +1,4 @@
 import math
-import random
 import tkinter as tk
 from abc import ABC, abstractmethod
 from enum import Enum, auto
@@ -7,8 +6,12 @@ from typing import Optional, List, Type, Dict, Callable, Tuple
 
 from PIL import Image, ImageTk
 
+import adapted.database
 from adapted.blocks import Block, BLOCK_MAPPING
-from adapted.constants import GRID_SIZE, BLOCK_SIZE, MAP_SIZE, TIME_STEP, FPS
+from adapted.constants import GRID_SIZE, BLOCK_SIZE, MAP_SIZE, TIME_STEP, FPS, Direction
+from adapted.database import get_health, get_money, spend_money, set_spawn
+from adapted.monsters import Monster, monsters, \
+    MONSTER_MAPPING
 from game import Game
 
 
@@ -128,24 +131,19 @@ class Wavegenerator:
         self.max_ticks = self.current_wave[0]
 
     def find_spawn(self):
-        global spawnx
-        global spawny
         for x in range(GRID_SIZE):
             if get_block(x, 0).is_walkable():
                 self.gridx = x
-                spawnx = x * BLOCK_SIZE + BLOCK_SIZE // 2
-                spawny = 0
+                set_spawn(x * BLOCK_SIZE + BLOCK_SIZE // 2, 0)
                 return
         for y in range(GRID_SIZE):
             if get_block(0, y).is_walkable():
                 self.gridy = y
-                spawnx = 0
-                spawny = y * BLOCK_SIZE + BLOCK_SIZE // 2
+                set_spawn(0, y * BLOCK_SIZE + BLOCK_SIZE // 2)
                 return
 
     def move(self):
-        global pathList
-        pathList.append(self.direction)
+        adapted.database.pathList.append(self.direction)
         if self.direction == Direction.EAST:
             self.gridx += 1
         if self.direction == Direction.WEST:
@@ -197,8 +195,7 @@ class Wavegenerator:
                 self.move()
                 return
 
-        global pathList
-        pathList.append(None)
+        adapted.database.pathList.append(None)
 
     def spawn_monster(self):
         monster_type: Type[Monster] = MONSTER_MAPPING[self.current_wave[self.current_monster]]
@@ -316,10 +313,9 @@ class UpgradeButton(MyButton):
         super().__init__(x, y, x_two, y_two)
 
     def pressed(self):
-        global money
         global displayTower
-        if money >= displayTower.upgrade_cost:
-            money -= displayTower.upgrade_cost
+        if get_money() >= displayTower.upgrade_cost:
+            spend_money(displayTower.upgrade_cost)
             displayTower.upgrade()
 
 
@@ -586,10 +582,10 @@ class Mouse:
 
 class HealthBar:
     def __init__(self):
-        self.text = str(health)
+        self.text = str(get_health())
 
     def update(self):
-        self.text = str(health)
+        self.text = str(get_health())
 
     def paint(self, canvas: tk.Canvas):
         canvas.create_text(40, 40, text="Health: " + self.text, fill="black")
@@ -597,10 +593,10 @@ class HealthBar:
 
 class MoneyBar:
     def __init__(self):
-        self.text = str(money)
+        self.text = str(get_money())
 
     def update(self):
-        self.text = str(money)
+        self.text = str(get_money())
 
     def paint(self, canvas: tk.Canvas):
         canvas.create_text(240, 40, text="Money: " + self.text, fill="black")
@@ -627,7 +623,7 @@ class Projectile(ABC):
         self.check_hit()
 
     def got_monster(self):
-        self.target.health -= self.damage
+        adapted.database.health -= self.damage
         projectiles.remove(self)
 
     def paint(self, canvas: tk.Canvas):
@@ -683,7 +679,7 @@ class PowerShot(TrackingBullet):
         self.slow = slow
 
     def got_monster(self):
-        self.target.health -= self.damage
+        adapted.database.health -= self.damage
         if self.target.movement > self.target.speed / self.slow:
             self.target.movement = self.target.speed / self.slow
         projectiles.remove(self)
@@ -932,197 +928,8 @@ class TackTower(TargetingTower):
             )
 
 
-class Monster:
-    def __init__(self, distance: float):
-        self.alive = True
-        self.image = None
-        self.health = 0
-        self.max_health = 0
-        self.axis = None
-        self.speed = 0.0
-        self.movement = 0.0
-        self.tick = 0
-        self.max_tick = 1
-        self.distance_travelled = max(distance, 0)
-        self.x, self.y = self.position_formula(self.distance_travelled)
-        self.armor = 0
-        self.magicresist = 0
-        self.value = 0
-        self.image = Image.open(
-            "images/monsterImages/" + self.__class__.__name__ + ".png"
-        )
-        self.image = ImageTk.PhotoImage(self.image)
-
-    def update(self):
-        if self.health <= 0:
-            self.killed()
-        self.move()
-
-    def move(self):
-        if self.tick >= self.max_tick:
-            self.distance_travelled += self.movement
-            self.x, self.y = self.position_formula(self.distance_travelled)
-
-            self.movement = self.speed
-            self.tick = 0
-            self.max_tick = 1
-        self.tick += 1
-
-    def position_formula(self, distance: float) -> Tuple[int, int]:
-        x_pos = spawnx
-        y_pos = spawny + BLOCK_SIZE // 2
-        blocks = int((distance - (distance % BLOCK_SIZE)) / BLOCK_SIZE)
-        if blocks != 0:
-            for i in range(blocks):
-                if pathList[i] == Direction.EAST:
-                    x_pos += BLOCK_SIZE
-                elif pathList[i] == Direction.WEST:
-                    x_pos -= BLOCK_SIZE
-                elif pathList[i] == Direction.SOUTH:
-                    y_pos += BLOCK_SIZE
-                elif pathList[i] == Direction.NORTH:
-                    y_pos -= BLOCK_SIZE
-        if distance % BLOCK_SIZE != 0:
-            if pathList[blocks] == Direction.EAST:
-                x_pos += distance % BLOCK_SIZE
-            elif pathList[blocks] == Direction.WEST:
-                x_pos -= distance % BLOCK_SIZE
-            elif pathList[blocks] == Direction.SOUTH:
-                y_pos += distance % BLOCK_SIZE
-            elif pathList[blocks] == Direction.NORTH:
-                y_pos -= distance % BLOCK_SIZE
-        if pathList[blocks] is None:
-            self.got_through()
-        return x_pos, y_pos
-
-    def killed(self):
-        global money
-        money += self.value
-        self.die()
-
-    def got_through(self):
-        global health
-        health -= 1
-        self.die()
-
-    def die(self):
-        self.alive = False
-        monsters.remove(self)
-
-    def paint(self, canvas: tk.Canvas):
-        canvas.create_rectangle(
-            self.x - self.axis,
-            self.y - 3 * self.axis / 2,
-            self.x + self.axis - 1,
-            self.y - self.axis - 1,
-            fill="red",
-            outline="black",
-        )
-        canvas.create_rectangle(
-            self.x - self.axis + 1,
-            self.y - 3 * self.axis / 2 + 1,
-            self.x - self.axis + (self.axis * 2 - 2) * self.health / self.max_health,
-            self.y - self.axis - 2,
-            fill="green",
-            outline="green",
-        )
-        canvas.create_image(self.x, self.y, image=self.image, anchor=tk.CENTER)
-
-
-class Monster1(Monster):
-    def __init__(self, distance):
-        super().__init__(distance)
-        self.max_health = 30
-        self.health = self.max_health
-        self.value = 5
-        self.speed = float(BLOCK_SIZE) / 2
-        self.movement = BLOCK_SIZE / 3
-        self.axis = BLOCK_SIZE / 2
-
-
-class Monster2(Monster):
-    def __init__(self, distance):
-        super(Monster2, self).__init__(distance)
-        self.max_health = 50
-        self.health = self.max_health
-        self.value = 10
-        self.speed = float(BLOCK_SIZE) / 4
-        self.movement = float(BLOCK_SIZE) / 4
-        self.axis = BLOCK_SIZE / 2
-
-    def killed(self):
-        global money
-        money += self.value
-        monsters.append(
-            Monster1(self.distance_travelled + BLOCK_SIZE * (0.5 - random.random()))
-        )
-        self.die()
-
-
-class AlexMonster(Monster):
-    def __init__(self, distance):
-        super(AlexMonster, self).__init__(distance)
-        self.max_health = 500
-        self.health = self.max_health
-        self.value = 100
-        self.speed = float(BLOCK_SIZE) / 5
-        self.movement = float(BLOCK_SIZE) / 5
-        self.axis = BLOCK_SIZE
-
-    def killed(self):
-        global money
-        money += self.value
-        for i in range(5):
-            monsters.append(
-                Monster2(self.distance_travelled + BLOCK_SIZE * (0.5 - random.random()))
-            )
-        self.die()
-
-
-class BenMonster(Monster):
-    def __init__(self, distance):
-        super(BenMonster, self).__init__(distance)
-        self.max_health = 200
-        self.health = self.max_health
-        self.value = 30
-        self.speed = float(BLOCK_SIZE) / 4
-        self.movement = float(BLOCK_SIZE) / 4
-        self.axis = BLOCK_SIZE / 2
-
-    def killed(self):
-        global money
-        money += self.value
-        for i in range(2):
-            monsters.append(
-                LeoMonster(self.distance_travelled + BLOCK_SIZE * (0.5 - random.random()))
-            )
-        self.die()
-
-
-class LeoMonster(Monster):
-    def __init__(self, distance):
-        super(LeoMonster, self).__init__(distance)
-        self.max_health = 20
-        self.health = self.max_health
-        self.value = 2
-        self.speed = float(BLOCK_SIZE) / 2
-        self.movement = float(BLOCK_SIZE) / 2
-        self.axis = BLOCK_SIZE / 4
-
-
-class MonsterBig(Monster):
-    def __init__(self, distance):
-        super(MonsterBig, self).__init__(distance)
-        self.max_health = 1000
-        self.health = self.max_health
-        self.value = 10
-        self.speed = float(BLOCK_SIZE) / 6
-        self.movement = float(BLOCK_SIZE) / 6
-        self.axis = 3 * BLOCK_SIZE / 2
-
-
 def get_monsters_desc_health():
-    return sorted(monsters, key=lambda _x: _x.health, reverse=True)
+    return sorted(monsters, key=lambda _x: adapted.database.health, reverse=True)
 
 
 def get_monsters_desc_distance():
@@ -1130,7 +937,7 @@ def get_monsters_desc_distance():
 
 
 def get_monsters_asc_health():
-    return sorted(monsters, key=lambda _x: _x.health, reverse=False)
+    return sorted(monsters, key=lambda _x: adapted.database.health, reverse=False)
 
 
 def get_monsters_asc_distance():
@@ -1171,23 +978,6 @@ def get_selected_tower() -> str:
     return selectedTower
 
 
-def get_money() -> int:
-    global money
-    return money
-
-
-def spend_money(spent_amount: int) -> None:
-    global money
-    money -= spent_amount
-
-
-class Direction(Enum):
-    EAST = auto()
-    WEST = auto()
-    SOUTH = auto()
-    NORTH = auto()
-
-
 def main():
     game = TowerDefenseGame()
     game.initialize()
@@ -1203,14 +993,6 @@ TOWER_MAPPING: Dict[str, Type[TargetingTower]] = {
         PowerTower,
     )
 }
-MONSTER_MAPPING: List[Type[Monster]] = [
-    Monster1,
-    Monster2,
-    AlexMonster,
-    BenMonster,
-    LeoMonster,
-    MonsterBig,
-]
 TARGETING_STRATEGIES: List[Callable[[], List[Monster]]] = [
     get_monsters_desc_health,
     get_monsters_asc_health,
@@ -1221,13 +1003,7 @@ blockGrid: List[List[Optional[Block]]] = [
     [None for y in range(GRID_SIZE)] for x in range(GRID_SIZE)
 ]
 towerGrid: Dict[Tuple[int, int], TargetingTower] = {}
-pathList: List[Optional[Direction]] = []
-spawnx: int = 0
-spawny: int = 0
-monsters: List[Monster] = []
 projectiles: List[Projectile] = []
-health: int = 100
-money: int = 5000000000
 selectedTower: str = "<None>"
 displayTower: Optional[TargetingTower] = None
 
