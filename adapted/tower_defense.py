@@ -1,6 +1,6 @@
 import tkinter as tk
 from enum import Enum, auto
-from typing import Optional, List, Type
+from typing import Optional, Type
 
 from PIL import Image, ImageTk
 
@@ -8,6 +8,7 @@ import adapted.database
 from adapted.blocks import Block, BLOCK_MAPPING
 from adapted.constants import GRID_SIZE, BLOCK_SIZE, MAP_SIZE, TIME_STEP, Direction
 from adapted.database import get_health, get_money, spend_money, set_spawn, get_tower, set_tower
+from adapted.grid import get_block, set_block
 from adapted.monsters import Monster, monsters, \
     MONSTER_MAPPING, get_monsters_asc_distance
 from adapted.projectiles import projectiles
@@ -64,7 +65,7 @@ class TowerDefenseGame(Game):
             monster.paint(self.canvas)
         for projectile in projectiles:
             projectile.paint(self.canvas)
-        display_tower: Optional[TargetingTower] = displayTower
+        display_tower: Optional[TargetingTower] = get_display_tower()
         if display_tower is not None:
             display_tower.paint_select(self.canvas)
         self.display_board.paint()
@@ -279,31 +280,37 @@ class TargetButton(Button):
         self.targeting_strategy_index: int = targeting_strategy_index
 
     def pressed(self):
-        global displayTower
-        displayTower.targeting_strategy = self.targeting_strategy_index
+        display_tower = get_display_tower()
+        if display_tower is None:
+            return
+        display_tower.targeting_strategy = self.targeting_strategy_index
 
 
 class StickyButton(Button):
     def pressed(self):
-        global displayTower
-        displayTower.sticky_target = not displayTower.sticky_target
+        display_tower = get_display_tower()
+        if display_tower is None:
+            return
+        display_tower.sticky_target = not display_tower.sticky_target
 
 
 class SellButton(Button):
     def pressed(self):
-        global displayTower
-        if displayTower is None:
+        display_tower = get_display_tower()
+        if display_tower is None:
             return
-        displayTower.sold()
-        displayTower = None
+        display_tower.sold()
+        set_display_tower(None)
 
 
 class UpgradeButton(Button):
     def pressed(self):
-        global displayTower
-        if get_money() >= displayTower.upgrade_cost:
-            spend_money(displayTower.upgrade_cost)
-            displayTower.upgrade()
+        display_tower = get_display_tower()
+        if display_tower is None:
+            return
+        if get_money() >= display_tower.upgrade_cost:
+            spend_money(display_tower.upgrade_cost)
+            display_tower.upgrade()
 
 
 class InfoBoard:
@@ -327,7 +334,7 @@ class InfoBoard:
         self.canvas.delete(tk.ALL)  # clear the screen
         self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
         self.current_buttons = []
-        display_tower: Optional[TargetingTower] = displayTower
+        display_tower: Optional[TargetingTower] = get_display_tower()
         if display_tower is None:
             return
 
@@ -387,14 +394,15 @@ class InfoBoard:
 
     def display_generic(self):
         self.current_buttons = []
-        if selectedTower == "<None>":
+        selected_tower = get_selected_tower()
+        if selected_tower == "<None>":
             text = None
             self.tower_image = None
         else:
-            text = selectedTower + " cost: " + str(TOWER_MAPPING[selectedTower].cost)
+            text = selected_tower + " cost: " + str(TOWER_MAPPING[selected_tower].cost)
             self.tower_image = ImageTk.PhotoImage(
                 Image.open(
-                    "images/towerImages/" + TOWER_MAPPING[selectedTower].__name__ + "/1.png"
+                    "images/towerImages/" + TOWER_MAPPING[selected_tower].__name__ + "/1.png"
                 )
             )
         self.canvas.delete(tk.ALL)  # clear the screen
@@ -448,10 +456,8 @@ class TowerBox:
         self.box.bind("<<ListboxSelect>>", self.on_select)
 
     def on_select(self, event):
-        global selectedTower
-        global displayTower
-        selectedTower = str(self.box.get(self.box.curselection()))
-        displayTower = None
+        set_selected_tower(str(self.box.get(self.box.curselection())))
+        set_display_tower(None)
         self.game.info_board.display_generic()
 
 
@@ -584,17 +590,12 @@ class MoneyBar:
         canvas.create_text(240, 40, text="Money: " + self.text, fill="black")
 
 
-def get_block(x: int, y: int) -> Optional[Block]:
-    global blockGrid
-    return blockGrid[x][y]
+def get_display_tower() -> Optional[TargetingTower]:
+    global displayTower
+    return displayTower
 
 
-def set_block(x: int, y: int, block: Block) -> None:
-    global blockGrid
-    blockGrid[x][y] = block
-
-
-def set_display_tower(tower: ITower) -> None:
+def set_display_tower(tower: Optional[ITower]) -> None:
     global displayTower
     displayTower = tower
 
@@ -604,15 +605,17 @@ def get_selected_tower() -> str:
     return selectedTower
 
 
+def set_selected_tower(selected_tower: str) -> None:
+    global selectedTower
+    selectedTower = selected_tower
+
+
 def main():
     game = TowerDefenseGame()
     game.initialize()
     game.run()
 
 
-blockGrid: List[List[Optional[Block]]] = [
-    [None for y in range(GRID_SIZE)] for x in range(GRID_SIZE)
-]
 selectedTower: str = "<None>"
 displayTower: Optional[TargetingTower] = None
 
