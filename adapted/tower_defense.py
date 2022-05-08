@@ -8,11 +8,12 @@ import adapted.database
 from adapted.blocks import Block, BLOCK_MAPPING
 from adapted.constants import GRID_SIZE, BLOCK_SIZE, MAP_SIZE, TIME_STEP, Direction
 from adapted.database import get_health, get_money, spend_money, set_spawn, get_tower, set_tower
+from adapted.display_tower import set_display_tower, get_display_tower
 from adapted.grid import get_block, set_block
 from adapted.monsters import Monster, monsters, \
     MONSTER_MAPPING, get_monsters_asc_distance
 from adapted.projectiles import projectiles
-from adapted.tower import ITower
+from adapted.selected_tower import get_selected_tower, set_selected_tower
 from adapted.towers import TOWER_MAPPING, TargetingTower
 from game import Game
 
@@ -589,34 +590,11 @@ class MoneyBar:
         canvas.create_text(240, 40, text="Money: " + self.text, fill="black")
 
 
-def get_display_tower() -> Optional[TargetingTower]:
-    global displayTower
-    return displayTower
-
-
-def set_display_tower(tower: Optional[ITower]) -> None:
-    global displayTower
-    displayTower = tower
-
-
-def get_selected_tower() -> str:
-    global selectedTower
-    return selectedTower
-
-
-def set_selected_tower(selected_tower: str) -> None:
-    global selectedTower
-    selectedTower = selected_tower
-
-
 def main():
     game = TowerDefenseGame()
     game.initialize()
     game.run()
 
-
-selectedTower: str = "<None>"
-displayTower: Optional[TargetingTower] = None
 
 if __name__ == "__main__":
     main()
