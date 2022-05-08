@@ -7,11 +7,9 @@ from typing import Optional, List, Type, Dict, Callable, Tuple
 
 from PIL import Image, ImageTk
 
+from adapted.blocks import Block, BLOCK_MAPPING
+from adapted.constants import GRID_SIZE, BLOCK_SIZE, MAP_SIZE, TIME_STEP, FPS
 from game import Game
-
-GRID_SIZE = 30  # the height and width of the array of blocks
-BLOCK_SIZE = 20  # pixels wide of each block
-MAP_SIZE = GRID_SIZE * BLOCK_SIZE
 
 
 class TowerDefenseGameState(Enum):
@@ -87,7 +85,6 @@ class Map:
                 block: Block = block_type(
                     x * BLOCK_SIZE + BLOCK_SIZE / 2,
                     y * BLOCK_SIZE + BLOCK_SIZE / 2,
-                    block_number,
                     x,
                     y,
                 )  # creates a grid of Blocks
@@ -134,13 +131,13 @@ class Wavegenerator:
         global spawnx
         global spawny
         for x in range(GRID_SIZE):
-            if isinstance(get_block(x, 0), PathBlock):
+            if get_block(x, 0).is_walkable():
                 self.gridx = x
                 spawnx = x * BLOCK_SIZE + BLOCK_SIZE // 2
                 spawny = 0
                 return
         for y in range(GRID_SIZE):
-            if isinstance(get_block(0, y), PathBlock):
+            if get_block(0, y).is_walkable():
                 self.gridy = y
                 spawnx = 0
                 spawny = y * BLOCK_SIZE + BLOCK_SIZE // 2
@@ -165,7 +162,7 @@ class Wavegenerator:
                 and self.gridx < GRID_SIZE - 1
                 and 0 <= self.gridy <= GRID_SIZE - 1
         ):
-            if isinstance(get_block(self.gridx + 1, self.gridy), PathBlock):
+            if get_block(self.gridx + 1, self.gridy).is_walkable():
                 self.direction = Direction.EAST
                 self.move()
                 return
@@ -175,7 +172,7 @@ class Wavegenerator:
                 and self.gridx > 0
                 and 0 <= self.gridy <= GRID_SIZE - 1
         ):
-            if isinstance(get_block(self.gridx - 1, self.gridy), PathBlock):
+            if get_block(self.gridx - 1, self.gridy).is_walkable():
                 self.direction = Direction.WEST
                 self.move()
                 return
@@ -185,7 +182,7 @@ class Wavegenerator:
                 and self.gridy < GRID_SIZE - 1
                 and 0 <= self.gridx <= GRID_SIZE - 1
         ):
-            if isinstance(get_block(self.gridx, self.gridy + 1), PathBlock):
+            if get_block(self.gridx, self.gridy + 1).is_walkable():
                 self.direction = Direction.SOUTH
                 self.move()
                 return
@@ -195,7 +192,7 @@ class Wavegenerator:
                 and self.gridy > 0
                 and 0 <= self.gridx <= GRID_SIZE - 1
         ):
-            if isinstance(get_block(self.gridx, self.gridy - 1), PathBlock):
+            if get_block(self.gridx, self.gridy - 1).is_walkable():
                 self.direction = Direction.NORTH
                 self.move()
                 return
@@ -476,6 +473,27 @@ class TowerBox:
         self.game.info_board.display_generic()
 
 
+def hovered_over(block: Block, info_board: InfoBoard):
+    selected_tower = get_selected_tower()
+    tower = get_tower(block.gridx, block.gridy)
+    if tower is not None:
+        if selected_tower == "<None>":
+            tower.clicked = True
+            set_display_tower(tower)
+            info_board.display_specific()
+    elif (
+            selected_tower != "<None>"
+            and block.is_constructible()
+            and get_money() >= TOWER_MAPPING[selected_tower].cost
+    ):
+        tower_type = TOWER_MAPPING[selected_tower]
+        tower = tower_type(
+            block.x, block.y, block.gridx, block.gridy
+        )
+        set_tower(block.gridx, block.gridy, tower)
+        spend_money(TOWER_MAPPING[selected_tower].cost)
+
+
 class Mouse:
     def __init__(self, game: TowerDefenseGame):
         self.game = game
@@ -533,7 +551,9 @@ class Mouse:
                 0 <= self.gridx <= GRID_SIZE - 1
                 and 0 <= self.gridy <= GRID_SIZE - 1
         ):
-            get_block(self.gridx, self.gridy).hovered_over(self.pressed, self.game)
+            if self.pressed:
+                block: Block = get_block(self.gridx, self.gridy)
+                hovered_over(block, self.game.info_board)
         else:
             self.game.display_board.nextWaveButton.check_press(
                 self.pressed, self.x - self.xoffset, self.y - self.yoffset
@@ -1117,64 +1137,6 @@ def get_monsters_asc_distance():
     return sorted(monsters, key=lambda _x: _x.distance_travelled, reverse=False)
 
 
-class Block:
-    def __init__(
-            self, x, y, block_number, gridx, gridy, can_place=False
-    ):
-        self.x = x  # sets Block x to the given 'x'
-        self.y = y  # sets Block y to the given 'y'
-        self.can_place = can_place
-        self.block_number = block_number
-        self.gridx = gridx
-        self.gridy = gridy
-        self.axis = BLOCK_SIZE / 2
-
-    def hovered_over(self, click, game: TowerDefenseGame):
-        if click:
-            global money
-            tower = get_tower(self.gridx, self.gridy)
-            if tower:
-                if selectedTower == "<None>":
-                    tower.clicked = True
-                    global displayTower
-                    displayTower = tower
-                    game.info_board.display_specific()
-            elif (
-                    selectedTower != "<None>"
-                    and self.can_place
-                    and money >= TOWER_MAPPING[selectedTower].cost
-            ):
-                tower_type = TOWER_MAPPING[selectedTower]
-                tower = tower_type(
-                    self.x, self.y, self.gridx, self.gridy
-                )
-                set_tower(self.gridx, self.gridy, tower)
-                money -= TOWER_MAPPING[selectedTower].cost
-
-    def update(self):
-        pass
-
-    def paint(self, background: Image):
-        image = Image.open(
-            "images/blockImages/" + self.__class__.__name__ + ".png"
-        )
-        offset = (int(self.x - self.axis), int(self.y - self.axis))
-        background.paste(image, offset)
-
-
-class NormalBlock(Block):
-    def __init__(self, x, y, block_number, gridx, gridy):
-        super().__init__(x, y, block_number, gridx, gridy, can_place=True)
-
-
-class PathBlock(Block):
-    ...
-
-
-class WaterBlock(Block):
-    ...
-
-
 def get_block(x: int, y: int) -> Optional[Block]:
     global blockGrid
     return blockGrid[x][y]
@@ -1199,6 +1161,26 @@ def unset_tower(x: int, y: int) -> None:
     del towerGrid[x, y]
 
 
+def set_display_tower(tower: TargetingTower) -> None:
+    global displayTower
+    displayTower = tower
+
+
+def get_selected_tower() -> str:
+    global selectedTower
+    return selectedTower
+
+
+def get_money() -> int:
+    global money
+    return money
+
+
+def spend_money(spent_amount: int) -> None:
+    global money
+    money -= spent_amount
+
+
 class Direction(Enum):
     EAST = auto()
     WEST = auto()
@@ -1221,13 +1203,6 @@ TOWER_MAPPING: Dict[str, Type[TargetingTower]] = {
         PowerTower,
     )
 }
-BLOCK_MAPPING: List[Type[Block]] = [
-    NormalBlock,
-    PathBlock,
-    WaterBlock
-]
-TIME_STEP: int = 50
-FPS: int = 1000 // TIME_STEP
 MONSTER_MAPPING: List[Type[Monster]] = [
     Monster1,
     Monster2,
