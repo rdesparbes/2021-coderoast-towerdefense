@@ -1,12 +1,14 @@
-from typing import Tuple, List, Optional
+from typing import Tuple, List, Optional, Dict
 
 from adapted.constants import Direction
+from adapted.tower import ITower
 
 health: int = 100
 money: int = 5_000_000_000
 spawnx: int = 0
 spawny: int = 0
 pathList: List[Optional[Direction]] = []
+towerGrid: Dict[Tuple[int, int], ITower] = {}
 
 
 def get_health() -> int:
@@ -47,3 +49,17 @@ def get_spawn() -> Tuple[int, int]:
 def set_spawn(x: int, y: int) -> None:
     global spawnx, spawny
     spawnx, spawny = x, y
+
+
+def get_tower(x: int, y: int) -> Optional[ITower]:
+    return towerGrid.get((x, y), None)
+
+
+def set_tower(x: int, y: int, tower: ITower) -> None:
+    global towerGrid
+    towerGrid[x, y] = tower
+
+
+def unset_tower(x: int, y: int) -> None:
+    global towerGrid
+    del towerGrid[x, y]

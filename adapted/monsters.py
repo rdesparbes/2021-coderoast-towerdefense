@@ -1,6 +1,6 @@
 import random
 import tkinter as tk
-from typing import Tuple, Type, Optional, List
+from typing import Tuple, Type, Optional, List, Callable
 
 from PIL import Image, ImageTk
 
@@ -176,7 +176,29 @@ class MonsterBig(Monster):
         self.axis = 3 * BLOCK_SIZE / 2
 
 
+def get_monsters_desc_health():
+    return sorted(monsters, key=lambda monster: monster.health, reverse=True)
+
+
+def get_monsters_desc_distance():
+    return sorted(monsters, key=lambda monster: monster.distance_travelled, reverse=True)
+
+
+def get_monsters_asc_health():
+    return sorted(monsters, key=lambda monster: monster.database.health, reverse=False)
+
+
+def get_monsters_asc_distance():
+    return sorted(monsters, key=lambda monster: monster.distance_travelled, reverse=False)
+
+
 monsters: List[Monster] = []
+TARGETING_STRATEGIES: List[Callable[[], List[Monster]]] = [
+    get_monsters_desc_health,
+    get_monsters_asc_health,
+    get_monsters_desc_distance,
+    get_monsters_asc_distance,
+]
 MONSTER_MAPPING: List[Type[Monster]] = [
     Monster1,
     Monster2,
