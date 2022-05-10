@@ -42,6 +42,7 @@ class Tower(ITower):
         ))
         self.next_level()
 
+    # TODO: It's not the Tower's responsibility to unset itself
     def sold(self):
         unset_tower(self.gridx, self.gridy)
 
