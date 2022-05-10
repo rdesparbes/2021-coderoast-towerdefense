@@ -10,7 +10,6 @@ from adapted.database import get_health, get_money, spend_money, set_spawn, get_
 from adapted.grid import get_block, set_block
 from adapted.monsters import Monster, monsters, MONSTER_MAPPING, get_monsters_asc_distance
 from adapted.projectiles import projectiles
-from adapted.selected_tower import get_selected_tower, set_selected_tower
 from adapted.towers import TOWER_MAPPING, TargetingTower
 from adapted.view import View
 from game import Game
@@ -272,7 +271,8 @@ class NextWaveButton(Button):
 
 
 class TargetButton(Button):
-    def __init__(self, x_min: int, y_min: int, x_max: int, y_max: int, game: TowerDefenseGame, targeting_strategy_index: int):
+    def __init__(self, x_min: int, y_min: int, x_max: int, y_max: int, game: TowerDefenseGame,
+                 targeting_strategy_index: int):
         super().__init__(x_min, y_min, x_max, y_max, game)
         self.targeting_strategy_index: int = targeting_strategy_index
 
@@ -387,7 +387,7 @@ class InfoBoard:
 
     def display_generic(self):
         self.current_buttons = []
-        selected_tower = get_selected_tower()
+        selected_tower = self.game.view.selected_tower
         if selected_tower == "<None>":
             text = None
             self.tower_image = None
@@ -449,13 +449,13 @@ class TowerBox:
         self.box.bind("<<ListboxSelect>>", self.on_select)
 
     def on_select(self, event):
-        set_selected_tower(str(self.box.get(self.box.curselection())))
+        self.game.view.selected_tower = str(self.box.get(self.box.curselection()))
         self.game.view.display_tower = None
         self.game.info_board.display_generic()
 
 
 def hovered_over(block: Block, info_board: InfoBoard, view: View):
-    selected_tower = get_selected_tower()
+    selected_tower = view.selected_tower
     tower = get_tower(block.gridx, block.gridy)
     if tower is not None:
         if selected_tower == "<None>":
