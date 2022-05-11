@@ -6,14 +6,16 @@ from PIL import Image, ImageTk
 
 from adapted.constants import BLOCK_SIZE, Direction
 from adapted.database import get_spawn, get_direction
+from adapted.entities import Entities
 from adapted.monster import IMonster
 from adapted.player import Player
 
 
 class Monster(IMonster):
-    def __init__(self, distance: float, player: Player):
+    def __init__(self, distance: float, player: Player, entities: Entities):
         self.alive = True
         self.player = player
+        self.entities = entities
         self.health = 0
         self.max_health = 0
         self.axis = None
@@ -74,8 +76,12 @@ class Monster(IMonster):
     def killed(self):
         self.player.money += self.value
         for _ in range(self.respawn_count):
-            monsters.append(
-                self.respawn_type(self.distance_travelled + BLOCK_SIZE * (0.5 - random.random()), self.player)
+            self.entities.monsters.append(
+                self.respawn_type(
+                    self.distance_travelled + BLOCK_SIZE * (0.5 - random.random()),
+                    self.player,
+                    self.entities
+                )
             )
         self.die()
 
@@ -85,7 +91,7 @@ class Monster(IMonster):
 
     def die(self):
         self.alive = False
-        monsters.remove(self)
+        self.entities.monsters.remove(self)
 
     def paint(self, canvas: tk.Canvas):
         canvas.create_rectangle(
@@ -108,8 +114,8 @@ class Monster(IMonster):
 
 
 class Monster1(Monster):
-    def __init__(self, distance, player: Player):
-        super().__init__(distance, player)
+    def __init__(self, distance, player: Player, entities: Entities):
+        super().__init__(distance, player, entities)
         self.max_health = 30
         self.health = self.max_health
         self.value = 5
@@ -119,8 +125,8 @@ class Monster1(Monster):
 
 
 class Monster2(Monster):
-    def __init__(self, distance, player: Player):
-        super().__init__(distance, player)
+    def __init__(self, distance, player: Player, entities: Entities):
+        super().__init__(distance, player, entities)
         self.max_health = 50
         self.health = self.max_health
         self.value = 10
@@ -132,8 +138,8 @@ class Monster2(Monster):
 
 
 class AlexMonster(Monster):
-    def __init__(self, distance, player: Player):
-        super().__init__(distance, player)
+    def __init__(self, distance, player: Player, entities: Entities):
+        super().__init__(distance, player, entities)
         self.max_health = 500
         self.health = self.max_health
         self.value = 100
@@ -145,8 +151,8 @@ class AlexMonster(Monster):
 
 
 class BenMonster(Monster):
-    def __init__(self, distance, player: Player):
-        super().__init__(distance, player)
+    def __init__(self, distance, player: Player, entities: Entities):
+        super().__init__(distance, player, entities)
         self.max_health = 200
         self.health = self.max_health
         self.value = 30
@@ -158,8 +164,8 @@ class BenMonster(Monster):
 
 
 class LeoMonster(Monster):
-    def __init__(self, distance, player: Player):
-        super().__init__(distance, player)
+    def __init__(self, distance, player: Player, entities: Entities):
+        super().__init__(distance, player, entities)
         self.max_health = 20
         self.health = self.max_health
         self.value = 2
@@ -169,8 +175,8 @@ class LeoMonster(Monster):
 
 
 class MonsterBig(Monster):
-    def __init__(self, distance, player: Player):
-        super().__init__(distance, player)
+    def __init__(self, distance, player: Player, entities: Entities):
+        super().__init__(distance, player, entities)
         self.max_health = 1000
         self.health = self.max_health
         self.value = 10
@@ -179,24 +185,23 @@ class MonsterBig(Monster):
         self.axis = 3 * BLOCK_SIZE / 2
 
 
-def get_monsters_desc_health():
+def get_monsters_desc_health(monsters: List[IMonster]) -> List[IMonster]:
     return sorted(monsters, key=lambda monster: monster.health, reverse=True)
 
 
-def get_monsters_desc_distance():
+def get_monsters_desc_distance(monsters: List[IMonster]) -> List[IMonster]:
     return sorted(monsters, key=lambda monster: monster.distance_travelled, reverse=True)
 
 
-def get_monsters_asc_health():
+def get_monsters_asc_health(monsters: List[IMonster]) -> List[IMonster]:
     return sorted(monsters, key=lambda monster: monster.database.health, reverse=False)
 
 
-def get_monsters_asc_distance():
+def get_monsters_asc_distance(monsters: List[IMonster]) -> List[IMonster]:
     return sorted(monsters, key=lambda monster: monster.distance_travelled, reverse=False)
 
 
-monsters: List[Monster] = []
-TARGETING_STRATEGIES: List[Callable[[], List[Monster]]] = [
+TARGETING_STRATEGIES: List[Callable[[List[IMonster]], List[IMonster]]] = [
     get_monsters_desc_health,
     get_monsters_asc_health,
     get_monsters_desc_distance,

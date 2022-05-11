@@ -9,7 +9,7 @@ from adapted.constants import GRID_SIZE, BLOCK_SIZE, MAP_SIZE, TIME_STEP, Direct
 from adapted.database import set_spawn, get_tower, set_tower, append_direction
 from adapted.entities import Entities
 from adapted.grid import get_block, set_block
-from adapted.monsters import Monster, monsters, MONSTER_MAPPING, get_monsters_asc_distance
+from adapted.monsters import Monster, MONSTER_MAPPING, get_monsters_asc_distance
 from adapted.player import Player
 from adapted.towers import TOWER_MAPPING, TargetingTower
 from adapted.view import View
@@ -48,7 +48,7 @@ class TowerDefenseGame(Game):
         for y in range(GRID_SIZE):
             for x in range(GRID_SIZE):
                 get_block(x, y).update()
-        for monster in monsters:
+        for monster in self.entities.monsters:
             monster.update()
         for y in range(GRID_SIZE):
             for x in range(GRID_SIZE):
@@ -63,7 +63,7 @@ class TowerDefenseGame(Game):
                 tower = get_tower(x, y)
                 if tower is not None:
                     tower.paint(self.canvas)
-        for monster in get_monsters_asc_distance():
+        for monster in get_monsters_asc_distance(self.entities.monsters):
             monster.paint(self.canvas)
         for projectile in self.entities.projectiles:
             projectile.paint(self.canvas)
@@ -223,7 +223,12 @@ class WaveGenerator:
 
     def spawn_monster(self):
         monster_type: Type[Monster] = MONSTER_MAPPING[self.current_wave[self.current_monster]]
-        monsters.append(monster_type(distance=0, player=self.game.player))
+        monster = monster_type(
+            distance=0,
+            player=self.game.player,
+            entities=self.game.entities
+        )
+        self.game.entities.monsters.append(monster)
         self.current_monster += 1
 
     def update(self):
@@ -275,7 +280,7 @@ class NextWaveButton(Button):
 
     @property
     def can_spawn(self) -> bool:
-        return self.is_idle and len(monsters) == 0
+        return self.is_idle and len(self.game.entities.monsters) == 0
 
     def pressed(self) -> None:
         if not self.can_spawn:
@@ -283,7 +288,7 @@ class NextWaveButton(Button):
         self.game.set_state(TowerDefenseGameState.WAIT_FOR_SPAWN)
 
     def paint(self, canvas: tk.Canvas):
-        if self.is_idle and len(monsters) == 0:
+        if self.is_idle and len(self.game.entities.monsters) == 0:
             color = "blue"
         else:
             color = "red"

@@ -1,5 +1,7 @@
 from abc import ABC
 
+from adapted.game import GameObject
 
-class IMonster(ABC):
+
+class IMonster(GameObject, ABC):
     ...

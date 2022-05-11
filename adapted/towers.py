@@ -74,7 +74,7 @@ class TargetingTower(Tower, ABC):
         self.sticky_target = False
 
     def prepare_shot(self):
-        check_list = TARGETING_STRATEGIES[self.targeting_strategy]()
+        check_list = TARGETING_STRATEGIES[self.targeting_strategy](self.entities.monsters)
         if self.ticks != FPS / self.bullets_per_second:
             self.ticks += 1
         if not self.sticky_target:

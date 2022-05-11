@@ -1,6 +1,6 @@
 import math
 import tkinter as tk
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional
 
 from PIL import ImageTk, Image
@@ -13,25 +13,38 @@ from adapted.projectile import IProjectile
 
 class Projectile(IProjectile, ABC):
     def __init__(self, x, y, damage, speed, entities: Entities, target: Optional[Monster], image: tk.PhotoImage):
-        super().__init__(x, y, damage, speed, target, image)
-        self.hit = False
+        self.x = x
+        self.y = y
+        self.damage = damage
+        self.speed = speed
         self.entities = entities
+        self.target = target
+        self.image = image
+        self.hit = False
 
     def update(self):
         if self.target and not self.target.alive:
             self.entities.projectiles.remove(self)
             return
         if self.hit:
-            self.got_monster()
-        self.move()
-        self.check_hit()
+            self._got_monster()
+        self._move()
+        self._check_hit()
 
-    def got_monster(self):
+    def _got_monster(self):
         self.target.health -= self.damage
         self.entities.projectiles.remove(self)
 
     def paint(self, canvas: tk.Canvas):
         canvas.create_image(self.x, self.y, image=self.image)
+
+    @abstractmethod
+    def _move(self):
+        ...
+
+    @abstractmethod
+    def _check_hit(self):
+        ...
 
 
 class TrackingBullet(Projectile):
@@ -46,7 +59,7 @@ class TrackingBullet(Projectile):
             ImageTk.PhotoImage(Image.open("images/projectileImages/bullet.png")) if image is None else image,
         )
 
-    def move(self):
+    def _move(self):
         length = (
                          (self.x - self.target.x) ** 2 + (self.y - self.target.y) ** 2
                  ) ** 0.5
@@ -55,7 +68,7 @@ class TrackingBullet(Projectile):
         self.x += self.speed * (self.target.x - self.x) / length
         self.y += self.speed * (self.target.y - self.y) / length
 
-    def check_hit(self):
+    def _check_hit(self):
         if (
                 self.speed ** 2
                 > (self.x - self.target.x) ** 2 + (self.y - self.target.y) ** 2
@@ -76,7 +89,7 @@ class PowerShot(TrackingBullet):
         )
         self.slow = slow
 
-    def got_monster(self):
+    def _got_monster(self):
         self.target.health -= self.damage
         if self.target.movement > self.target.speed / self.slow:
             self.target.movement = self.target.speed / self.slow
@@ -99,7 +112,7 @@ class AngledProjectile(Projectile):
         self.range = given_range
         self.distance = 0
 
-    def check_hit(self):
+    def _check_hit(self):
         for monster in self.entities.monsters:
             monster: Monster
             if (monster.x - self.x) ** 2 + (monster.y - self.y) ** 2 <= (
@@ -109,13 +122,13 @@ class AngledProjectile(Projectile):
                 self.target = monster
                 return
 
-    def got_monster(self):
+    def _got_monster(self):
         self.target.health -= self.damage
         self.target.tick = 0
         self.target.max_tick = 5
         self.entities.projectiles.remove(self)
 
-    def move(self):
+    def _move(self):
         self.x += self.x_change
         self.y += self.y_change
         self.distance += self.speed
