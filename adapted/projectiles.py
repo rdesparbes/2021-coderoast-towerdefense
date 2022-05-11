@@ -1,20 +1,21 @@
 import math
 import tkinter as tk
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Optional, List
 
 from PIL import ImageTk, Image
 
 from adapted.constants import BLOCK_SIZE
 from adapted.monsters import monsters, Monster
+from adapted.projectile import IProjectile
 
 
-class Projectile(ABC):
+class Projectile(IProjectile, ABC):
     def __init__(self, x, y, damage, speed, target: Optional[Monster], image: tk.PhotoImage):
+        super().__init__(x, y, damage, speed, target, image)
         self.hit = False
         self.x = x
         self.y = y
-        self.speed = BLOCK_SIZE / 2
         self.damage = damage
         self.speed = speed
         self.image = image
@@ -35,14 +36,6 @@ class Projectile(ABC):
 
     def paint(self, canvas: tk.Canvas):
         canvas.create_image(self.x, self.y, image=self.image)
-
-    @abstractmethod
-    def move(self):
-        ...
-
-    @abstractmethod
-    def check_hit(self):
-        ...
 
 
 class TrackingBullet(Projectile):
