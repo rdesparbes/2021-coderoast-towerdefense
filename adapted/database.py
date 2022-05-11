@@ -3,42 +3,10 @@ from typing import Tuple, List, Optional, Dict
 from adapted.constants import Direction
 from adapted.tower import ITower
 
-_health: int = 100
-_money: int = 5_000_000_000
 _spawn_x: int = 0
 _spawn_y: int = 0
 _path_list: List[Optional[Direction]] = []
 _tower_grid: Dict[Tuple[int, int], ITower] = {}
-
-
-def get_health() -> int:
-    global _health
-    return _health
-
-
-def gain_health(health_gained: int) -> None:
-    global _health
-    _health += health_gained
-
-
-def lose_health(health_lost: int) -> None:
-    global _health
-    _health -= health_lost
-
-
-def get_money() -> int:
-    global _money
-    return _money
-
-
-def earn_money(money_earned: int) -> None:
-    global _money
-    _money += money_earned
-
-
-def spend_money(spent_amount: int) -> None:
-    global _money
-    _money -= spent_amount
 
 
 def get_spawn() -> Tuple[int, int]:

@@ -5,12 +5,14 @@ from typing import Tuple, Type, Optional, List, Callable
 from PIL import Image, ImageTk
 
 from adapted.constants import BLOCK_SIZE, Direction
-from adapted.database import lose_health, earn_money, get_spawn, get_direction
+from adapted.database import get_spawn, get_direction
+from adapted.player import Player
 
 
 class Monster:
-    def __init__(self, distance: float):
+    def __init__(self, distance: float, player: Player):
         self.alive = True
+        self.player = player
         self.health = 0
         self.max_health = 0
         self.axis = None
@@ -69,15 +71,15 @@ class Monster:
         return x_pos, y_pos
 
     def killed(self):
-        earn_money(self.value)
+        self.player.money += self.value
         for _ in range(self.respawn_count):
             monsters.append(
-                self.respawn_type(self.distance_travelled + BLOCK_SIZE * (0.5 - random.random()))
+                self.respawn_type(self.distance_travelled + BLOCK_SIZE * (0.5 - random.random()), self.player)
             )
         self.die()
 
     def got_through(self):
-        lose_health(1)
+        self.player.health -= 1
         self.die()
 
     def die(self):
@@ -105,8 +107,8 @@ class Monster:
 
 
 class Monster1(Monster):
-    def __init__(self, distance):
-        super().__init__(distance)
+    def __init__(self, distance, player: Player):
+        super().__init__(distance, player)
         self.max_health = 30
         self.health = self.max_health
         self.value = 5
@@ -116,8 +118,8 @@ class Monster1(Monster):
 
 
 class Monster2(Monster):
-    def __init__(self, distance):
-        super(Monster2, self).__init__(distance)
+    def __init__(self, distance, player: Player):
+        super().__init__(distance, player)
         self.max_health = 50
         self.health = self.max_health
         self.value = 10
@@ -129,8 +131,8 @@ class Monster2(Monster):
 
 
 class AlexMonster(Monster):
-    def __init__(self, distance):
-        super(AlexMonster, self).__init__(distance)
+    def __init__(self, distance, player: Player):
+        super().__init__(distance, player)
         self.max_health = 500
         self.health = self.max_health
         self.value = 100
@@ -142,8 +144,8 @@ class AlexMonster(Monster):
 
 
 class BenMonster(Monster):
-    def __init__(self, distance):
-        super(BenMonster, self).__init__(distance)
+    def __init__(self, distance, player: Player):
+        super().__init__(distance, player)
         self.max_health = 200
         self.health = self.max_health
         self.value = 30
@@ -155,8 +157,8 @@ class BenMonster(Monster):
 
 
 class LeoMonster(Monster):
-    def __init__(self, distance):
-        super(LeoMonster, self).__init__(distance)
+    def __init__(self, distance, player: Player):
+        super().__init__(distance, player)
         self.max_health = 20
         self.health = self.max_health
         self.value = 2
@@ -166,8 +168,8 @@ class LeoMonster(Monster):
 
 
 class MonsterBig(Monster):
-    def __init__(self, distance):
-        super(MonsterBig, self).__init__(distance)
+    def __init__(self, distance, player: Player):
+        super().__init__(distance, player)
         self.max_health = 1000
         self.health = self.max_health
         self.value = 10

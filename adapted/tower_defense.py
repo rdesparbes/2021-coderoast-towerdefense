@@ -6,9 +6,10 @@ from PIL import Image, ImageTk
 
 from adapted.blocks import Block, BLOCK_MAPPING
 from adapted.constants import GRID_SIZE, BLOCK_SIZE, MAP_SIZE, TIME_STEP, Direction
-from adapted.database import get_health, get_money, spend_money, set_spawn, get_tower, set_tower, append_direction
+from adapted.database import set_spawn, get_tower, set_tower, append_direction
 from adapted.grid import get_block, set_block
 from adapted.monsters import Monster, monsters, MONSTER_MAPPING, get_monsters_asc_distance
+from adapted.player import Player
 from adapted.projectiles import projectiles
 from adapted.towers import TOWER_MAPPING, TargetingTower
 from adapted.view import View
@@ -27,10 +28,11 @@ class TowerDefenseGame(Game):
     ):
         super().__init__(title, width, height, timestep=TIME_STEP)
         self.state = TowerDefenseGameState.IDLE
+        self.view = View()
+        self.player = Player()
         self.display_board = DisplayBoard(self)
         self.info_board = InfoBoard(self)
         self.tower_box = TowerBox(self)
-        self.view = View()
 
     def initialize(self):
         self.add_object(Map())
@@ -71,6 +73,26 @@ class TowerDefenseGame(Game):
 
     def set_state(self, state: TowerDefenseGameState):
         self.state = state
+
+    def hovered_over(self, block: Block):
+        selected_tower = self.view.selected_tower
+        tower = get_tower(block.gridx, block.gridy)
+        if tower is not None:
+            if selected_tower == "<None>":
+                tower.clicked = True
+                self.view.display_tower = tower
+                self.info_board.display_specific()
+        elif (
+                selected_tower != "<None>"
+                and block.is_constructible()
+                and self.player.money >= TOWER_MAPPING[selected_tower].cost
+        ):
+            tower_type = TOWER_MAPPING[selected_tower]
+            tower = tower_type(
+                block.x, block.y, block.gridx, block.gridy
+            )
+            set_tower(block.gridx, block.gridy, tower)
+            self.player.money -= TOWER_MAPPING[selected_tower].cost
 
 
 class Map:
@@ -200,7 +222,7 @@ class WaveGenerator:
 
     def spawn_monster(self):
         monster_type: Type[Monster] = MONSTER_MAPPING[self.current_wave[self.current_monster]]
-        monsters.append(monster_type(distance=0))
+        monsters.append(monster_type(distance=0, player=self.game.player))
         self.current_monster += 1
 
     def update(self):
@@ -301,8 +323,8 @@ class UpgradeButton(Button):
     def pressed(self):
         if self.game.view.display_tower is None:
             return
-        if get_money() >= self.game.view.display_tower.upgrade_cost:
-            spend_money(self.game.view.display_tower.upgrade_cost)
+        if self.game.player.money >= self.game.view.display_tower.upgrade_cost:
+            self.game.player.money -= self.game.view.display_tower.upgrade_cost
             self.game.view.display_tower.upgrade()
 
 
@@ -410,8 +432,8 @@ class DisplayBoard:
             master=game.frame, width=600, height=80, bg="gray", highlightthickness=0
         )
         self.canvas.grid(row=2, column=0)
-        self.health_bar = HealthBar()
-        self.money_bar = MoneyBar()
+        self.health_bar = HealthBar(game.player)
+        self.money_bar = MoneyBar(game.player)
         self.next_wave_button = NextWaveButton(450, 25, 550, 50, game)
         self.paint()
 
@@ -452,27 +474,6 @@ class TowerBox:
         self.game.view.selected_tower = str(self.box.get(self.box.curselection()))
         self.game.view.display_tower = None
         self.game.info_board.display_generic()
-
-
-def hovered_over(block: Block, info_board: InfoBoard, view: View):
-    selected_tower = view.selected_tower
-    tower = get_tower(block.gridx, block.gridy)
-    if tower is not None:
-        if selected_tower == "<None>":
-            tower.clicked = True
-            view.display_tower = tower
-            info_board.display_specific()
-    elif (
-            selected_tower != "<None>"
-            and block.is_constructible()
-            and get_money() >= TOWER_MAPPING[selected_tower].cost
-    ):
-        tower_type = TOWER_MAPPING[selected_tower]
-        tower = tower_type(
-            block.x, block.y, block.gridx, block.gridy
-        )
-        set_tower(block.gridx, block.gridy, tower)
-        spend_money(TOWER_MAPPING[selected_tower].cost)
 
 
 class Mouse:
@@ -529,7 +530,7 @@ class Mouse:
                     and 0 <= self.gridy <= GRID_SIZE - 1
             ):
                 block: Block = get_block(self.gridx, self.gridy)
-                hovered_over(block, self.game.info_board, self.game.view)
+                self.game.hovered_over(block)
             else:
                 self.game.display_board.next_wave_button.press(
                     self.x - self.xoffset, self.y - self.yoffset
@@ -561,25 +562,25 @@ class Mouse:
 
 
 class HealthBar:
-    def __init__(self):
-        self.text = str(get_health())
+    def __init__(self, player: Player):
+        self.player = player
 
     def update(self):
-        self.text = str(get_health())
+        pass
 
     def paint(self, canvas: tk.Canvas):
-        canvas.create_text(40, 40, text="Health: " + self.text, fill="black")
+        canvas.create_text(40, 40, text=f"Health: {self.player.health}", fill="black")
 
 
 class MoneyBar:
-    def __init__(self):
-        self.text = str(get_money())
+    def __init__(self, player: Player):
+        self.player = player
 
     def update(self):
-        self.text = str(get_money())
+        pass
 
     def paint(self, canvas: tk.Canvas):
-        canvas.create_text(240, 40, text="Money: " + self.text, fill="black")
+        canvas.create_text(240, 40, text=f"Money: {self.player.money}", fill="black")
 
 
 def main():
