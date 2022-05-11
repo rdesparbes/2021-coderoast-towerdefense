@@ -6,10 +6,11 @@ from PIL import Image, ImageTk
 
 from adapted.constants import BLOCK_SIZE, Direction
 from adapted.database import get_spawn, get_direction
+from adapted.monster import IMonster
 from adapted.player import Player
 
 
-class Monster:
+class Monster(IMonster):
     def __init__(self, distance: float, player: Player):
         self.alive = True
         self.player = player

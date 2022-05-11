@@ -7,10 +7,10 @@ from PIL import Image, ImageTk
 from adapted.blocks import Block, BLOCK_MAPPING
 from adapted.constants import GRID_SIZE, BLOCK_SIZE, MAP_SIZE, TIME_STEP, Direction
 from adapted.database import set_spawn, get_tower, set_tower, append_direction
+from adapted.entities import Entities
 from adapted.grid import get_block, set_block
 from adapted.monsters import Monster, monsters, MONSTER_MAPPING, get_monsters_asc_distance
 from adapted.player import Player
-from adapted.projectiles import projectiles
 from adapted.towers import TOWER_MAPPING, TargetingTower
 from adapted.view import View
 from game import Game
@@ -30,6 +30,7 @@ class TowerDefenseGame(Game):
         self.state = TowerDefenseGameState.IDLE
         self.view = View()
         self.player = Player()
+        self.entities = Entities()
         self.display_board = DisplayBoard(self)
         self.info_board = InfoBoard(self)
         self.tower_box = TowerBox(self)
@@ -42,7 +43,7 @@ class TowerDefenseGame(Game):
     def update(self):
         super().update()
         self.display_board.update()
-        for projectile in projectiles:
+        for projectile in self.entities.projectiles:
             projectile.update()
         for y in range(GRID_SIZE):
             for x in range(GRID_SIZE):
@@ -64,7 +65,7 @@ class TowerDefenseGame(Game):
                     tower.paint(self.canvas)
         for monster in get_monsters_asc_distance():
             monster.paint(self.canvas)
-        for projectile in projectiles:
+        for projectile in self.entities.projectiles:
             projectile.paint(self.canvas)
         display_tower: Optional[TargetingTower] = self.view.display_tower
         if display_tower is not None:
@@ -89,7 +90,7 @@ class TowerDefenseGame(Game):
         ):
             tower_type = TOWER_MAPPING[selected_tower]
             tower = tower_type(
-                block.x, block.y, block.gridx, block.gridy
+                block.x, block.y, block.gridx, block.gridy, self.entities
             )
             set_tower(block.gridx, block.gridy, tower)
             self.player.money -= TOWER_MAPPING[selected_tower].cost

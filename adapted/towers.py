@@ -6,7 +6,8 @@ from typing import Dict, Type, Optional
 from PIL import ImageTk, Image
 
 from adapted.constants import FPS, BLOCK_SIZE
-from adapted.projectiles import projectiles, AngledProjectile, TrackingBullet, PowerShot
+from adapted.entities import Entities
+from adapted.projectiles import AngledProjectile, TrackingBullet, PowerShot
 from adapted.tower import ITower
 from adapted.monsters import TARGETING_STRATEGIES, Monster
 from adapted.database import unset_tower
@@ -15,7 +16,7 @@ from adapted.database import unset_tower
 class Tower(ITower):
     cost: int = 150
 
-    def __init__(self, x, y, gridx, gridy):
+    def __init__(self, x, y, gridx, gridy, entities: Entities):
         self.upgrade_cost = None
         self.level = 1
         self.range = 0
@@ -24,6 +25,7 @@ class Tower(ITower):
         self.y = y
         self.gridx = gridx
         self.gridy = gridy
+        self.entities = entities
         self.image = ImageTk.PhotoImage(Image.open(
             "images/towerImages/" + self.__class__.__name__ + "/1.png"
         ))
@@ -61,8 +63,8 @@ class Tower(ITower):
 
 
 class TargetingTower(Tower, ABC):
-    def __init__(self, x, y, gridx, gridy):
-        super().__init__(x, y, gridx, gridy)
+    def __init__(self, x, y, gridx, gridy, entities: Entities):
+        super().__init__(x, y, gridx, gridy, entities)
         self.bullets_per_second = None
         self.ticks = 0
         self.damage = 0
@@ -114,8 +116,8 @@ class TargetingTower(Tower, ABC):
 
 
 class ArrowShooterTower(TargetingTower):
-    def __init__(self, x, y, gridx, gridy):
-        super().__init__(x, y, gridx, gridy)
+    def __init__(self, x, y, gridx, gridy, entities: Entities):
+        super().__init__(x, y, gridx, gridy, entities)
         self.range = BLOCK_SIZE * 10
         self.bullets_per_second = 1
         self.damage = 10
@@ -137,12 +139,13 @@ class ArrowShooterTower(TargetingTower):
 
     def shoot(self):
         angle = math.atan2(self.y - self.target.y, self.target.x - self.x)
-        projectiles.append(
+        self.entities.projectiles.append(
             AngledProjectile(
                 self.x,
                 self.y,
                 self.damage,
                 self.speed,
+                self.entities,
                 angle,
                 self.range + BLOCK_SIZE / 2,
             )
@@ -150,8 +153,8 @@ class ArrowShooterTower(TargetingTower):
 
 
 class BulletShooterTower(TargetingTower):
-    def __init__(self, x, y, gridx, gridy):
-        super().__init__(x, y, gridx, gridy)
+    def __init__(self, x, y, gridx, gridy, entities: Entities):
+        super().__init__(x, y, gridx, gridy, entities)
         self.range = BLOCK_SIZE * 6
         self.bullets_per_second = 4
         self.damage = 5
@@ -162,14 +165,14 @@ class BulletShooterTower(TargetingTower):
         return "Bullet Shooter"
 
     def shoot(self):
-        projectiles.append(
-            TrackingBullet(self.x, self.y, self.damage, self.speed, self.target)
+        self.entities.projectiles.append(
+            TrackingBullet(self.x, self.y, self.damage, self.speed, self.entities, self.target)
         )
 
 
 class PowerTower(TargetingTower):
-    def __init__(self, x, y, gridx, gridy):
-        super().__init__(x, y, gridx, gridy)
+    def __init__(self, x, y, gridx, gridy, entities: Entities):
+        super().__init__(x, y, gridx, gridy, entities)
         self.range = BLOCK_SIZE * 8
         self.bullets_per_second = 10
         self.damage = 1
@@ -181,16 +184,16 @@ class PowerTower(TargetingTower):
         return "Power Tower"
 
     def shoot(self):
-        projectiles.append(
-            PowerShot(self.x, self.y, self.damage, self.speed, self.target, self.slow)
+        self.entities.projectiles.append(
+            PowerShot(self.x, self.y, self.damage, self.speed, self.entities, self.target, self.slow)
         )
 
 
 class TackTower(TargetingTower):
     cost: int = 200
 
-    def __init__(self, x, y, gridx, gridy):
-        super().__init__(x, y, gridx, gridy)
+    def __init__(self, x, y, gridx, gridy, entities: Entities):
+        super().__init__(x, y, gridx, gridy, entities)
         self.range = BLOCK_SIZE * 5
         self.bullets_per_second = 1
         self.damage = 10
@@ -204,9 +207,9 @@ class TackTower(TargetingTower):
     def shoot(self):
         for i in range(self.projectile_count):
             angle = math.radians(i * 360 / self.projectile_count)
-            projectiles.append(
+            self.entities.projectiles.append(
                 AngledProjectile(
-                    self.x, self.y, self.damage, self.speed, angle, self.range
+                    self.x, self.y, self.damage, self.speed, self.entities, angle, self.range
                 )
             )
 

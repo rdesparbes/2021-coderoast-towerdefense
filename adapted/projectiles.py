@@ -1,29 +1,25 @@
 import math
 import tkinter as tk
 from abc import ABC
-from typing import Optional, List
+from typing import Optional
 
 from PIL import ImageTk, Image
 
 from adapted.constants import BLOCK_SIZE
-from adapted.monsters import monsters, Monster
+from adapted.entities import Entities
+from adapted.monsters import Monster
 from adapted.projectile import IProjectile
 
 
 class Projectile(IProjectile, ABC):
-    def __init__(self, x, y, damage, speed, target: Optional[Monster], image: tk.PhotoImage):
+    def __init__(self, x, y, damage, speed, entities: Entities, target: Optional[Monster], image: tk.PhotoImage):
         super().__init__(x, y, damage, speed, target, image)
         self.hit = False
-        self.x = x
-        self.y = y
-        self.damage = damage
-        self.speed = speed
-        self.image = image
-        self.target = target
+        self.entities = entities
 
     def update(self):
         if self.target and not self.target.alive:
-            projectiles.remove(self)
+            self.entities.projectiles.remove(self)
             return
         if self.hit:
             self.got_monster()
@@ -32,19 +28,20 @@ class Projectile(IProjectile, ABC):
 
     def got_monster(self):
         self.target.health -= self.damage
-        projectiles.remove(self)
+        self.entities.projectiles.remove(self)
 
     def paint(self, canvas: tk.Canvas):
         canvas.create_image(self.x, self.y, image=self.image)
 
 
 class TrackingBullet(Projectile):
-    def __init__(self, x, y, damage, speed, target, image: Optional[ImageTk.PhotoImage] = None):
+    def __init__(self, x, y, damage, speed, entities: Entities, target, image: Optional[ImageTk.PhotoImage] = None):
         super().__init__(
             x,
             y,
             damage,
             speed,
+            entities,
             target,
             ImageTk.PhotoImage(Image.open("images/projectileImages/bullet.png")) if image is None else image,
         )
@@ -67,12 +64,13 @@ class TrackingBullet(Projectile):
 
 
 class PowerShot(TrackingBullet):
-    def __init__(self, x, y, damage, speed, target, slow):
+    def __init__(self, x, y, damage, speed, entities, target, slow):
         super().__init__(
             x,
             y,
             damage,
             speed,
+            entities,
             target,
             image=ImageTk.PhotoImage(Image.open("images/projectileImages/powerShot.png"))
         )
@@ -82,16 +80,17 @@ class PowerShot(TrackingBullet):
         self.target.health -= self.damage
         if self.target.movement > self.target.speed / self.slow:
             self.target.movement = self.target.speed / self.slow
-        projectiles.remove(self)
+        self.entities.projectiles.remove(self)
 
 
 class AngledProjectile(Projectile):
-    def __init__(self, x, y, damage, speed, angle, given_range):
+    def __init__(self, x, y, damage, speed, entities, angle, given_range):
         super().__init__(
             x,
             y,
             damage,
             speed,
+            entities,
             None,
             image=ImageTk.PhotoImage(Image.open("images/projectileImages/arrow.png").rotate(math.degrees(angle)))
         )
@@ -101,7 +100,8 @@ class AngledProjectile(Projectile):
         self.distance = 0
 
     def check_hit(self):
-        for monster in monsters:
+        for monster in self.entities.monsters:
+            monster: Monster
             if (monster.x - self.x) ** 2 + (monster.y - self.y) ** 2 <= (
                     BLOCK_SIZE
             ) ** 2:
@@ -113,7 +113,7 @@ class AngledProjectile(Projectile):
         self.target.health -= self.damage
         self.target.tick = 0
         self.target.max_tick = 5
-        projectiles.remove(self)
+        self.entities.projectiles.remove(self)
 
     def move(self):
         self.x += self.x_change
@@ -121,9 +121,6 @@ class AngledProjectile(Projectile):
         self.distance += self.speed
         if self.distance >= self.range:
             try:
-                projectiles.remove(self)
+                self.entities.projectiles.remove(self)
             except ValueError:
                 pass
-
-
-projectiles: List[Projectile] = []
