@@ -6,7 +6,7 @@ from PIL import Image, ImageTk
 
 from adapted.blocks import Block, BLOCK_MAPPING
 from adapted.constants import GRID_SIZE, BLOCK_SIZE, MAP_SIZE, TIME_STEP, Direction
-from adapted.database import set_spawn, get_tower, set_tower, append_direction
+from adapted.database import set_spawn, append_direction
 from adapted.entities import Entities
 from adapted.grid import get_block, set_block
 from adapted.monsters import Monster, MONSTER_MAPPING, get_monsters_asc_distance
@@ -52,7 +52,7 @@ class TowerDefenseGame(Game):
             monster.update()
         for y in range(GRID_SIZE):
             for x in range(GRID_SIZE):
-                tower = get_tower(x, y)
+                tower = self.entities.towers[x, y]
                 if tower is not None:
                     tower.update()
 
@@ -60,7 +60,7 @@ class TowerDefenseGame(Game):
         super().paint()
         for y in range(GRID_SIZE):
             for x in range(GRID_SIZE):
-                tower = get_tower(x, y)
+                tower = self.entities.towers[x, y]
                 if tower is not None:
                     tower.paint(self.canvas)
         for monster in get_monsters_asc_distance(self.entities.monsters):
@@ -77,7 +77,7 @@ class TowerDefenseGame(Game):
 
     def hovered_over(self, block: Block):
         selected_tower = self.view.selected_tower
-        tower = get_tower(block.gridx, block.gridy)
+        tower = self.entities.towers[block.gridx, block.gridy]
         if tower is not None:
             if selected_tower == "<None>":
                 tower.clicked = True
@@ -92,7 +92,7 @@ class TowerDefenseGame(Game):
             tower = tower_type(
                 block.x, block.y, block.gridx, block.gridy, self.entities
             )
-            set_tower(block.gridx, block.gridy, tower)
+            self.entities.towers[block.gridx, block.gridy] = tower
             self.player.money -= TOWER_MAPPING[selected_tower].cost
 
 
@@ -319,9 +319,10 @@ class StickyButton(Button):
 
 class SellButton(Button):
     def pressed(self):
-        if self.game.view.display_tower is None:
+        tower = self.game.view.display_tower
+        if tower is None:
             return
-        self.game.view.display_tower.sold()
+        del self.game.entities.towers[tower.x, tower.y]
         self.game.view.display_tower = None
 
 

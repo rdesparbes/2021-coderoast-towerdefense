@@ -10,7 +10,6 @@ from adapted.entities import Entities
 from adapted.projectiles import AngledProjectile, TrackingBullet, PowerShot
 from adapted.tower import ITower
 from adapted.monsters import TARGETING_STRATEGIES, Monster
-from adapted.database import unset_tower
 
 
 class Tower(ITower):
@@ -43,10 +42,6 @@ class Tower(ITower):
             + ".png"
         ))
         self.next_level()
-
-    # TODO: It's not the Tower's responsibility to unset itself
-    def sold(self):
-        unset_tower(self.gridx, self.gridy)
 
     def paint_select(self, canvas):
         canvas.create_oval(
