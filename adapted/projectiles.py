@@ -18,7 +18,7 @@ class Projectile(IProjectile, ABC):
         self.damage = damage
         self.speed = speed
         self.entities = entities
-        self.target = target
+        self.target: Optional[Monster] = target
         self.image = image
         self.hit = False
 
@@ -77,7 +77,7 @@ class TrackingBullet(Projectile):
 
 
 class PowerShot(TrackingBullet):
-    def __init__(self, x, y, damage, speed, entities, target, slow):
+    def __init__(self, x, y, damage, speed, entities, target: Optional[Monster], slow):
         super().__init__(
             x,
             y,
@@ -91,8 +91,8 @@ class PowerShot(TrackingBullet):
 
     def _got_monster(self):
         self.target.health -= self.damage
-        if self.target.movement > self.target.speed / self.slow:
-            self.target.movement = self.target.speed / self.slow
+        if self.target.stats.movement > self.target.stats.speed / self.slow:
+            self.target.stats.movement = self.target.stats.speed / self.slow
         self.entities.projectiles.remove(self)
 
 

@@ -74,6 +74,7 @@ class TargetingTower(Tower, ABC):
             self.ticks += 1
         if not self.sticky_target:
             for monster in check_list:
+                monster: Monster
                 if (self.range + BLOCK_SIZE / 2) ** 2 >= (
                         self.x - monster.x
                 ) ** 2 + (self.y - monster.y) ** 2:

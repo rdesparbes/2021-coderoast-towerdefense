@@ -1,6 +1,6 @@
 import tkinter as tk
 from enum import Enum, auto
-from typing import Optional, Type
+from typing import Optional
 
 from PIL import Image, ImageTk
 
@@ -9,7 +9,7 @@ from adapted.constants import GRID_SIZE, BLOCK_SIZE, MAP_SIZE, TIME_STEP, Direct
 from adapted.database import set_spawn, append_direction
 from adapted.entities import Entities
 from adapted.grid import get_block, set_block
-from adapted.monsters import Monster, MONSTER_MAPPING, get_monsters_asc_distance
+from adapted.monsters import MONSTER_MAPPING, get_monsters_asc_distance
 from adapted.player import Player
 from adapted.towers import TOWER_MAPPING, TargetingTower
 from adapted.view import View
@@ -222,7 +222,7 @@ class WaveGenerator:
         append_direction(None)
 
     def spawn_monster(self):
-        monster_type: Type[Monster] = MONSTER_MAPPING[self.current_wave[self.current_monster]]
+        monster_type = MONSTER_MAPPING[self.current_wave[self.current_monster]]
         monster = monster_type(
             distance=0,
             player=self.game.player,
