@@ -91,8 +91,9 @@ class PowerShot(TrackingBullet):
 
     def _got_monster(self):
         self.target.health -= self.damage
-        if self.target.stats.movement > self.target.stats.speed / self.slow:
-            self.target.stats.movement = self.target.stats.speed / self.slow
+        max_speed = self.target.speed / self.slow
+        if self.target.speed > max_speed:
+            self.target.speed = max_speed
         self.entities.projectiles.remove(self)
 
 

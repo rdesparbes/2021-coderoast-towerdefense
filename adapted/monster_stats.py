@@ -1,14 +1,11 @@
-from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, NamedTuple
 
 
-@dataclass
-class MonsterStats:
+class MonsterStats(NamedTuple):
     name: str
-    max_health: int = 0
-    size: Optional[float] = None
-    speed: float = 0.0
-    movement: float = 0.0
-    value: int = 0
+    max_health: int
+    size: Optional[float]
+    speed: float
+    value: int
     respawn_count: int = 0
     respawn_stats_index: Optional[int] = None

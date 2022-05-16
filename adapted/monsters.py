@@ -16,6 +16,7 @@ class Monster(IMonster):
     def __init__(self, stats: MonsterStats, distance: float, player: Player, entities: Entities):
         self.stats = stats
         self.health = stats.max_health
+        self.speed = stats.speed
         self.player = player
         self.entities = entities
         self.tick: int = 0
@@ -38,9 +39,9 @@ class Monster(IMonster):
 
     def move(self):
         if self.tick >= self.max_tick:
-            self.distance_travelled += self.stats.movement
+            self.distance_travelled += self.speed
             self.x, self.y = self.position_formula(self.distance_travelled)
-            self.stats.movement = self.stats.speed
+            self.speed = self.stats.speed
             self.tick = 0
             self.max_tick = 1
         self.tick += 1
@@ -144,16 +145,14 @@ MONSTER_MAPPING: List[Callable[[float, Player, Entities], Monster]] = [
         name="Monster1",
         max_health=30,
         value=5,
-        speed=BLOCK_SIZE / 2,
-        movement=BLOCK_SIZE / 3,
+        speed=BLOCK_SIZE / 2.,
         size=BLOCK_SIZE / 2,
     )),
     monster_factory(MonsterStats(
         name="Monster2",
         max_health=50,
         value=10,
-        speed=BLOCK_SIZE / 4,
-        movement=BLOCK_SIZE / 4,
+        speed=BLOCK_SIZE / 4.,
         size=BLOCK_SIZE / 2,
         respawn_count=1,
         respawn_stats_index=0,
@@ -162,8 +161,7 @@ MONSTER_MAPPING: List[Callable[[float, Player, Entities], Monster]] = [
         name="AlexMonster",
         max_health=500,
         value=100,
-        speed=BLOCK_SIZE / 5,
-        movement=BLOCK_SIZE / 5,
+        speed=BLOCK_SIZE / 5.,
         size=BLOCK_SIZE,
         respawn_count=5,
         respawn_stats_index=1,
@@ -172,9 +170,8 @@ MONSTER_MAPPING: List[Callable[[float, Player, Entities], Monster]] = [
         name="BenMonster",
         max_health=200,
         value=30,
-        speed=BLOCK_SIZE / 4,
-        movement=BLOCK_SIZE / 4,
-        size=BLOCK_SIZE / 2,
+        speed=BLOCK_SIZE / 4.,
+        size=BLOCK_SIZE / 2.,
         respawn_count=2,
         respawn_stats_index=4,
     )),
@@ -182,16 +179,14 @@ MONSTER_MAPPING: List[Callable[[float, Player, Entities], Monster]] = [
         name="LeoMonster",
         max_health=20,
         value=2,
-        speed=BLOCK_SIZE / 2,
-        movement=BLOCK_SIZE / 2,
-        size=BLOCK_SIZE / 4,
+        speed=BLOCK_SIZE / 2.,
+        size=BLOCK_SIZE / 4.,
     )),
     monster_factory(MonsterStats(
         name="MonsterBig",
         max_health=1000,
         value=10,
         speed=BLOCK_SIZE / 6.,
-        movement=BLOCK_SIZE / 6.,
         size=3 * BLOCK_SIZE / 2.,
     )),
 ]
