@@ -11,7 +11,7 @@ from adapted.entities import Entities
 from adapted.grid import get_block, set_block
 from adapted.monsters import MONSTER_MAPPING, get_monsters_asc_distance
 from adapted.player import Player
-from adapted.towers import TOWER_MAPPING, TargetingTower
+from adapted.towers import TOWER_MAPPING, Tower, TowerFactory
 from adapted.view import View
 from game import Game
 
@@ -67,7 +67,7 @@ class TowerDefenseGame(Game):
             monster.paint(self.canvas)
         for projectile in self.entities.projectiles:
             projectile.paint(self.canvas)
-        display_tower: Optional[TargetingTower] = self.view.display_tower
+        display_tower: Optional[Tower] = self.view.display_tower
         if display_tower is not None:
             display_tower.paint_select(self.canvas)
         self.display_board.paint()
@@ -78,22 +78,23 @@ class TowerDefenseGame(Game):
     def hovered_over(self, block: Block):
         selected_tower = self.view.selected_tower
         tower = self.entities.towers[block.gridx, block.gridy]
-        if tower is not None:
-            if selected_tower == "<None>":
-                tower.clicked = True
-                self.view.display_tower = tower
-                self.info_board.display_specific()
-        elif (
+        if tower is not None and selected_tower == "<None>":
+            tower.clicked = True
+            self.view.display_tower = tower
+            self.info_board.display_specific()
+            return
+
+        if (
                 selected_tower != "<None>"
                 and block.is_constructible()
-                and self.player.money >= TOWER_MAPPING[selected_tower].cost
+                and self.player.money >= TOWER_MAPPING[selected_tower].tower_stats.cost
         ):
-            tower_type = TOWER_MAPPING[selected_tower]
-            tower = tower_type(
+            tower_factory: TowerFactory = TOWER_MAPPING[selected_tower]
+            tower = tower_factory.build_tower(
                 block.x, block.y, block.gridx, block.gridy, self.entities
             )
             self.entities.towers[block.gridx, block.gridy] = tower
-            self.player.money -= TOWER_MAPPING[selected_tower].cost
+            self.player.money -= tower.stats.cost
 
 
 class Map:
@@ -322,7 +323,7 @@ class SellButton(Button):
         tower = self.game.view.display_tower
         if tower is None:
             return
-        del self.game.entities.towers[tower.x, tower.y]
+        del self.game.entities.towers[tower.gridx, tower.gridy]
         self.game.view.display_tower = None
 
 
@@ -330,8 +331,8 @@ class UpgradeButton(Button):
     def pressed(self):
         if self.game.view.display_tower is None:
             return
-        if self.game.player.money >= self.game.view.display_tower.upgrade_cost:
-            self.game.player.money -= self.game.view.display_tower.upgrade_cost
+        if self.game.player.money >= self.game.view.display_tower.get_upgrade_cost():
+            self.game.player.money -= self.game.view.display_tower.get_upgrade_cost()
             self.game.view.display_tower.upgrade()
 
 
@@ -372,7 +373,7 @@ class InfoBoard:
         self.canvas.create_text(80, 75, text=self.game.view.display_tower.get_name(), font=("times", 20))
         self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
 
-        if isinstance(self.game.view.display_tower, TargetingTower):
+        if self.game.view.display_tower is not None:
             self.current_buttons.append(TargetButton(26, 30, 35, 39, self.game, 0))
             self.canvas.create_text(
                 37, 28, text="> Health", font=("times", 12), fill="white", anchor=tk.NW
@@ -395,12 +396,13 @@ class InfoBoard:
 
             self.current_buttons.append(StickyButton(10, 40, 19, 49, self.game))
             self.current_buttons.append(SellButton(5, 145, 78, 168, self.game))
-            if self.game.view.display_tower.upgrade_cost is not None:
+            upgrade_cost = self.game.view.display_tower.get_upgrade_cost()
+            if upgrade_cost is not None:
                 self.current_buttons.append(UpgradeButton(82, 145, 155, 168, self.game))
                 self.canvas.create_text(
                     120,
                     157,
-                    text="Upgrade: " + str(self.game.view.display_tower.upgrade_cost),
+                    text="Upgrade: " + str(upgrade_cost),
                     font=("times", 12),
                     fill="light green",
                     anchor=tk.CENTER,
@@ -421,10 +423,10 @@ class InfoBoard:
             text = None
             self.tower_image = None
         else:
-            text = selected_tower + " cost: " + str(TOWER_MAPPING[selected_tower].cost)
+            text = selected_tower + " cost: " + str(TOWER_MAPPING[selected_tower].tower_stats.cost)
             self.tower_image = ImageTk.PhotoImage(
                 Image.open(
-                    "images/towerImages/" + TOWER_MAPPING[selected_tower].__name__ + "/1.png"
+                    "images/towerImages/" + TOWER_MAPPING[selected_tower].tower_type.__name__ + "/1.png"
                 )
             )
         self.canvas.delete(tk.ALL)  # clear the screen
