@@ -1,6 +1,7 @@
 import math
 import tkinter as tk
 from abc import ABC, abstractmethod
+from copy import copy
 from dataclasses import dataclass, field, fields
 from typing import Dict, Type, Optional, List
 
@@ -191,7 +192,7 @@ class TowerFactory:
     def build_tower(self, x, y, gridx, gridy, entities: Entities) -> Tower:
         return self.tower_type(
             x, y, gridx, gridy, entities,
-            self.tower_stats, self.tower_upgrades
+            copy(self.tower_stats), self.tower_upgrades
         )
 
 
