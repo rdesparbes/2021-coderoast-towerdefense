@@ -4,10 +4,10 @@ from typing import Optional
 
 from PIL import Image, ImageTk
 
-from adapted.blocks import Block, BLOCK_MAPPING
+from adapted.blocks import Block
 from adapted.constants import GRID_SIZE, BLOCK_SIZE, MAP_SIZE, TIME_STEP, Direction
 from adapted.entities import Entities
-from adapted.grid import Grid
+from adapted.map import Map
 from adapted.monsters import MONSTER_MAPPING, get_monsters_asc_distance
 from adapted.player import Player
 from adapted.towers import TOWER_MAPPING, Tower, TowerFactory
@@ -93,41 +93,6 @@ class TowerDefenseGame(Game):
             )
             self.entities.towers[block.gridx, block.gridy] = tower
             self.player.money -= tower.stats.cost
-
-
-class Map:
-    def __init__(self, image: Optional[ImageTk.PhotoImage] = None):
-        self.image = image
-
-    def load_map(self, map_name: str):
-        drawn_map = Image.new("RGBA", (MAP_SIZE, MAP_SIZE), (255, 255, 255, 255))
-        with open("texts/mapTexts/" + map_name + ".txt", "r") as map_file:
-            grid_values = list(map(int, (map_file.read()).split()))
-        grid = Grid()
-        for y in range(GRID_SIZE):
-            for x in range(GRID_SIZE):
-                block_number = grid_values[GRID_SIZE * y + x]
-                block_type = BLOCK_MAPPING[block_number]
-                block: Block = block_type(
-                    x * BLOCK_SIZE + BLOCK_SIZE / 2,
-                    y * BLOCK_SIZE + BLOCK_SIZE / 2,
-                    x,
-                    y,
-                )  # creates a grid of Blocks
-                block.paint(drawn_map)
-                grid.block_grid[x][y] = block
-
-        # TODO: fix weird save/load
-        image_path = "images/mapImages/" + map_name + ".png"
-        drawn_map.save(image_path)
-        self.image = ImageTk.PhotoImage(Image.open(image_path))
-        return grid
-
-    def update(self):
-        pass
-
-    def paint(self, canvas: tk.Canvas):
-        canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
 
 
 class WaveGenerator:
