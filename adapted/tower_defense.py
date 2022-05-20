@@ -6,9 +6,8 @@ from PIL import Image, ImageTk
 
 from adapted.blocks import Block, BLOCK_MAPPING
 from adapted.constants import GRID_SIZE, BLOCK_SIZE, MAP_SIZE, TIME_STEP, Direction
-from adapted.database import set_spawn, append_direction
 from adapted.entities import Entities
-from adapted.grid import get_block, set_block
+from adapted.grid import Grid
 from adapted.monsters import MONSTER_MAPPING, get_monsters_asc_distance
 from adapted.player import Player
 from adapted.towers import TOWER_MAPPING, Tower, TowerFactory
@@ -34,9 +33,11 @@ class TowerDefenseGame(Game):
         self.display_board = DisplayBoard(self)
         self.info_board = InfoBoard(self)
         self.tower_box = TowerBox(self)
+        self.map = Map()
+        self.grid = self.map.load_map("LeoMap")
 
     def initialize(self):
-        self.add_object(Map())
+        self.add_object(self.map)
         self.add_object(Mouse(self))
         self.add_object(WaveGenerator(self))
 
@@ -45,9 +46,6 @@ class TowerDefenseGame(Game):
         self.display_board.update()
         for projectile in self.entities.projectiles:
             projectile.update()
-        for y in range(GRID_SIZE):
-            for x in range(GRID_SIZE):
-                get_block(x, y).update()
         for monster in self.entities.monsters:
             monster.update()
         for y in range(GRID_SIZE):
@@ -98,14 +96,14 @@ class TowerDefenseGame(Game):
 
 
 class Map:
-    def __init__(self):
-        self.image = None
-        self.load_map("LeoMap")
+    def __init__(self, image: Optional[ImageTk.PhotoImage] = None):
+        self.image = image
 
     def load_map(self, map_name: str):
         drawn_map = Image.new("RGBA", (MAP_SIZE, MAP_SIZE), (255, 255, 255, 255))
         with open("texts/mapTexts/" + map_name + ".txt", "r") as map_file:
             grid_values = list(map(int, (map_file.read()).split()))
+        grid = Grid()
         for y in range(GRID_SIZE):
             for x in range(GRID_SIZE):
                 block_number = grid_values[GRID_SIZE * y + x]
@@ -117,12 +115,13 @@ class Map:
                     y,
                 )  # creates a grid of Blocks
                 block.paint(drawn_map)
-                set_block(x, y, block)
+                grid.block_grid[x][y] = block
 
         # TODO: fix weird save/load
         image_path = "images/mapImages/" + map_name + ".png"
         drawn_map.save(image_path)
         self.image = ImageTk.PhotoImage(Image.open(image_path))
+        return grid
 
     def update(self):
         pass
@@ -157,18 +156,20 @@ class WaveGenerator:
 
     def find_spawn(self):
         for x in range(GRID_SIZE):
-            if get_block(x, 0).is_walkable():
+            if self.game.grid.block_grid[x][0].is_walkable():
                 self.gridx = x
-                set_spawn(x * BLOCK_SIZE + BLOCK_SIZE // 2, 0)
+                self.game.grid.spawn_x = x * BLOCK_SIZE + BLOCK_SIZE // 2
+                self.game.grid.spawn_y = 0
                 return
         for y in range(GRID_SIZE):
-            if get_block(0, y).is_walkable():
+            if self.game.grid.block_grid[0][y].is_walkable():
                 self.gridy = y
-                set_spawn(0, y * BLOCK_SIZE + BLOCK_SIZE // 2)
+                self.game.grid.spawn_x = 0
+                self.game.grid.spawn_y = y * BLOCK_SIZE + BLOCK_SIZE // 2
                 return
 
     def move(self):
-        append_direction(self.direction)
+        self.game.grid.path_list.append(self.direction)
         if self.direction == Direction.EAST:
             self.gridx += 1
         if self.direction == Direction.WEST:
@@ -185,7 +186,7 @@ class WaveGenerator:
                 and self.gridx < GRID_SIZE - 1
                 and 0 <= self.gridy <= GRID_SIZE - 1
         ):
-            if get_block(self.gridx + 1, self.gridy).is_walkable():
+            if self.game.grid.block_grid[self.gridx + 1][self.gridy].is_walkable():
                 self.direction = Direction.EAST
                 self.move()
                 return
@@ -195,7 +196,7 @@ class WaveGenerator:
                 and self.gridx > 0
                 and 0 <= self.gridy <= GRID_SIZE - 1
         ):
-            if get_block(self.gridx - 1, self.gridy).is_walkable():
+            if self.game.grid.block_grid[self.gridx - 1][self.gridy].is_walkable():
                 self.direction = Direction.WEST
                 self.move()
                 return
@@ -205,7 +206,7 @@ class WaveGenerator:
                 and self.gridy < GRID_SIZE - 1
                 and 0 <= self.gridx <= GRID_SIZE - 1
         ):
-            if get_block(self.gridx, self.gridy + 1).is_walkable():
+            if self.game.grid.block_grid[self.gridx][self.gridy + 1].is_walkable():
                 self.direction = Direction.SOUTH
                 self.move()
                 return
@@ -215,19 +216,18 @@ class WaveGenerator:
                 and self.gridy > 0
                 and 0 <= self.gridx <= GRID_SIZE - 1
         ):
-            if get_block(self.gridx, self.gridy - 1).is_walkable():
+            if self.game.grid.block_grid[self.gridx][self.gridy - 1].is_walkable():
                 self.direction = Direction.NORTH
                 self.move()
                 return
-
-        append_direction(None)
 
     def spawn_monster(self):
         monster_type = MONSTER_MAPPING[self.current_wave[self.current_monster]]
         monster = monster_type(
             distance=0,
             player=self.game.player,
-            entities=self.game.entities
+            entities=self.game.entities,
+            grid=self.game.grid,
         )
         self.game.entities.monsters.append(monster)
         self.current_monster += 1
@@ -538,7 +538,7 @@ class Mouse:
                     0 <= self.gridx <= GRID_SIZE - 1
                     and 0 <= self.gridy <= GRID_SIZE - 1
             ):
-                block: Block = get_block(self.gridx, self.gridy)
+                block: Optional[Block] = self.game.grid.block_grid[self.gridx][self.gridy]
                 self.game.hovered_over(block)
             else:
                 self.game.display_board.next_wave_button.press(
@@ -554,7 +554,7 @@ class Mouse:
                 and 0 <= self.gridy <= GRID_SIZE - 1
         ):
 
-            if get_block(self.gridx, self.gridy).is_constructible():
+            if self.game.grid.block_grid[self.gridx][self.gridy].is_constructible():
                 canvas.create_image(
                     self.gridx * BLOCK_SIZE,
                     self.gridy * BLOCK_SIZE,

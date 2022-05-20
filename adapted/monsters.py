@@ -1,28 +1,29 @@
 import random
 import tkinter as tk
-from typing import Tuple, List, Callable
+from typing import List, Callable
 
 from PIL import Image, ImageTk
 
-from adapted.constants import BLOCK_SIZE, Direction
-from adapted.database import get_spawn, get_direction
+from adapted.constants import BLOCK_SIZE
 from adapted.entities import Entities
+from adapted.grid import Grid, OutOfPathException
 from adapted.monster import IMonster
 from adapted.monster_stats import MonsterStats
 from adapted.player import Player
 
 
 class Monster(IMonster):
-    def __init__(self, stats: MonsterStats, distance: float, player: Player, entities: Entities):
+    def __init__(self, stats: MonsterStats, distance: float, player: Player, entities: Entities, grid: Grid):
         self.stats = stats
         self.health = stats.max_health
         self.speed = stats.speed
         self.player = player
         self.entities = entities
+        self.grid = grid
         self.tick: int = 0
         self.max_tick: int = 1
         self.distance_travelled = max(distance, 0)
-        self.x, self.y = self.position_formula(self.distance_travelled)
+        self.x, self.y = self.grid.position_formula(self.distance_travelled)
         self.image = ImageTk.PhotoImage(Image.open(
             "images/monsterImages/" + self.stats.name + ".png"
         ))
@@ -40,37 +41,14 @@ class Monster(IMonster):
     def move(self):
         if self.tick >= self.max_tick:
             self.distance_travelled += self.speed
-            self.x, self.y = self.position_formula(self.distance_travelled)
+            try:
+                self.x, self.y = self.grid.position_formula(self.distance_travelled)
+            except OutOfPathException:
+                self.got_through()
             self.speed = self.stats.speed
             self.tick = 0
             self.max_tick = 1
         self.tick += 1
-
-    def position_formula(self, distance: float) -> Tuple[int, int]:
-        x_pos, y_pos = get_spawn()
-        y_pos += BLOCK_SIZE // 2
-        blocks = int((distance - (distance % BLOCK_SIZE)) / BLOCK_SIZE)
-        for i in range(blocks):
-            if get_direction(i) == Direction.EAST:
-                x_pos += BLOCK_SIZE
-            elif get_direction(i) == Direction.WEST:
-                x_pos -= BLOCK_SIZE
-            elif get_direction(i) == Direction.SOUTH:
-                y_pos += BLOCK_SIZE
-            elif get_direction(i) == Direction.NORTH:
-                y_pos -= BLOCK_SIZE
-        if distance % BLOCK_SIZE != 0:
-            if get_direction(blocks) == Direction.EAST:
-                x_pos += distance % BLOCK_SIZE
-            elif get_direction(blocks) == Direction.WEST:
-                x_pos -= distance % BLOCK_SIZE
-            elif get_direction(blocks) == Direction.SOUTH:
-                y_pos += distance % BLOCK_SIZE
-            elif get_direction(blocks) == Direction.NORTH:
-                y_pos -= distance % BLOCK_SIZE
-        if get_direction(blocks) is None:
-            self.got_through()
-        return x_pos, y_pos
 
     def killed(self):
         self.player.money += self.stats.value
@@ -134,8 +112,8 @@ TARGETING_STRATEGIES: List[Callable[[List[IMonster]], List[IMonster]]] = [
 
 
 def monster_factory(stats: MonsterStats) -> Callable[[float, Player, Entities], Monster]:
-    def _factory(distance: float, player: Player, entities: Entities) -> Monster:
-        return Monster(stats, distance, player, entities)
+    def _factory(distance: float, player: Player, entities: Entities, grid: Grid) -> Monster:
+        return Monster(stats, distance, player, entities, grid)
 
     return _factory
 

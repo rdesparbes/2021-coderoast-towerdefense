@@ -21,9 +21,6 @@ class Block(IBlock):
             "images/blockImages/" + self.__class__.__name__ + ".png"
         )
 
-    def update(self):
-        pass
-
     def paint(self, background: Image):
         offset = (int(self.x - self.axis), int(self.y - self.axis))
         background.paste(self.image, offset)
