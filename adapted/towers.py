@@ -20,8 +20,6 @@ class Tower(ITower, ABC):
             self,
             x,
             y,
-            gridx,
-            gridy,
             entities: Entities,
             stats: TowerStats,
             upgrades: List[TowerStats] = None
@@ -32,8 +30,6 @@ class Tower(ITower, ABC):
         self.clicked = False
         self.x = x
         self.y = y
-        self.gridx = gridx
-        self.gridy = gridy
         self.entities = entities
         self.ticks = 0
         self.target: Optional[Monster] = None
@@ -70,13 +66,12 @@ class Tower(ITower, ABC):
             + ".png"
         ))
 
-    def paint_select(self, canvas):
+    def paint_select(self, canvas: tk.Canvas):
         canvas.create_oval(
             self.x - self.stats.range,
             self.y - self.stats.range,
             self.x + self.stats.range,
             self.y + self.stats.range,
-            fill=None,
             outline="white",
         )
 
@@ -102,7 +97,7 @@ class Tower(ITower, ABC):
                     ** 0.5
             ):
                 if self.ticks >= FPS / self.stats.shots_per_second:
-                    self.shoot()
+                    self._shoot()
                     self.ticks = 0
             else:
                 self.target = None
@@ -116,13 +111,8 @@ class Tower(ITower, ABC):
     def update(self):
         self.prepare_shot()
 
-    @staticmethod
     @abstractmethod
-    def get_name() -> str:
-        ...
-
-    @abstractmethod
-    def shoot(self):
+    def _shoot(self):
         ...
 
 
@@ -131,7 +121,7 @@ class ArrowShooterTower(Tower):
     def get_name():
         return "Arrow Shooter"
 
-    def shoot(self):
+    def _shoot(self):
         angle = math.atan2(self.y - self.target.y, self.target.x - self.x)
         self.entities.projectiles.append(
             AngledProjectile(
@@ -151,7 +141,7 @@ class BulletShooterTower(Tower):
     def get_name():
         return "Bullet Shooter"
 
-    def shoot(self):
+    def _shoot(self):
         self.entities.projectiles.append(
             TrackingBullet(self.x, self.y, self.stats.damage, self.stats.speed, self.entities, self.target)
         )
@@ -162,7 +152,7 @@ class PowerTower(Tower):
     def get_name():
         return "Power Tower"
 
-    def shoot(self):
+    def _shoot(self):
         self.entities.projectiles.append(
             PowerShot(self.x, self.y, self.stats.damage, self.stats.speed, self.entities, self.target, self.stats.slow)
         )
@@ -173,7 +163,7 @@ class TackTower(Tower):
     def get_name():
         return "Tack Tower"
 
-    def shoot(self):
+    def _shoot(self):
         for i in range(self.stats.projectile_count):
             angle = math.radians(i * 360 / self.stats.projectile_count)
             self.entities.projectiles.append(
@@ -189,9 +179,9 @@ class TowerFactory:
     tower_stats: TowerStats
     tower_upgrades: List[TowerStats] = field(default_factory=list)
 
-    def build_tower(self, x, y, gridx, gridy, entities: Entities) -> Tower:
+    def build_tower(self, x, y, entities: Entities) -> Tower:
         return self.tower_type(
-            x, y, gridx, gridy, entities,
+            x, y, entities,
             copy(self.tower_stats), self.tower_upgrades
         )
 

@@ -10,7 +10,8 @@ from adapted.entities import Entities
 from adapted.map import Map
 from adapted.monsters import MONSTER_MAPPING, get_monsters_asc_distance
 from adapted.player import Player
-from adapted.towers import TOWER_MAPPING, Tower, TowerFactory
+from adapted.tower import ITower
+from adapted.towers import TOWER_MAPPING, TowerFactory
 from adapted.view import View
 from game import Game
 
@@ -36,6 +37,10 @@ class TowerDefenseGame(Game):
         self.map = Map()
         self.grid = self.map.load_map("LeoMap")
 
+    @property
+    def selected_tower(self) -> Optional[ITower]:
+        return self.entities.towers.get(self.view.selected_tower_position)
+
     def initialize(self):
         self.add_object(self.map)
         self.add_object(Mouse(self))
@@ -48,48 +53,43 @@ class TowerDefenseGame(Game):
             projectile.update()
         for monster in self.entities.monsters:
             monster.update()
-        for y in range(GRID_SIZE):
-            for x in range(GRID_SIZE):
-                tower = self.entities.towers[x, y]
-                if tower is not None:
-                    tower.update()
+        for tower in self.entities.towers.values():
+            tower.update()
 
     def paint(self):
         super().paint()
-        for y in range(GRID_SIZE):
-            for x in range(GRID_SIZE):
-                tower = self.entities.towers[x, y]
-                if tower is not None:
-                    tower.paint(self.canvas)
+        for tower in self.entities.towers.values():
+            tower.paint(self.canvas)
         for monster in get_monsters_asc_distance(self.entities.monsters):
             monster.paint(self.canvas)
         for projectile in self.entities.projectiles:
             projectile.paint(self.canvas)
-        display_tower: Optional[Tower] = self.view.display_tower
-        if display_tower is not None:
-            display_tower.paint_select(self.canvas)
+        selected_tower: Optional[ITower] = self.selected_tower
+        if selected_tower is not None:
+            selected_tower.paint_select(self.canvas)
         self.display_board.paint()
 
     def set_state(self, state: TowerDefenseGameState):
         self.state = state
 
     def hovered_over(self, block: Block):
-        selected_tower = self.view.selected_tower
-        tower = self.entities.towers[block.gridx, block.gridy]
-        if tower is not None and selected_tower == "<None>":
+        selected_tower_name = self.view.selected_tower_name
+        position = (block.gridx, block.gridy)
+        tower = self.entities.towers.get(position)
+        if tower is not None and selected_tower_name == "<None>":
             tower.clicked = True
-            self.view.display_tower = tower
+            self.view.selected_tower_position = position
             self.info_board.display_specific()
             return
 
         if (
-                selected_tower != "<None>"
+                selected_tower_name != "<None>"
                 and block.is_constructible()
-                and self.player.money >= TOWER_MAPPING[selected_tower].tower_stats.cost
+                and self.player.money >= TOWER_MAPPING[selected_tower_name].tower_stats.cost
         ):
-            tower_factory: TowerFactory = TOWER_MAPPING[selected_tower]
+            tower_factory: TowerFactory = TOWER_MAPPING[selected_tower_name]
             tower = tower_factory.build_tower(
-                block.x, block.y, block.gridx, block.gridy, self.entities
+                block.x, block.y, self.entities
             )
             self.entities.towers[block.gridx, block.gridy] = tower
             self.player.money -= tower.stats.cost
@@ -271,34 +271,35 @@ class TargetButton(Button):
         self.targeting_strategy_index: int = targeting_strategy_index
 
     def pressed(self):
-        if self.game.view.display_tower is None:
+        if self.game.selected_tower is None:
             return
-        self.game.view.display_tower.targeting_strategy = self.targeting_strategy_index
+        self.game.selected_tower.targeting_strategy = self.targeting_strategy_index
 
 
 class StickyButton(Button):
     def pressed(self):
-        if self.game.view.display_tower is None:
+        if self.game.selected_tower is None:
             return
-        self.game.view.display_tower.sticky_target = not self.game.view.display_tower.sticky_target
+        self.game.selected_tower.sticky_target = not self.game.selected_tower.sticky_target
 
 
 class SellButton(Button):
     def pressed(self):
-        tower = self.game.view.display_tower
-        if tower is None:
+        tower_position = self.game.view.selected_tower_position
+        if tower_position is None:
             return
-        del self.game.entities.towers[tower.gridx, tower.gridy]
-        self.game.view.display_tower = None
+        del self.game.entities.towers[tower_position]
+        self.game.view.selected_tower_position = None
 
 
 class UpgradeButton(Button):
     def pressed(self):
-        if self.game.view.display_tower is None:
+        tower = self.game.selected_tower
+        if tower is None:
             return
-        if self.game.player.money >= self.game.view.display_tower.get_upgrade_cost():
-            self.game.player.money -= self.game.view.display_tower.get_upgrade_cost()
-            self.game.view.display_tower.upgrade()
+        if self.game.player.money >= tower.get_upgrade_cost():
+            self.game.player.money -= tower.get_upgrade_cost()
+            tower.upgrade()
 
 
 class InfoBoard:
@@ -323,22 +324,22 @@ class InfoBoard:
         self.canvas.delete(tk.ALL)  # clear the screen
         self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
         self.current_buttons = []
-        if self.game.view.display_tower is None:
+        if self.game.selected_tower is None:
             return
 
         self.tower_image = ImageTk.PhotoImage(
             Image.open(
                 "images/towerImages/"
-                + self.game.view.display_tower.__class__.__name__
+                + self.game.selected_tower.__class__.__name__
                 + "/"
-                + str(self.game.view.display_tower.level)
+                + str(self.game.selected_tower.level)
                 + ".png"
             )
         )
-        self.canvas.create_text(80, 75, text=self.game.view.display_tower.get_name(), font=("times", 20))
+        self.canvas.create_text(80, 75, text=self.game.selected_tower.get_name(), font=("times", 20))
         self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
 
-        if self.game.view.display_tower is not None:
+        if self.game.selected_tower is not None:
             self.current_buttons.append(TargetButton(26, 30, 35, 39, self.game, 0))
             self.canvas.create_text(
                 37, 28, text="> Health", font=("times", 12), fill="white", anchor=tk.NW
@@ -361,7 +362,7 @@ class InfoBoard:
 
             self.current_buttons.append(StickyButton(10, 40, 19, 49, self.game))
             self.current_buttons.append(SellButton(5, 145, 78, 168, self.game))
-            upgrade_cost = self.game.view.display_tower.get_upgrade_cost()
+            upgrade_cost = self.game.selected_tower.get_upgrade_cost()
             if upgrade_cost is not None:
                 self.current_buttons.append(UpgradeButton(82, 145, 155, 168, self.game))
                 self.canvas.create_text(
@@ -377,13 +378,13 @@ class InfoBoard:
                 28, 146, text="Sell", font=("times", 22), fill="light green", anchor=tk.NW
             )
 
-            self.current_buttons[self.game.view.display_tower.targeting_strategy].paint(self.canvas)
-            if self.game.view.display_tower.sticky_target:
+            self.current_buttons[self.game.selected_tower.targeting_strategy].paint(self.canvas)
+            if self.game.selected_tower.sticky_target:
                 self.current_buttons[4].paint(self.canvas)
 
     def display_generic(self):
         self.current_buttons = []
-        selected_tower = self.game.view.selected_tower
+        selected_tower = self.game.view.selected_tower_name
         if selected_tower == "<None>":
             text = None
             self.tower_image = None
@@ -445,8 +446,8 @@ class TowerBox:
         self.box.bind("<<ListboxSelect>>", self.on_select)
 
     def on_select(self, event):
-        self.game.view.selected_tower = str(self.box.get(self.box.curselection()))
-        self.game.view.display_tower = None
+        self.game.view.selected_tower_name = str(self.box.get(self.box.curselection()))
+        self.game.view.selected_tower_position = None
         self.game.info_board.display_generic()
 
 

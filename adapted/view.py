@@ -1,10 +1,8 @@
 from dataclasses import dataclass
-from typing import Optional
-
-from adapted.towers import Tower
+from typing import Optional, Tuple
 
 
 @dataclass
 class View:
-    selected_tower: str = "<None>"
-    display_tower: Optional[Tower] = None
+    selected_tower_name: str = "<None>"
+    selected_tower_position: Optional[Tuple[int, int]] = None
