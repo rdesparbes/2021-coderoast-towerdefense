@@ -1,11 +1,51 @@
 import tkinter as tk
-from typing import Optional
+from typing import Optional, List, Dict
 
 from PIL import ImageTk, Image
 
 from adapted.blocks import BLOCK_MAPPING, Block
-from adapted.constants import MAP_SIZE, GRID_SIZE
+from adapted.constants import MAP_SIZE, GRID_SIZE, BLOCK_SIZE
 from adapted.grid import Grid
+
+BlockImages = Dict[str, Image.Image]
+
+
+def _fill_grid(grid_values: List[int]) -> Grid:
+    if len(grid_values) != GRID_SIZE ** 2:
+        raise ValueError(
+            f"Invalid number of values to initialize the grid: "
+            f"expected {GRID_SIZE ** 2}, found {len(grid_values)}"
+        )
+    grid = Grid()
+    for gridy in range(GRID_SIZE):
+        for gridx in range(GRID_SIZE):
+            block_number = grid_values[GRID_SIZE * gridy + gridx]
+            block_type = BLOCK_MAPPING[block_number]
+            block: Block = block_type(gridx, gridy)
+            grid.block_grid[gridx][gridy] = block
+    return grid
+
+
+def _paint_background(grid: Grid, images: BlockImages) -> Image.Image:
+    drawn_map = Image.new("RGBA", (MAP_SIZE, MAP_SIZE), (255, 255, 255, 255))
+    for block_col in grid.block_grid:
+        for block in block_col:
+            image = images[block.__class__.__name__]
+            offset = (block.gridx * BLOCK_SIZE, block.gridy * BLOCK_SIZE)
+            drawn_map.paste(image, offset)
+    return drawn_map
+
+
+def _load_block_images() -> BlockImages:
+    block_images = {}
+    for block_type in BLOCK_MAPPING:
+        image = Image.open(
+            "images/blockImages/" + block_type.__name__ + ".png"
+        )
+        if image.size != (BLOCK_SIZE, BLOCK_SIZE):
+            raise ValueError(f"Invalid image size: expected {(BLOCK_SIZE, BLOCK_SIZE)}, found {image.size}")
+        block_images[block_type.__name__] = image
+    return block_images
 
 
 class Map:
@@ -13,25 +53,12 @@ class Map:
         self.image = image
 
     def load_map(self, map_name: str):
-        drawn_map = Image.new("RGBA", (MAP_SIZE, MAP_SIZE), (255, 255, 255, 255))
         with open("texts/mapTexts/" + map_name + ".txt", "r") as map_file:
             grid_values = list(map(int, (map_file.read()).split()))
-        grid = Grid()
-        for gridy in range(GRID_SIZE):
-            for gridx in range(GRID_SIZE):
-                block_number = grid_values[GRID_SIZE * gridy + gridx]
-                block_type = BLOCK_MAPPING[block_number]
-                block: Block = block_type(
-                    gridx,
-                    gridy,
-                )  # creates a grid of Blocks
-                block.paint(drawn_map)
-                grid.block_grid[gridx][gridy] = block
-
-        # TODO: fix weird save/load
-        image_path = "images/mapImages/" + map_name + ".png"
-        drawn_map.save(image_path)
-        self.image = ImageTk.PhotoImage(Image.open(image_path))
+        grid = _fill_grid(grid_values)
+        block_images = _load_block_images()
+        drawn_map = _paint_background(grid, block_images)
+        self.image = ImageTk.PhotoImage(image=drawn_map)
         return grid
 
     def update(self):
