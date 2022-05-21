@@ -9,3 +9,4 @@ class MonsterStats(NamedTuple):
     value: int
     respawn_count: int = 0
     respawn_stats_index: Optional[int] = None
+    damage: int = 1

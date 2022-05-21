@@ -23,7 +23,7 @@ class Monster(IMonster):
         self.tick: int = 0
         self.max_tick: int = 1
         self.distance_travelled = max(distance, 0)
-        self.x, self.y = self.grid.position_formula(self.distance_travelled)
+        self.x, self.y = self.grid.compute_position(self.distance_travelled)
         self.image = ImageTk.PhotoImage(Image.open(
             "images/monsterImages/" + self.stats.name + ".png"
         ))
@@ -42,7 +42,7 @@ class Monster(IMonster):
         if self.tick >= self.max_tick:
             self.distance_travelled += self.speed
             try:
-                self.x, self.y = self.grid.position_formula(self.distance_travelled)
+                self.x, self.y = self.grid.compute_position(self.distance_travelled)
             except OutOfPathException:
                 self.got_through()
             self.speed = self.stats.speed
@@ -64,7 +64,7 @@ class Monster(IMonster):
         self.entities.monsters.remove(self)
 
     def got_through(self):
-        self.player.health -= 1
+        self.player.health -= self.stats.damage
         self.entities.monsters.remove(self)
 
     def paint(self, canvas: tk.Canvas):
