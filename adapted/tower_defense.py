@@ -1,11 +1,11 @@
 import tkinter as tk
 from enum import Enum, auto
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 from PIL import Image, ImageTk
 
 from adapted.blocks import Block
-from adapted.constants import GRID_SIZE, BLOCK_SIZE, MAP_SIZE, TIME_STEP
+from adapted.constants import BLOCK_SIZE, MAP_SIZE, TIME_STEP
 from adapted.entities import Entities
 from adapted.map import Map
 from adapted.monsters import MONSTER_MAPPING, get_monsters_asc_distance
@@ -384,8 +384,6 @@ class Mouse:
         self.game = game
         self.x = 0
         self.y = 0
-        self.gridx = 0
-        self.gridy = 0
         self.xoffset = 0
         self.yoffset = 0
         self.pressed = False
@@ -417,16 +415,16 @@ class Mouse:
             self.xoffset = 0
         self.x = max(event.x + self.xoffset, 0)  # sets the "Mouse" x to the real mouse's x
         self.y = max(event.y + self.yoffset, 0)  # sets the "Mouse" y to the real mouse's y
-        self.gridx = int((self.x - (self.x % BLOCK_SIZE)) / BLOCK_SIZE)
-        self.gridy = int((self.y - (self.y % BLOCK_SIZE)) / BLOCK_SIZE)
+
+    @property
+    def position(self) -> Tuple[int, int]:
+        return self.x, self.y
 
     def update(self):
         if self.pressed:
-            if (
-                    0 <= self.gridx <= GRID_SIZE - 1
-                    and 0 <= self.gridy <= GRID_SIZE - 1
-            ):
-                block: Optional[Block] = self.game.grid.block_grid[self.gridx][self.gridy]
+            if self.game.grid.is_in_grid(self.position):
+                gridx, gridy = self.game.grid.global_to_grid_position(self.position)
+                block: Optional[Block] = self.game.grid.block_grid[gridx][gridy]
                 self.game.hovered_over(block)
             else:
                 self.game.display_board.next_wave_button.press(
@@ -437,22 +435,19 @@ class Mouse:
                 )
 
     def paint(self, canvas: tk.Canvas):
-        if (
-                0 <= self.gridx <= GRID_SIZE - 1
-                and 0 <= self.gridy <= GRID_SIZE - 1
-        ):
-
-            if self.game.grid.block_grid[self.gridx][self.gridy].is_constructible():
+        if self.game.grid.is_in_grid(self.position):
+            gridx, gridy = self.game.grid.global_to_grid_position(self.position)
+            if self.game.grid.is_constructible(self.position):
                 canvas.create_image(
-                    self.gridx * BLOCK_SIZE,
-                    self.gridy * BLOCK_SIZE,
+                    gridx * BLOCK_SIZE,
+                    gridy * BLOCK_SIZE,
                     image=self.pressed_image if self.pressed else self.can_press_image,
                     anchor=tk.NW,
                 )
             else:
                 canvas.create_image(
-                    self.gridx * BLOCK_SIZE,
-                    self.gridy * BLOCK_SIZE,
+                    gridx * BLOCK_SIZE,
+                    gridy * BLOCK_SIZE,
                     image=self.cannot_press_image,
                     anchor=tk.NW,
                 )

@@ -14,6 +14,7 @@ class OutOfPathException(Exception):
 
 
 Vector = Tuple[float, float]
+GridPosition = Tuple[int, int]
 BlockGrid = List[List[Optional[IBlock]]]
 
 
@@ -44,8 +45,8 @@ class Grid:
         self._path_list = [grid_to_global(grid_position) for grid_position in path]
 
     def compute_position(self, distance: float) -> Vector:
-        last_block_distance = distance % BLOCK_SIZE
-        before_index = round((distance - last_block_distance) / BLOCK_SIZE)
+        int_part, last_block_distance = divmod(distance, BLOCK_SIZE)
+        before_index = int(int_part)
         if before_index >= len(self._path_list) - 1:
             raise OutOfPathException
         before_position = self._path_list[before_index]
@@ -54,30 +55,45 @@ class Grid:
         scaled_vector = multiply_vector(vector, last_block_distance / BLOCK_SIZE)
         return add_vectors(before_position, scaled_vector)
 
-    def _find_spawn(self) -> Vector:
-        for x in range(GRID_SIZE):
+    @staticmethod
+    def global_to_grid_position(position: Vector) -> GridPosition:
+        return int(position[0] / BLOCK_SIZE), int(position[1] / BLOCK_SIZE)
+
+    def is_constructible(self, position: Vector) -> bool:
+        grid_position = self.global_to_grid_position(position)
+        return self._get_block(grid_position).is_constructible()
+
+    def is_in_grid(self, position: Vector) -> bool:
+        return self._is_in_grid(self.global_to_grid_position(position))
+
+    def _is_in_grid(self, grid_position: GridPosition) -> bool:
+        x, y = grid_position
+        return 0 <= x < len(self.block_grid) and 0 <= y < len(self.block_grid[0])
+
+    @property
+    def _grid_size(self) -> int:
+        return len(self.block_grid)
+
+    def _find_spawn(self) -> GridPosition:
+        for x in range(self._grid_size):
             if self.block_grid[x][0].is_walkable():
                 return x, 0
-        for y in range(GRID_SIZE):
+        for y in range(self._grid_size):
             if self.block_grid[0][y].is_walkable():
                 return 0, y
 
-    def _get_block(self, position: Vector) -> IBlock:
-        return self.block_grid[position[0]][position[1]]
+    def _get_block(self, grid_position: GridPosition) -> IBlock:
+        return self.block_grid[grid_position[0]][grid_position[1]]
 
-    def _is_in_grid(self, position: Vector) -> bool:
-        x, y = position
-        return 0 <= x < len(self.block_grid) and 0 <= y < len(self.block_grid[0])
-
-    def _get_neighbors(self, position: Vector) -> List[Vector]:
+    def _get_neighbors(self, grid_position: GridPosition) -> List[GridPosition]:
         neighbors = []
         for direction in DIRECTIONS:
-            neighbor_position = add_vectors(position, direction)
+            neighbor_position = add_vectors(grid_position, direction)
             if self._is_in_grid(neighbor_position) and self._get_block(neighbor_position).is_walkable():
                 neighbors.append(neighbor_position)
         return neighbors
 
-    def _find_path(self, spawn: Vector) -> List[Vector]:
+    def _find_path(self, spawn: Vector) -> List[GridPosition]:
         graph = self._build_graph()
         node = spawn
         previous_node = None
@@ -93,7 +109,7 @@ class Grid:
             node = next_nodes[0]
         return path_list
 
-    def _build_graph(self) -> Dict[Vector, Set[Vector]]:
+    def _build_graph(self) -> Dict[GridPosition, Set[GridPosition]]:
         graph = {}
         for x, x_blocks in enumerate(self.block_grid):
             for y, block in enumerate(x_blocks):
