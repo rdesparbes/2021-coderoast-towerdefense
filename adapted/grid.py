@@ -32,7 +32,6 @@ class Grid:
         if current_path_index >= len(self._path_list):
             raise OutOfPathException
         x_pos, y_pos = self._spawn_x, self._spawn_y
-        y_pos += BLOCK_SIZE // 2
         for i in range(current_path_index):
             if self._path_list[i] == Direction.EAST:
                 x_pos += BLOCK_SIZE
@@ -58,12 +57,12 @@ class Grid:
             if self.block_grid[x][0].is_walkable():
                 self._gridx = x
                 self._spawn_x = x * BLOCK_SIZE + BLOCK_SIZE // 2
-                self._spawn_y = 0
+                self._spawn_y = BLOCK_SIZE // 2
                 return
         for y in range(GRID_SIZE):
             if self.block_grid[0][y].is_walkable():
                 self._gridy = y
-                self._spawn_x = 0
+                self._spawn_x = BLOCK_SIZE // 2
                 self._spawn_y = y * BLOCK_SIZE + BLOCK_SIZE // 2
                 return
 

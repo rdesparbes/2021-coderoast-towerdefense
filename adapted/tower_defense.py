@@ -1,6 +1,6 @@
 import tkinter as tk
 from enum import Enum, auto
-from typing import Optional
+from typing import Optional, List
 
 from PIL import Image, ImageTk
 
@@ -99,7 +99,7 @@ class TowerDefenseGame(Game):
 class WaveGenerator:
     def __init__(self, game: TowerDefenseGame):
         self.game = game
-        self.current_wave = []
+        self.current_wave: List[int] = []
         self.current_monster = 0
         self.ticks = 1
         self.max_ticks = 2
@@ -111,17 +111,16 @@ class WaveGenerator:
         wave_line = self.wave_file.readline()
         if len(wave_line) == 0:
             return
-        self.current_wave = wave_line.split()
-        self.current_wave = list(map(int, self.current_wave))
+        self.current_wave = list(map(int, wave_line.split()))
         self.max_ticks = self.current_wave[0]
 
     def spawn_monster(self):
         monster_type = MONSTER_MAPPING[self.current_wave[self.current_monster]]
         monster = monster_type(
-            distance=0,
-            player=self.game.player,
-            entities=self.game.entities,
-            grid=self.game.grid,
+            0.0,
+            self.game.player,
+            self.game.entities,
+            self.game.grid,
         )
         self.game.entities.monsters.append(monster)
         self.current_monster += 1

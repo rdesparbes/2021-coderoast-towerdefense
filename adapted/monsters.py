@@ -59,6 +59,7 @@ class Monster(IMonster):
                     self.distance_travelled + BLOCK_SIZE * (0.5 - random.random()),
                     self.player,
                     self.entities,
+                    self.grid,
                 )
             )
         self.entities.monsters.remove(self)
@@ -111,14 +112,17 @@ TARGETING_STRATEGIES: List[Callable[[List[IMonster]], List[IMonster]]] = [
 ]
 
 
-def monster_factory(stats: MonsterStats) -> Callable[[float, Player, Entities], Monster]:
+MonsterInitializer = Callable[[float, Player, Entities, Grid], Monster]
+
+
+def monster_factory(stats: MonsterStats) -> MonsterInitializer:
     def _factory(distance: float, player: Player, entities: Entities, grid: Grid) -> Monster:
         return Monster(stats, distance, player, entities, grid)
 
     return _factory
 
 
-MONSTER_MAPPING: List[Callable[[float, Player, Entities], Monster]] = [
+MONSTER_MAPPING: List[MonsterInitializer] = [
     monster_factory(MonsterStats(
         name="Monster1",
         max_health=30,
