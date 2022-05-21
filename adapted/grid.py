@@ -59,6 +59,10 @@ class Grid:
     def global_to_grid_position(position: Vector) -> GridPosition:
         return int(position[0] / BLOCK_SIZE), int(position[1] / BLOCK_SIZE)
 
+    @staticmethod
+    def grid_to_global_position(grid_position: GridPosition) -> Vector:
+        return grid_position[0] * BLOCK_SIZE, grid_position[1] * BLOCK_SIZE
+
     def is_constructible(self, position: Vector) -> bool:
         grid_position = self.global_to_grid_position(position)
         return self._get_block(grid_position).is_constructible()

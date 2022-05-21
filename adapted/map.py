@@ -4,7 +4,7 @@ from typing import Optional
 from PIL import ImageTk, Image
 
 from adapted.blocks import BLOCK_MAPPING, Block
-from adapted.constants import MAP_SIZE, GRID_SIZE, BLOCK_SIZE
+from adapted.constants import MAP_SIZE, GRID_SIZE
 from adapted.grid import Grid
 
 
@@ -17,18 +17,16 @@ class Map:
         with open("texts/mapTexts/" + map_name + ".txt", "r") as map_file:
             grid_values = list(map(int, (map_file.read()).split()))
         grid = Grid()
-        for y in range(GRID_SIZE):
-            for x in range(GRID_SIZE):
-                block_number = grid_values[GRID_SIZE * y + x]
+        for gridy in range(GRID_SIZE):
+            for gridx in range(GRID_SIZE):
+                block_number = grid_values[GRID_SIZE * gridy + gridx]
                 block_type = BLOCK_MAPPING[block_number]
                 block: Block = block_type(
-                    x * BLOCK_SIZE + BLOCK_SIZE / 2,
-                    y * BLOCK_SIZE + BLOCK_SIZE / 2,
-                    x,
-                    y,
+                    gridx,
+                    gridy,
                 )  # creates a grid of Blocks
                 block.paint(drawn_map)
-                grid.block_grid[x][y] = block
+                grid.block_grid[gridx][gridy] = block
 
         # TODO: fix weird save/load
         image_path = "images/mapImages/" + map_name + ".png"

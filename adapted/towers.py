@@ -27,7 +27,6 @@ class Tower(ITower, ABC):
         self.upgrades = [] if upgrades is None else upgrades
         self.stats = stats
         self.level = 1
-        self.clicked = False
         self.x = x
         self.y = y
         self.entities = entities

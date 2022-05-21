@@ -75,11 +75,10 @@ class TowerDefenseGame(Game):
 
     def hovered_over(self, block: Block):
         selected_tower_name = self.view.selected_tower_name
-        position = (block.gridx, block.gridy)
-        tower = self.entities.towers.get(position)
+        grid_position = (block.gridx, block.gridy)
+        tower = self.entities.towers.get(grid_position)
         if tower is not None and selected_tower_name == "<None>":
-            tower.clicked = True
-            self.view.selected_tower_position = position
+            self.view.selected_tower_position = grid_position
             self.info_board.display_specific()
             return
 
