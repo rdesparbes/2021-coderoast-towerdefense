@@ -75,7 +75,7 @@ class TowerDefenseGame(Game):
 
     def hovered_over(self, block: Block):
         selected_tower_name = self.view.selected_tower_name
-        grid_position = (block.gridx, block.gridy)
+        grid_position = self.grid.global_to_grid_position((block.x, block.y))
         tower = self.entities.towers.get(grid_position)
         if tower is not None and selected_tower_name == "<None>":
             self.view.selected_tower_position = grid_position
@@ -88,10 +88,8 @@ class TowerDefenseGame(Game):
                 and self.player.money >= TOWER_MAPPING[selected_tower_name].tower_stats.cost
         ):
             tower_factory: TowerFactory = TOWER_MAPPING[selected_tower_name]
-            tower = tower_factory.build_tower(
-                block.x, block.y, self.entities
-            )
-            self.entities.towers[block.gridx, block.gridy] = tower
+            tower = tower_factory.build_tower(block.x, block.y, self.entities)
+            self.entities.towers[grid_position] = tower
             self.player.money -= tower.stats.cost
 
 

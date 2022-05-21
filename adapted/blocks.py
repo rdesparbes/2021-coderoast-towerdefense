@@ -1,25 +1,16 @@
 from typing import List, Type
 
 from adapted.block import IBlock
-from adapted.constants import BLOCK_SIZE
 
 
 class Block(IBlock):
     def __init__(
-            self, gridx, gridy, can_place=False, can_walk=False
+            self, x, y, can_place=False, can_walk=False
     ):
         self.can_place = can_place
         self.can_walk = can_walk
-        self.gridx = gridx
-        self.gridy = gridy
-
-    @property
-    def x(self) -> int:
-        return self.gridx * BLOCK_SIZE + BLOCK_SIZE // 2
-
-    @property
-    def y(self) -> int:
-        return self.gridy * BLOCK_SIZE + BLOCK_SIZE // 2
+        self.x = x
+        self.y = y
 
     def is_constructible(self) -> bool:
         return self.can_place
@@ -29,13 +20,13 @@ class Block(IBlock):
 
 
 class NormalBlock(Block):
-    def __init__(self, gridx, gridy):
-        super().__init__(gridx, gridy, can_place=True)
+    def __init__(self, x, y):
+        super().__init__(x, y, can_place=True)
 
 
 class PathBlock(Block):
-    def __init__(self, gridx, gridy):
-        super().__init__(gridx, gridy, can_walk=True)
+    def __init__(self, x, y):
+        super().__init__(x, y, can_walk=True)
 
 
 class WaterBlock(Block):

@@ -30,10 +30,6 @@ def multiply_vector(vector: Vector, scalar: float) -> Vector:
     return scalar * vector[0], scalar * vector[1]
 
 
-def grid_to_global(vector: Vector) -> Vector:
-    return vector[0] * BLOCK_SIZE + BLOCK_SIZE // 2, vector[1] * BLOCK_SIZE + BLOCK_SIZE // 2
-
-
 @dataclass
 class Grid:
     block_grid: List[List[Optional[IBlock]]] = field(default_factory=generate_default_grid)
@@ -42,7 +38,7 @@ class Grid:
     def initialize(self):
         spawn = self._find_spawn()
         path = self._find_path(spawn)
-        self._path_list = [grid_to_global(grid_position) for grid_position in path]
+        self._path_list = [self.grid_to_global_position(grid_position) for grid_position in path]
 
     def compute_position(self, distance: float) -> Vector:
         int_part, last_block_distance = divmod(distance, BLOCK_SIZE)
@@ -61,7 +57,7 @@ class Grid:
 
     @staticmethod
     def grid_to_global_position(grid_position: GridPosition) -> Vector:
-        return grid_position[0] * BLOCK_SIZE, grid_position[1] * BLOCK_SIZE
+        return grid_position[0] * BLOCK_SIZE + BLOCK_SIZE // 2, grid_position[1] * BLOCK_SIZE + BLOCK_SIZE // 2
 
     def is_constructible(self, position: Vector) -> bool:
         grid_position = self.global_to_grid_position(position)

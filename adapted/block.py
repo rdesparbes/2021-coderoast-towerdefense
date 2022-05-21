@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 
 
 class IBlock(ABC):
-    gridx: int
-    gridy: int
+    x: int
+    y: int
 
     @abstractmethod
     def is_constructible(self) -> bool:

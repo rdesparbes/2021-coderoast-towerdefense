@@ -21,7 +21,8 @@ def _fill_grid(grid_values: List[int]) -> Grid:
         for gridx in range(GRID_SIZE):
             block_number = grid_values[GRID_SIZE * gridy + gridx]
             block_type = BLOCK_MAPPING[block_number]
-            block: Block = block_type(gridx, gridy)
+            x, y = grid.grid_to_global_position((gridx, gridy))
+            block: Block = block_type(x, y)
             grid.block_grid[gridx][gridy] = block
     return grid
 
@@ -31,7 +32,7 @@ def _paint_background(grid: Grid, images: BlockImages) -> Image.Image:
     for block_col in grid.block_grid:
         for block in block_col:
             image = images[block.__class__.__name__]
-            offset = (block.gridx * BLOCK_SIZE, block.gridy * BLOCK_SIZE)
+            offset = (block.x - BLOCK_SIZE // 2, block.y - BLOCK_SIZE // 2)
             drawn_map.paste(image, offset)
     return drawn_map
 
