@@ -5,7 +5,7 @@ from typing import Optional
 from PIL import Image, ImageTk
 
 from adapted.blocks import Block
-from adapted.constants import GRID_SIZE, BLOCK_SIZE, MAP_SIZE, TIME_STEP, Direction
+from adapted.constants import GRID_SIZE, BLOCK_SIZE, MAP_SIZE, TIME_STEP
 from adapted.entities import Entities
 from adapted.map import Map
 from adapted.monsters import MONSTER_MAPPING, get_monsters_asc_distance
@@ -42,6 +42,7 @@ class TowerDefenseGame(Game):
         return self.entities.towers.get(self.view.selected_tower_position)
 
     def initialize(self):
+        self.grid.initialize()
         self.add_object(self.map)
         self.add_object(Mouse(self))
         self.add_object(WaveGenerator(self))
@@ -100,11 +101,6 @@ class WaveGenerator:
         self.game = game
         self.current_wave = []
         self.current_monster = 0
-        self.direction = None
-        self.gridx = 0
-        self.gridy = 0
-        self.find_spawn()
-        self.decide_move()
         self.ticks = 1
         self.max_ticks = 2
         self.wave_file = open("texts/waveTexts/WaveGenerator2.txt", "r")
@@ -118,73 +114,6 @@ class WaveGenerator:
         self.current_wave = wave_line.split()
         self.current_wave = list(map(int, self.current_wave))
         self.max_ticks = self.current_wave[0]
-
-    def find_spawn(self):
-        for x in range(GRID_SIZE):
-            if self.game.grid.block_grid[x][0].is_walkable():
-                self.gridx = x
-                self.game.grid.spawn_x = x * BLOCK_SIZE + BLOCK_SIZE // 2
-                self.game.grid.spawn_y = 0
-                return
-        for y in range(GRID_SIZE):
-            if self.game.grid.block_grid[0][y].is_walkable():
-                self.gridy = y
-                self.game.grid.spawn_x = 0
-                self.game.grid.spawn_y = y * BLOCK_SIZE + BLOCK_SIZE // 2
-                return
-
-    def move(self):
-        self.game.grid.path_list.append(self.direction)
-        if self.direction == Direction.EAST:
-            self.gridx += 1
-        if self.direction == Direction.WEST:
-            self.gridx -= 1
-        if self.direction == Direction.SOUTH:
-            self.gridy += 1
-        if self.direction == Direction.NORTH:
-            self.gridy -= 1
-        self.decide_move()
-
-    def decide_move(self):
-        if (
-                self.direction != Direction.WEST
-                and self.gridx < GRID_SIZE - 1
-                and 0 <= self.gridy <= GRID_SIZE - 1
-        ):
-            if self.game.grid.block_grid[self.gridx + 1][self.gridy].is_walkable():
-                self.direction = Direction.EAST
-                self.move()
-                return
-
-        if (
-                self.direction != Direction.EAST
-                and self.gridx > 0
-                and 0 <= self.gridy <= GRID_SIZE - 1
-        ):
-            if self.game.grid.block_grid[self.gridx - 1][self.gridy].is_walkable():
-                self.direction = Direction.WEST
-                self.move()
-                return
-
-        if (
-                self.direction != Direction.NORTH
-                and self.gridy < GRID_SIZE - 1
-                and 0 <= self.gridx <= GRID_SIZE - 1
-        ):
-            if self.game.grid.block_grid[self.gridx][self.gridy + 1].is_walkable():
-                self.direction = Direction.SOUTH
-                self.move()
-                return
-
-        if (
-                self.direction != Direction.SOUTH
-                and self.gridy > 0
-                and 0 <= self.gridx <= GRID_SIZE - 1
-        ):
-            if self.game.grid.block_grid[self.gridx][self.gridy - 1].is_walkable():
-                self.direction = Direction.NORTH
-                self.move()
-                return
 
     def spawn_monster(self):
         monster_type = MONSTER_MAPPING[self.current_wave[self.current_monster]]
@@ -461,15 +390,9 @@ class Mouse:
         self.xoffset = 0
         self.yoffset = 0
         self.pressed = False
-        game.root.bind(
-            "<Button-1>", self.clicked
-        )
-        game.root.bind(
-            "<ButtonRelease-1>", self.released
-        )
-        game.root.bind(
-            "<Motion>", self.motion
-        )
+        game.root.bind("<Button-1>", self.clicked)
+        game.root.bind("<ButtonRelease-1>", self.released)
+        game.root.bind("<Motion>", self.motion)
         self.pressed_image = ImageTk.PhotoImage(Image.open("images/mouseImages/Pressed.png"))
         self.can_press_image = ImageTk.PhotoImage(Image.open("images/mouseImages/HoveringCanPress.png"))
         self.cannot_press_image = ImageTk.PhotoImage(Image.open("images/mouseImages/HoveringCanNotPress.png"))

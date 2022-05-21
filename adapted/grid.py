@@ -19,6 +19,13 @@ class Grid:
     path_list: List[Optional[Direction]] = field(default_factory=list)
     spawn_x: int = 0
     spawn_y: int = 0
+    gridx: int = 0
+    gridy: int = 0
+    direction: Optional[Direction] = None
+
+    def initialize(self):
+        self.find_spawn()
+        self.decide_move()
 
     def position_formula(self, distance: float) -> Tuple[int, int]:
         current_path_index = int((distance - (distance % BLOCK_SIZE)) / BLOCK_SIZE)
@@ -45,3 +52,70 @@ class Grid:
             elif self.path_list[current_path_index] == Direction.NORTH:
                 y_pos -= distance % BLOCK_SIZE
         return x_pos, y_pos
+
+    def find_spawn(self):
+        for x in range(GRID_SIZE):
+            if self.block_grid[x][0].is_walkable():
+                self.gridx = x
+                self.spawn_x = x * BLOCK_SIZE + BLOCK_SIZE // 2
+                self.spawn_y = 0
+                return
+        for y in range(GRID_SIZE):
+            if self.block_grid[0][y].is_walkable():
+                self.gridy = y
+                self.spawn_x = 0
+                self.spawn_y = y * BLOCK_SIZE + BLOCK_SIZE // 2
+                return
+
+    def move(self):
+        self.path_list.append(self.direction)
+        if self.direction == Direction.EAST:
+            self.gridx += 1
+        if self.direction == Direction.WEST:
+            self.gridx -= 1
+        if self.direction == Direction.SOUTH:
+            self.gridy += 1
+        if self.direction == Direction.NORTH:
+            self.gridy -= 1
+        self.decide_move()
+
+    def decide_move(self):
+        if (
+                self.direction != Direction.WEST
+                and self.gridx < GRID_SIZE - 1
+                and 0 <= self.gridy <= GRID_SIZE - 1
+        ):
+            if self.block_grid[self.gridx + 1][self.gridy].is_walkable():
+                self.direction = Direction.EAST
+                self.move()
+                return
+
+        if (
+                self.direction != Direction.EAST
+                and self.gridx > 0
+                and 0 <= self.gridy <= GRID_SIZE - 1
+        ):
+            if self.block_grid[self.gridx - 1][self.gridy].is_walkable():
+                self.direction = Direction.WEST
+                self.move()
+                return
+
+        if (
+                self.direction != Direction.NORTH
+                and self.gridy < GRID_SIZE - 1
+                and 0 <= self.gridx <= GRID_SIZE - 1
+        ):
+            if self.block_grid[self.gridx][self.gridy + 1].is_walkable():
+                self.direction = Direction.SOUTH
+                self.move()
+                return
+
+        if (
+                self.direction != Direction.SOUTH
+                and self.gridy > 0
+                and 0 <= self.gridx <= GRID_SIZE - 1
+        ):
+            if self.block_grid[self.gridx][self.gridy - 1].is_walkable():
+                self.direction = Direction.NORTH
+                self.move()
+                return
