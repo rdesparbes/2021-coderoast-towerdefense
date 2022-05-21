@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set, Dict
 
 from adapted.block import IBlock
-from adapted.constants import GRID_SIZE, Direction, BLOCK_SIZE
+from adapted.constants import GRID_SIZE, DIRECTIONS, BLOCK_SIZE
 
 
 def generate_default_grid(width: int = GRID_SIZE, height: int = GRID_SIZE) -> List[List[None]]:
@@ -13,108 +13,96 @@ class OutOfPathException(Exception):
     ...
 
 
+Vector = Tuple[float, float]
+BlockGrid = List[List[Optional[IBlock]]]
+
+
+def add_vectors(vector_a: Vector, vector_b: Vector) -> Vector:
+    return vector_a[0] + vector_b[0], vector_a[1] + vector_b[1]
+
+
+def subtract_vectors(vector_a: Vector, vector_b: Vector) -> Vector:
+    return vector_a[0] - vector_b[0], vector_a[1] - vector_b[1]
+
+
+def multiply_vector(vector: Vector, scalar: float) -> Vector:
+    return scalar * vector[0], scalar * vector[1]
+
+
+def grid_to_global(vector: Vector) -> Vector:
+    return vector[0] * BLOCK_SIZE + BLOCK_SIZE // 2, vector[1] * BLOCK_SIZE + BLOCK_SIZE // 2
+
+
 @dataclass
 class Grid:
     block_grid: List[List[Optional[IBlock]]] = field(default_factory=generate_default_grid)
-    _spawn_x: int = 0
-    _spawn_y: int = 0
-    _path_list: List[Optional[Direction]] = field(default_factory=list)
-    _gridx: int = 0
-    _gridy: int = 0
-    _direction: Optional[Direction] = None
+    _path_list: List[Vector] = field(default_factory=list)
 
     def initialize(self):
-        self._find_spawn()
-        self._decide_move()
+        spawn = self._find_spawn()
+        path = self._find_path(spawn)
+        self._path_list = [grid_to_global(grid_position) for grid_position in path]
 
-    def compute_position(self, distance: float) -> Tuple[int, int]:
-        current_path_index = int((distance - (distance % BLOCK_SIZE)) / BLOCK_SIZE)
-        if current_path_index >= len(self._path_list):
+    def compute_position(self, distance: float) -> Vector:
+        last_block_distance = distance % BLOCK_SIZE
+        before_index = round((distance - last_block_distance) / BLOCK_SIZE)
+        if before_index >= len(self._path_list) - 1:
             raise OutOfPathException
-        x_pos, y_pos = self._spawn_x, self._spawn_y
-        for i in range(current_path_index):
-            if self._path_list[i] == Direction.EAST:
-                x_pos += BLOCK_SIZE
-            elif self._path_list[i] == Direction.WEST:
-                x_pos -= BLOCK_SIZE
-            elif self._path_list[i] == Direction.SOUTH:
-                y_pos += BLOCK_SIZE
-            elif self._path_list[i] == Direction.NORTH:
-                y_pos -= BLOCK_SIZE
-        if distance % BLOCK_SIZE != 0:
-            if self._path_list[current_path_index] == Direction.EAST:
-                x_pos += distance % BLOCK_SIZE
-            elif self._path_list[current_path_index] == Direction.WEST:
-                x_pos -= distance % BLOCK_SIZE
-            elif self._path_list[current_path_index] == Direction.SOUTH:
-                y_pos += distance % BLOCK_SIZE
-            elif self._path_list[current_path_index] == Direction.NORTH:
-                y_pos -= distance % BLOCK_SIZE
-        return x_pos, y_pos
+        before_position = self._path_list[before_index]
+        after_position = self._path_list[before_index + 1]
+        vector = subtract_vectors(after_position, before_position)
+        scaled_vector = multiply_vector(vector, last_block_distance / BLOCK_SIZE)
+        return add_vectors(before_position, scaled_vector)
 
-    def _find_spawn(self):
+    def _find_spawn(self) -> Vector:
         for x in range(GRID_SIZE):
             if self.block_grid[x][0].is_walkable():
-                self._gridx = x
-                self._spawn_x = x * BLOCK_SIZE + BLOCK_SIZE // 2
-                self._spawn_y = BLOCK_SIZE // 2
-                return
+                return x, 0
         for y in range(GRID_SIZE):
             if self.block_grid[0][y].is_walkable():
-                self._gridy = y
-                self._spawn_x = BLOCK_SIZE // 2
-                self._spawn_y = y * BLOCK_SIZE + BLOCK_SIZE // 2
-                return
+                return 0, y
 
-    def _move(self):
-        self._path_list.append(self._direction)
-        if self._direction == Direction.EAST:
-            self._gridx += 1
-        if self._direction == Direction.WEST:
-            self._gridx -= 1
-        if self._direction == Direction.SOUTH:
-            self._gridy += 1
-        if self._direction == Direction.NORTH:
-            self._gridy -= 1
-        self._decide_move()
+    def _get_block(self, position: Vector) -> IBlock:
+        return self.block_grid[position[0]][position[1]]
 
-    def _decide_move(self):
-        if (
-                self._direction != Direction.WEST
-                and self._gridx < GRID_SIZE - 1
-                and 0 <= self._gridy <= GRID_SIZE - 1
-        ):
-            if self.block_grid[self._gridx + 1][self._gridy].is_walkable():
-                self._direction = Direction.EAST
-                self._move()
-                return
+    def _is_in_grid(self, position: Vector) -> bool:
+        x, y = position
+        return 0 <= x < len(self.block_grid) and 0 <= y < len(self.block_grid[0])
 
-        if (
-                self._direction != Direction.EAST
-                and self._gridx > 0
-                and 0 <= self._gridy <= GRID_SIZE - 1
-        ):
-            if self.block_grid[self._gridx - 1][self._gridy].is_walkable():
-                self._direction = Direction.WEST
-                self._move()
-                return
+    def _get_neighbors(self, position: Vector) -> List[Vector]:
+        neighbors = []
+        for direction in DIRECTIONS:
+            neighbor_position = add_vectors(position, direction)
+            if self._is_in_grid(neighbor_position) and self._get_block(neighbor_position).is_walkable():
+                neighbors.append(neighbor_position)
+        return neighbors
 
-        if (
-                self._direction != Direction.NORTH
-                and self._gridy < GRID_SIZE - 1
-                and 0 <= self._gridx <= GRID_SIZE - 1
-        ):
-            if self.block_grid[self._gridx][self._gridy + 1].is_walkable():
-                self._direction = Direction.SOUTH
-                self._move()
-                return
+    def _find_path(self, spawn: Vector) -> List[Vector]:
+        graph = self._build_graph()
+        node = spawn
+        previous_node = None
+        path_list = []
+        while True:
+            path_list.append(node)
+            next_nodes = [neighbor for neighbor in graph[node] if neighbor != previous_node]
+            if len(next_nodes) == 0:
+                break
+            elif len(next_nodes) > 1:
+                raise ValueError(f"Found an ambiguous path choice in the provided map at block {node}")
+            previous_node = node
+            node = next_nodes[0]
+        return path_list
 
-        if (
-                self._direction != Direction.SOUTH
-                and self._gridy > 0
-                and 0 <= self._gridx <= GRID_SIZE - 1
-        ):
-            if self.block_grid[self._gridx][self._gridy - 1].is_walkable():
-                self._direction = Direction.NORTH
-                self._move()
-                return
+    def _build_graph(self) -> Dict[Vector, Set[Vector]]:
+        graph = {}
+        for x, x_blocks in enumerate(self.block_grid):
+            for y, block in enumerate(x_blocks):
+                if not block.is_walkable():
+                    continue
+                position = x, y
+                graph[position] = set()
+                for neighbor_position in self._get_neighbors(position):
+                    neighbor_block = self._get_block(neighbor_position)
+                    if neighbor_block.is_walkable():
+                        graph[position].add(neighbor_position)
+        return graph
