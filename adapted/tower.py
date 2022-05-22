@@ -1,7 +1,9 @@
 import tkinter as tk
 from abc import ABC, abstractmethod
+from collections import Set
 
 from adapted.entity import IEntity
+from adapted.projectile import IProjectile
 
 
 class ITower(IEntity, ABC):
@@ -24,4 +26,8 @@ class ITower(IEntity, ABC):
 
     @abstractmethod
     def paint_select(self, canvas: tk.Canvas) -> None:
+        ...
+
+    @abstractmethod
+    def get_children(self) -> Set[IProjectile]:
         ...

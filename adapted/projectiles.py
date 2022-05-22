@@ -1,7 +1,7 @@
 import math
 import tkinter as tk
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Tuple
 
 from PIL import ImageTk, Image
 
@@ -22,6 +22,9 @@ class Projectile(IProjectile, ABC):
         self.image = image
         self.hit = False
         self._active = True
+
+    def get_position(self) -> Tuple[float, float]:
+        return self.x, self.y
 
     def update(self):
         if self.target is not None and not self.target.alive:

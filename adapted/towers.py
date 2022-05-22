@@ -3,15 +3,15 @@ import tkinter as tk
 from abc import ABC, abstractmethod
 from copy import copy
 from dataclasses import dataclass, field, fields
-from typing import Dict, Type, Optional, List, Set
+from typing import Dict, Type, Optional, List, Tuple
 
 from PIL import ImageTk, Image
 
 from adapted.constants import FPS, BLOCK_SIZE
 from adapted.entities import Entities
 from adapted.monsters import Monster
-from adapted.targeting_strategies import TARGETING_STRATEGIES
 from adapted.projectiles import AngledProjectile, TrackingBullet, PowerShot
+from adapted.targeting_strategies import TARGETING_STRATEGIES
 from adapted.tower import ITower
 from adapted.tower_stats import TowerStats
 
@@ -41,13 +41,16 @@ class Tower(ITower, ABC):
             "images/towerImages/" + self.__class__.__name__ + "/1.png"
         ))
 
+    def get_position(self) -> Tuple[float, float]:
+        return self.x, self.y
+
     def set_inactive(self) -> None:
         self._to_remove = True
 
     def is_inactive(self) -> bool:
         return self._to_remove
 
-    def get_children(self) -> Set[ITower]:
+    def get_children(self):
         projectiles = self._projectiles_to_shoot
         self._projectiles_to_shoot = set()
         return projectiles

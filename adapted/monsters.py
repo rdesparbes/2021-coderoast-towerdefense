@@ -1,6 +1,6 @@
 import random
 import tkinter as tk
-from typing import List, Callable, Set
+from typing import List, Callable, Set, Tuple
 
 from PIL import Image, ImageTk
 
@@ -26,6 +26,9 @@ class Monster(IMonster):
         self.image = ImageTk.PhotoImage(Image.open(
             "images/monsterImages/" + self.stats.name + ".png"
         ))
+
+    def get_position(self) -> Tuple[float, float]:
+        return self.x, self.y
 
     def get_children(self) -> Set[IMonster]:
         children = self._children

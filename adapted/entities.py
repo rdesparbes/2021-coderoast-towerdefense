@@ -17,12 +17,9 @@ def _update(entities: Set[IEntity]) -> None:
         entity.update()
         if entity.is_inactive():
             to_remove.add(entity)
-        for child in entity.get_children():
-            to_add.add(child)
-    for entity in to_remove:
-        entities.remove(entity)
-    for entity in to_add:
-        entities.add(entity)
+        to_add.update(entity.get_children())
+    entities.difference_update(to_remove)
+    entities.update(to_add)
 
 
 @dataclass
@@ -35,19 +32,16 @@ class Entities(GameObject):
         _update(self.projectiles)
         _update(self.monsters)
 
-        # TODO: this part needs to be cleaned: all the entities should be stored in a single set to avoid this.
         to_remove = set()
         to_add = set()
         for tower_position, tower in self.towers.items():
             tower.update()
             if tower.is_inactive():
                 to_remove.add(tower_position)
-            for projectile in tower.get_children():
-                to_add.add(projectile)
+            to_add.update(tower.get_children())
         for key in to_remove:
             del self.towers[key]
-        for projectile in to_add:
-            self.projectiles.add(projectile)
+        self.projectiles.update(to_add)
 
     def paint(self, canvas: tk.Canvas) -> None:
         for tower in self.towers.values():
