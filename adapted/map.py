@@ -53,7 +53,7 @@ class Map:
     def __init__(self, image: Optional[ImageTk.PhotoImage] = None):
         self.image = image
 
-    def load_map(self, map_name: str):
+    def load_map(self, map_name: str) -> Grid:
         with open("texts/mapTexts/" + map_name + ".txt", "r") as map_file:
             grid_values = list(map(int, (map_file.read()).split()))
         grid = _fill_grid(grid_values)
