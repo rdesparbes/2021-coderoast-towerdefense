@@ -3,16 +3,16 @@ from typing import Optional, Protocol
 
 
 class GameObject(Protocol):
-    def update(self):
+    def update(self) -> None:
         """Updates the game."""
 
-    def paint(self, canvas: tk.Canvas):
+    def paint(self, canvas: tk.Canvas) -> None:
         """Paints the game."""
 
 
 class Game:  # the main class that we call "Game"
     def __init__(
-        self, title: str, width: int, height: int, timestep: int = 50
+            self, title: str, width: int, height: int, timestep: int = 50
     ):  # setting up the window for the game here
         self.root = tk.Tk()  # saying this window will use tkinter
         self.root.title(title)

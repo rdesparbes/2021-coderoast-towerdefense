@@ -21,10 +21,11 @@ class Projectile(IProjectile, ABC):
         self.target: Optional[Monster] = target
         self.image = image
         self.hit = False
+        self._active = True
 
     def update(self):
-        if self.target and not self.target.alive:
-            self.entities.projectiles.remove(self)
+        if self.target is not None and not self.target.alive:
+            self.set_inactive()
             return
         if self.hit:
             self._got_monster()
@@ -33,7 +34,16 @@ class Projectile(IProjectile, ABC):
 
     def _got_monster(self):
         self.target.health -= self.damage
-        self.entities.projectiles.remove(self)
+        self.set_inactive()
+
+    def set_inactive(self) -> None:
+        self._active = False
+
+    def is_inactive(self) -> bool:
+        return not self._active
+
+    def get_children(self):
+        return set()
 
     def paint(self, canvas: tk.Canvas):
         canvas.create_image(self.x, self.y, image=self.image)
@@ -90,11 +100,10 @@ class PowerShot(TrackingBullet):
         self.slow = slow
 
     def _got_monster(self):
-        self.target.health -= self.damage
+        super()._got_monster()
         max_speed = self.target.speed / self.slow
         if self.target.speed > max_speed:
             self.target.speed = max_speed
-        self.entities.projectiles.remove(self)
 
 
 class AngledProjectile(Projectile):
@@ -124,17 +133,13 @@ class AngledProjectile(Projectile):
                 return
 
     def _got_monster(self):
-        self.target.health -= self.damage
+        super()._got_monster()
         self.target.tick = 0
         self.target.max_tick = 5
-        self.entities.projectiles.remove(self)
 
     def _move(self):
         self.x += self.x_change
         self.y += self.y_change
         self.distance += self.speed
         if self.distance >= self.range:
-            try:
-                self.entities.projectiles.remove(self)
-            except ValueError:
-                pass
+            self.set_inactive()

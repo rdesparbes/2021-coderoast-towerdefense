@@ -1,7 +1,7 @@
 from abc import ABC
 
-from adapted.game import GameObject
+from adapted.entity import IEntity
 
 
-class IProjectile(GameObject, ABC):
+class IProjectile(IEntity, ABC):
     ...

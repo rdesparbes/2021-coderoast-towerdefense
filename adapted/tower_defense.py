@@ -8,7 +8,7 @@ from adapted.blocks import Block
 from adapted.constants import BLOCK_SIZE, MAP_SIZE, TIME_STEP
 from adapted.entities import Entities
 from adapted.map import Map
-from adapted.monsters import MONSTER_MAPPING, get_monsters_asc_distance
+from adapted.monsters import MONSTER_MAPPING
 from adapted.player import Player
 from adapted.tower import ITower
 from adapted.towers import TOWER_MAPPING, TowerFactory
@@ -46,25 +46,15 @@ class TowerDefenseGame(Game):
         self.add_object(self.map)
         self.add_object(Mouse(self))
         self.add_object(WaveGenerator(self))
+        self.add_object(self.entities)
 
     def update(self):
         super().update()
+        # TODO: Turn DisplayBoard into a proper GameObject
         self.display_board.update()
-        for projectile in self.entities.projectiles:
-            projectile.update()
-        for monster in self.entities.monsters:
-            monster.update()
-        for tower in self.entities.towers.values():
-            tower.update()
 
     def paint(self):
         super().paint()
-        for tower in self.entities.towers.values():
-            tower.paint(self.canvas)
-        for monster in get_monsters_asc_distance(self.entities.monsters):
-            monster.paint(self.canvas)
-        for projectile in self.entities.projectiles:
-            projectile.paint(self.canvas)
         selected_tower: Optional[ITower] = self.selected_tower
         if selected_tower is not None:
             selected_tower.paint_select(self.canvas)
@@ -116,10 +106,9 @@ class WaveGenerator:
         monster = monster_type(
             0.0,
             self.game.player,
-            self.game.entities,
             self.game.grid,
         )
-        self.game.entities.monsters.append(monster)
+        self.game.entities.monsters.add(monster)
         self.current_monster += 1
 
     def update(self):

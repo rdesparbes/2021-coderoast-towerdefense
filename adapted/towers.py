@@ -3,13 +3,14 @@ import tkinter as tk
 from abc import ABC, abstractmethod
 from copy import copy
 from dataclasses import dataclass, field, fields
-from typing import Dict, Type, Optional, List
+from typing import Dict, Type, Optional, List, Set
 
 from PIL import ImageTk, Image
 
 from adapted.constants import FPS, BLOCK_SIZE
 from adapted.entities import Entities
-from adapted.monsters import TARGETING_STRATEGIES, Monster
+from adapted.monsters import Monster
+from adapted.targeting_strategies import TARGETING_STRATEGIES
 from adapted.projectiles import AngledProjectile, TrackingBullet, PowerShot
 from adapted.tower import ITower
 from adapted.tower_stats import TowerStats
@@ -34,9 +35,22 @@ class Tower(ITower, ABC):
         self.target: Optional[Monster] = None
         self.targeting_strategy = 0
         self.sticky_target = False
+        self._to_remove = False
+        self._projectiles_to_shoot = set()
         self.image = ImageTk.PhotoImage(Image.open(
             "images/towerImages/" + self.__class__.__name__ + "/1.png"
         ))
+
+    def set_inactive(self) -> None:
+        self._to_remove = True
+
+    def is_inactive(self) -> bool:
+        return self._to_remove
+
+    def get_children(self) -> Set[ITower]:
+        projectiles = self._projectiles_to_shoot
+        self._projectiles_to_shoot = set()
+        return projectiles
 
     def _get_upgrade(self) -> Optional[TowerStats]:
         try:
@@ -66,6 +80,8 @@ class Tower(ITower, ABC):
         ))
 
     def paint_select(self, canvas: tk.Canvas):
+        # TODO: Create a SelectedTower(GameObject) object that has a reference
+        #  to a tower, and a paint method with the following code
         canvas.create_oval(
             self.x - self.stats.range,
             self.y - self.stats.range,
@@ -122,7 +138,7 @@ class ArrowShooterTower(Tower):
 
     def _shoot(self):
         angle = math.atan2(self.y - self.target.y, self.target.x - self.x)
-        self.entities.projectiles.append(
+        self._projectiles_to_shoot.add(
             AngledProjectile(
                 self.x,
                 self.y,
@@ -141,7 +157,7 @@ class BulletShooterTower(Tower):
         return "Bullet Shooter"
 
     def _shoot(self):
-        self.entities.projectiles.append(
+        self._projectiles_to_shoot.add(
             TrackingBullet(self.x, self.y, self.stats.damage, self.stats.speed, self.entities, self.target)
         )
 
@@ -152,7 +168,7 @@ class PowerTower(Tower):
         return "Power Tower"
 
     def _shoot(self):
-        self.entities.projectiles.append(
+        self._projectiles_to_shoot.add(
             PowerShot(self.x, self.y, self.stats.damage, self.stats.speed, self.entities, self.target, self.stats.slow)
         )
 
@@ -165,7 +181,7 @@ class TackTower(Tower):
     def _shoot(self):
         for i in range(self.stats.projectile_count):
             angle = math.radians(i * 360 / self.stats.projectile_count)
-            self.entities.projectiles.append(
+            self._projectiles_to_shoot.add(
                 AngledProjectile(
                     self.x, self.y, self.stats.damage, self.stats.speed, self.entities, angle, self.stats.range
                 )

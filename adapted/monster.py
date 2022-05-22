@@ -1,7 +1,8 @@
 from abc import ABC
 
-from adapted.game import GameObject
+from adapted.entity import IEntity
 
 
-class IMonster(GameObject, ABC):
-    ...
+class IMonster(IEntity, ABC):
+    health: int
+    distance_travelled: float

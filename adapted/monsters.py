@@ -1,11 +1,10 @@
 import random
 import tkinter as tk
-from typing import List, Callable
+from typing import List, Callable, Set
 
 from PIL import Image, ImageTk
 
 from adapted.constants import BLOCK_SIZE
-from adapted.entities import Entities
 from adapted.grid import Grid, OutOfPathException
 from adapted.monster import IMonster
 from adapted.monster_stats import MonsterStats
@@ -13,20 +12,31 @@ from adapted.player import Player
 
 
 class Monster(IMonster):
-    def __init__(self, stats: MonsterStats, distance: float, player: Player, entities: Entities, grid: Grid):
+    def __init__(self, stats: MonsterStats, distance: float, player: Player, grid: Grid):
         self.stats = stats
         self.health = stats.max_health
         self.speed = stats.speed
         self.player = player
-        self.entities = entities
         self.grid = grid
         self.tick: int = 0
         self.max_tick: int = 1
         self.distance_travelled = max(distance, 0)
         self.x, self.y = self.grid.compute_position(self.distance_travelled)
+        self._children = set()
         self.image = ImageTk.PhotoImage(Image.open(
             "images/monsterImages/" + self.stats.name + ".png"
         ))
+
+    def get_children(self) -> Set[IMonster]:
+        children = self._children
+        self._children = set()
+        return children
+
+    def is_inactive(self):
+        return not self.alive
+
+    def set_inactive(self) -> None:
+        self.health = 0
 
     @property
     def alive(self):
@@ -54,19 +64,18 @@ class Monster(IMonster):
         self.player.money += self.stats.value
         for _ in range(self.stats.respawn_count):
             factory = MONSTER_MAPPING[self.stats.respawn_stats_index]
-            self.entities.monsters.append(
+            self._children.add(
                 factory(
                     self.distance_travelled + BLOCK_SIZE * (0.5 - random.random()),
                     self.player,
-                    self.entities,
                     self.grid,
                 )
             )
-        self.entities.monsters.remove(self)
+        self.set_inactive()
 
     def got_through(self):
         self.player.health -= self.stats.damage
-        self.entities.monsters.remove(self)
+        self.set_inactive()
 
     def paint(self, canvas: tk.Canvas):
         canvas.create_rectangle(
@@ -88,36 +97,12 @@ class Monster(IMonster):
         canvas.create_image(self.x, self.y, image=self.image, anchor=tk.CENTER)
 
 
-def get_monsters_desc_health(monsters: List[IMonster]) -> List[IMonster]:
-    return sorted(monsters, key=lambda monster: monster.health, reverse=True)
-
-
-def get_monsters_desc_distance(monsters: List[IMonster]) -> List[IMonster]:
-    return sorted(monsters, key=lambda monster: monster.distance_travelled, reverse=True)
-
-
-def get_monsters_asc_health(monsters: List[IMonster]) -> List[IMonster]:
-    return sorted(monsters, key=lambda monster: monster.health, reverse=False)
-
-
-def get_monsters_asc_distance(monsters: List[IMonster]) -> List[IMonster]:
-    return sorted(monsters, key=lambda monster: monster.distance_travelled, reverse=False)
-
-
-TARGETING_STRATEGIES: List[Callable[[List[IMonster]], List[IMonster]]] = [
-    get_monsters_desc_health,
-    get_monsters_asc_health,
-    get_monsters_desc_distance,
-    get_monsters_asc_distance,
-]
-
-
-MonsterInitializer = Callable[[float, Player, Entities, Grid], Monster]
+MonsterInitializer = Callable[[float, Player, Grid], Monster]
 
 
 def monster_factory(stats: MonsterStats) -> MonsterInitializer:
-    def _factory(distance: float, player: Player, entities: Entities, grid: Grid) -> Monster:
-        return Monster(stats, distance, player, entities, grid)
+    def _factory(distance: float, player: Player, grid: Grid) -> Monster:
+        return Monster(stats, distance, player, grid)
 
     return _factory
 

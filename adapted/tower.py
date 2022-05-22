@@ -1,10 +1,10 @@
 import tkinter as tk
 from abc import ABC, abstractmethod
 
-from adapted.game import GameObject
+from adapted.entity import IEntity
 
 
-class ITower(GameObject, ABC):
+class ITower(IEntity, ABC):
     level: int
     targeting_strategy: int
     sticky_target: bool
