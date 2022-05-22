@@ -13,7 +13,7 @@ from adapted.player import Player
 from adapted.tower import ITower
 from adapted.towers import TOWER_MAPPING, TowerFactory
 from adapted.view import View
-from game import Game
+from game import Game, GameObject
 
 
 class TowerDefenseGameState(Enum):
@@ -47,18 +47,13 @@ class TowerDefenseGame(Game):
         self.add_object(Mouse(self))
         self.add_object(WaveGenerator(self))
         self.add_object(self.entities)
-
-    def update(self):
-        super().update()
-        # TODO: Turn DisplayBoard into a proper GameObject
-        self.display_board.update()
+        self.add_object(self.display_board)
 
     def paint(self):
         super().paint()
         selected_tower: Optional[ITower] = self.selected_tower
         if selected_tower is not None:
             selected_tower.paint_select(self.canvas)
-        self.display_board.paint()
 
     def set_state(self, state: TowerDefenseGameState):
         self.state = state
@@ -315,7 +310,7 @@ class InfoBoard:
         self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
 
 
-class DisplayBoard:
+class DisplayBoard(GameObject):
     def __init__(self, game: TowerDefenseGame):
         self.canvas = tk.Canvas(
             master=game.frame, width=600, height=80, bg="gray", highlightthickness=0
@@ -324,13 +319,12 @@ class DisplayBoard:
         self.health_bar = HealthBar(game.player)
         self.money_bar = MoneyBar(game.player)
         self.next_wave_button = NextWaveButton(450, 25, 550, 50, game)
-        self.paint()
 
     def update(self):
         self.health_bar.update()
         self.money_bar.update()
 
-    def paint(self):
+    def paint(self, canvas: tk.Canvas):
         self.canvas.delete(tk.ALL)  # clear the screen
         self.health_bar.paint(self.canvas)
         self.money_bar.paint(self.canvas)
