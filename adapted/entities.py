@@ -1,6 +1,6 @@
 import tkinter as tk
 from dataclasses import dataclass, field
-from typing import Dict, Tuple, Set
+from typing import Dict, Tuple, Set, Optional
 
 from adapted.entity import IEntity
 from adapted.game import GameObject
@@ -24,9 +24,14 @@ def _update(entities: Set[IEntity]) -> None:
 
 @dataclass
 class Entities(GameObject):
+    selected_tower_position: Optional[Tuple[int, int]] = None
     projectiles: Set[IProjectile] = field(default_factory=set)
     monsters: Set[IMonster] = field(default_factory=set)
     towers: Dict[Tuple[int, int], ITower] = field(default_factory=dict)
+
+    @property
+    def selected_tower(self) -> Optional[ITower]:
+        return self.towers.get(self.selected_tower_position)
 
     def update(self) -> None:
         _update(self.projectiles)
@@ -43,6 +48,20 @@ class Entities(GameObject):
             del self.towers[key]
         self.projectiles.update(to_add)
 
+    def _paint_selected_tower_range(self, canvas: tk.Canvas):
+        tower = self.selected_tower
+        if tower is None:
+            return
+        x, y = tower.get_position()
+        radius = tower.stats.range
+        canvas.create_oval(
+            x - radius,
+            y - radius,
+            x + radius,
+            y + radius,
+            outline="white",
+        )
+
     def paint(self, canvas: tk.Canvas) -> None:
         for tower in self.towers.values():
             tower.paint(canvas)
@@ -50,3 +69,4 @@ class Entities(GameObject):
             monster.paint(canvas)
         for projectile in self.projectiles:
             projectile.paint(canvas)
+        self._paint_selected_tower_range(canvas)

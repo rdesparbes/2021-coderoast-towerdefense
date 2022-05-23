@@ -29,7 +29,7 @@ class TowerDefenseGame(Game):
         self.state = TowerDefenseGameState.IDLE
         self.player = Player()
         self.entities = Entities()
-        self.view = View(self.entities.towers)
+        self.view = View()
         self.display_board = DisplayBoard(self)
         self.info_board = InfoBoard(self)
         self.tower_box = TowerBox(self)
@@ -43,17 +43,16 @@ class TowerDefenseGame(Game):
         self.add_object(WaveGenerator(self))
         self.add_object(self.entities)
         self.add_object(self.display_board)
-        self.add_object(self.view)
 
     def set_state(self, state: TowerDefenseGameState):
         self.state = state
 
-    def hovered_over(self, block: Block):
+    def hovered(self, block: Block) -> None:
         selected_tower_name = self.view.selected_tower_name
         grid_position = self.grid.global_to_grid_position((block.x, block.y))
         tower = self.entities.towers.get(grid_position)
         if tower is not None and selected_tower_name == "<None>":
-            self.view.selected_tower_position = grid_position
+            self.entities.selected_tower_position = grid_position
             self.info_board.display_specific()
             return
 
@@ -170,30 +169,30 @@ class TargetButton(Button):
         self.targeting_strategy_index: int = targeting_strategy_index
 
     def pressed(self):
-        if self.game.view.selected_tower is None:
+        if self.game.entities.selected_tower is None:
             return
-        self.game.view.selected_tower.targeting_strategy = self.targeting_strategy_index
+        self.game.entities.selected_tower.targeting_strategy = self.targeting_strategy_index
 
 
 class StickyButton(Button):
     def pressed(self):
-        if self.game.view.selected_tower is None:
+        if self.game.entities.selected_tower is None:
             return
-        self.game.view.selected_tower.sticky_target = not self.game.view.selected_tower.sticky_target
+        self.game.entities.selected_tower.sticky_target = not self.game.entities.selected_tower.sticky_target
 
 
 class SellButton(Button):
     def pressed(self):
-        tower_position = self.game.view.selected_tower_position
+        tower_position = self.game.entities.selected_tower_position
         if tower_position is None:
             return
         del self.game.entities.towers[tower_position]
-        self.game.view.selected_tower_position = None
+        self.game.entities.selected_tower_position = None
 
 
 class UpgradeButton(Button):
     def pressed(self):
-        tower = self.game.view.selected_tower
+        tower = self.game.entities.selected_tower
         if tower is None:
             return
         if self.game.player.money >= tower.get_upgrade_cost():
@@ -223,22 +222,22 @@ class InfoBoard:
         self.canvas.delete(tk.ALL)  # clear the screen
         self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
         self.current_buttons = []
-        if self.game.view.selected_tower is None:
+        if self.game.entities.selected_tower is None:
             return
 
         self.tower_image = ImageTk.PhotoImage(
             Image.open(
                 "images/towerImages/"
-                + self.game.view.selected_tower.__class__.__name__
+                + self.game.entities.selected_tower.__class__.__name__
                 + "/"
-                + str(self.game.view.selected_tower.level)
+                + str(self.game.entities.selected_tower.level)
                 + ".png"
             )
         )
-        self.canvas.create_text(80, 75, text=self.game.view.selected_tower.get_name(), font=("times", 20))
+        self.canvas.create_text(80, 75, text=self.game.entities.selected_tower.get_name(), font=("times", 20))
         self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
 
-        if self.game.view.selected_tower is not None:
+        if self.game.entities.selected_tower is not None:
             self.current_buttons.append(TargetButton(26, 30, 35, 39, self.game, 0))
             self.canvas.create_text(
                 37, 28, text="> Health", font=("times", 12), fill="white", anchor=tk.NW
@@ -261,7 +260,7 @@ class InfoBoard:
 
             self.current_buttons.append(StickyButton(10, 40, 19, 49, self.game))
             self.current_buttons.append(SellButton(5, 145, 78, 168, self.game))
-            upgrade_cost = self.game.view.selected_tower.get_upgrade_cost()
+            upgrade_cost = self.game.entities.selected_tower.get_upgrade_cost()
             if upgrade_cost is not None:
                 self.current_buttons.append(UpgradeButton(82, 145, 155, 168, self.game))
                 self.canvas.create_text(
@@ -277,8 +276,8 @@ class InfoBoard:
                 28, 146, text="Sell", font=("times", 22), fill="light green", anchor=tk.NW
             )
 
-            self.current_buttons[self.game.view.selected_tower.targeting_strategy].paint(self.canvas)
-            if self.game.view.selected_tower.sticky_target:
+            self.current_buttons[self.game.entities.selected_tower.targeting_strategy].paint(self.canvas)
+            if self.game.entities.selected_tower.sticky_target:
                 self.current_buttons[4].paint(self.canvas)
 
     def display_generic(self):
@@ -345,7 +344,7 @@ class TowerBox:
 
     def on_select(self, event):
         self.game.view.selected_tower_name = str(self.box.get(self.box.curselection()))
-        self.game.view.selected_tower_position = None
+        self.game.entities.selected_tower_position = None
         self.game.info_board.display_generic()
 
 
@@ -395,7 +394,7 @@ class Mouse:
             if self.game.grid.is_in_grid(self.position):
                 gridx, gridy = self.game.grid.global_to_grid_position(self.position)
                 block: Optional[Block] = self.game.grid.block_grid[gridx][gridy]
-                self.game.hovered_over(block)
+                self.game.hovered(block)
             else:
                 self.game.display_board.next_wave_button.press(
                     self.x - self.xoffset, self.y - self.yoffset
