@@ -82,17 +82,6 @@ class Tower(ITower, ABC):
             + ".png"
         ))
 
-    def paint_select(self, canvas: tk.Canvas):
-        # TODO: Create a SelectedTower(GameObject) object that has a reference
-        #  to a tower, and a paint method with the following code
-        canvas.create_oval(
-            self.x - self.stats.range,
-            self.y - self.stats.range,
-            self.x + self.stats.range,
-            self.y + self.stats.range,
-            outline="white",
-        )
-
     def paint(self, canvas: tk.Canvas):
         canvas.create_image(self.x, self.y, image=self.image, anchor=tk.CENTER)
 

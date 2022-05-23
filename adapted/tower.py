@@ -1,4 +1,3 @@
-import tkinter as tk
 from abc import ABC, abstractmethod
 from collections import Set
 
@@ -24,10 +23,6 @@ class ITower(IEntity, ABC):
     @staticmethod
     @abstractmethod
     def get_name() -> str:
-        ...
-
-    @abstractmethod
-    def paint_select(self, canvas: tk.Canvas) -> None:
         ...
 
     @abstractmethod
