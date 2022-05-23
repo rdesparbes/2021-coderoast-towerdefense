@@ -1,6 +1,6 @@
 import random
 import tkinter as tk
-from typing import List, Callable, Set, Tuple
+from typing import List, Set, Tuple, Protocol
 
 from PIL import Image, ImageTk
 
@@ -12,7 +12,7 @@ from adapted.player import Player
 
 
 class Monster(IMonster):
-    def __init__(self, stats: MonsterStats, distance: float, player: Player, grid: Grid):
+    def __init__(self, stats: MonsterStats, player: Player, grid: Grid, distance: float = 0.0):
         self.stats = stats
         self.health = stats.max_health
         self.speed = stats.speed
@@ -69,9 +69,9 @@ class Monster(IMonster):
             factory = MONSTER_MAPPING[self.stats.respawn_stats_index]
             self._children.add(
                 factory(
-                    self.distance_travelled + BLOCK_SIZE * (0.5 - random.random()),
                     self.player,
                     self.grid,
+                    self.distance_travelled + BLOCK_SIZE * (0.5 - random.random()),
                 )
             )
         self.set_inactive()
@@ -100,12 +100,14 @@ class Monster(IMonster):
         canvas.create_image(self.x, self.y, image=self.image, anchor=tk.CENTER)
 
 
-MonsterInitializer = Callable[[float, Player, Grid], Monster]
+class MonsterInitializer(Protocol):
+    def __call__(self, player: Player, grid: Grid, distance: float = 0.0) -> Monster:
+        ...
 
 
 def monster_factory(stats: MonsterStats) -> MonsterInitializer:
-    def _factory(distance: float, player: Player, grid: Grid) -> Monster:
-        return Monster(stats, distance, player, grid)
+    def _factory(player: Player, grid: Grid, distance: float = 0.0) -> Monster:
+        return Monster(stats, player, grid, distance=distance)
 
     return _factory
 

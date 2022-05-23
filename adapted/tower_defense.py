@@ -86,11 +86,10 @@ class WaveGenerator:
         self.max_ticks = self.current_wave[0]
 
     def spawn_monster(self):
-        monster_type = MONSTER_MAPPING[self.current_wave[self.current_monster]]
-        monster = monster_type(
-            0.0,
+        monster_factory = MONSTER_MAPPING[self.current_wave[self.current_monster]]
+        monster = monster_factory(
             self.game.player,
-            self.game.grid,
+            self.game.grid
         )
         self.game.entities.monsters.add(monster)
         self.current_monster += 1
@@ -206,9 +205,9 @@ class InfoBoard:
             master=game.frame, width=162, height=174, bg="gray", highlightthickness=0
         )
         self.canvas.grid(row=0, column=1)
-        self.image = ImageTk.PhotoImage(Image.open("images/infoBoard.png"))
+        self.info_board_image = ImageTk.PhotoImage(Image.open("images/infoBoard.png"))
         self.tower_image = None
-        self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
+        self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
         self.current_buttons = []
         self.game = game
 
@@ -220,7 +219,7 @@ class InfoBoard:
 
     def display_specific(self):
         self.canvas.delete(tk.ALL)  # clear the screen
-        self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
+        self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
         self.current_buttons = []
         if self.game.entities.selected_tower is None:
             return
@@ -294,7 +293,7 @@ class InfoBoard:
                 )
             )
         self.canvas.delete(tk.ALL)  # clear the screen
-        self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
+        self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
         self.canvas.create_text(80, 75, text=text)
         self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
 

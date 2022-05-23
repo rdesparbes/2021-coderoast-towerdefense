@@ -1,6 +1,6 @@
 import tkinter as tk
 from dataclasses import dataclass, field
-from typing import Dict, Tuple, Set, Optional
+from typing import Dict, Tuple, Set, Optional, Any
 
 from adapted.entity import IEntity
 from adapted.game import GameObject
@@ -22,6 +22,19 @@ def _update(entities: Set[IEntity]) -> None:
     entities.update(to_add)
 
 
+def _update_towers(towers: Dict[Any, ITower], projectiles: Set[IProjectile]) -> None:
+    to_remove = set()
+    to_add = set()
+    for key, tower in towers.items():
+        tower.update()
+        if tower.is_inactive():
+            to_remove.add(key)
+        to_add.update(tower.get_children())
+    for key in to_remove:
+        del towers[key]
+    projectiles.update(to_add)
+
+
 @dataclass
 class Entities(GameObject):
     selected_tower_position: Optional[Tuple[int, int]] = None
@@ -36,17 +49,7 @@ class Entities(GameObject):
     def update(self) -> None:
         _update(self.projectiles)
         _update(self.monsters)
-
-        to_remove = set()
-        to_add = set()
-        for tower_position, tower in self.towers.items():
-            tower.update()
-            if tower.is_inactive():
-                to_remove.add(tower_position)
-            to_add.update(tower.get_children())
-        for key in to_remove:
-            del self.towers[key]
-        self.projectiles.update(to_add)
+        _update_towers(self.towers, self.projectiles)
 
     def _paint_selected_tower_range(self, canvas: tk.Canvas):
         tower = self.selected_tower
