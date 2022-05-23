@@ -11,6 +11,8 @@ BlockImages = Dict[str, Image.Image]
 
 
 def _fill_grid(grid_values: List[int]) -> Grid:
+    # TODO: Check if the length of grid_values is a perfect square, and use the square root as GRID_SIZE everywhere
+    #  else in the program
     if len(grid_values) != GRID_SIZE ** 2:
         raise ValueError(
             f"Invalid number of values to initialize the grid: "
@@ -32,7 +34,7 @@ def _paint_background(grid: Grid, images: BlockImages) -> Image.Image:
     for block_col in grid.block_grid:
         for block in block_col:
             image = images[block.__class__.__name__]
-            offset = (block.x - BLOCK_SIZE // 2, block.y - BLOCK_SIZE // 2)
+            offset = (block.x - image.width // 2, block.y - image.height // 2)
             drawn_map.paste(image, offset)
     return drawn_map
 
