@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Tuple, Set, Dict
 
 from adapted.block import IBlock
+from adapted.blocks import BLOCK_MAPPING, Block
 from adapted.constants import GRID_SIZE, DIRECTIONS, BLOCK_SIZE
 
 
@@ -122,3 +123,28 @@ class Grid:
                     if neighbor_block.is_walkable():
                         graph[position].add(neighbor_position)
         return graph
+
+    @classmethod
+    def load(cls, map_name: str):
+        with open("texts/mapTexts/" + map_name + ".txt", "r") as map_file:
+            grid_values = list(map(int, (map_file.read()).split()))
+        return _fill_grid(grid_values)
+
+
+def _fill_grid(grid_values: List[int]) -> Grid:
+    # TODO: Check if the length of grid_values is a perfect square, and use the square root as GRID_SIZE everywhere
+    #  else in the program
+    if len(grid_values) != GRID_SIZE ** 2:
+        raise ValueError(
+            f"Invalid number of values to initialize the grid: "
+            f"expected {GRID_SIZE ** 2}, found {len(grid_values)}"
+        )
+    grid = Grid()
+    for gridy in range(GRID_SIZE):
+        for gridx in range(GRID_SIZE):
+            block_number = grid_values[GRID_SIZE * gridy + gridx]
+            block_type = BLOCK_MAPPING[block_number]
+            x, y = grid.grid_to_global_position((gridx, gridy))
+            block: Block = block_type(x, y)
+            grid.block_grid[gridx][gridy] = block
+    return grid
