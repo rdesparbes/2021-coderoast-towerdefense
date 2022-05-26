@@ -1,4 +1,4 @@
-from typing import List, Type
+from typing import List, Type, Tuple
 
 from adapted.block import IBlock
 
@@ -11,6 +11,9 @@ class Block(IBlock):
         self.can_walk = can_walk
         self.x = x
         self.y = y
+
+    def get_position(self) -> Tuple[int, int]:
+        return self.x, self.y
 
     def is_constructible(self) -> bool:
         return self.can_place

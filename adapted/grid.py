@@ -60,6 +60,10 @@ class Grid:
     def grid_to_global_position(grid_position: GridPosition) -> Vector:
         return grid_position[0] * BLOCK_SIZE + BLOCK_SIZE // 2, grid_position[1] * BLOCK_SIZE + BLOCK_SIZE // 2
 
+    def get_block_position(self, position: Vector) -> Vector:
+        gridx, gridy = self.global_to_grid_position(position)
+        return self.block_grid[gridx][gridy].get_position()
+
     def is_constructible(self, position: Vector) -> bool:
         grid_position = self.global_to_grid_position(position)
         return self._get_block(grid_position).is_constructible()

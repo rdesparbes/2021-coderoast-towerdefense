@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
+from typing import Tuple
 
 
 class IBlock(ABC):
-    x: int
-    y: int
+    @abstractmethod
+    def get_position(self) -> Tuple[int, int]:
+        ...
 
     @abstractmethod
     def is_constructible(self) -> bool:

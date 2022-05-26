@@ -3,15 +3,15 @@ import tkinter as tk
 from adapted.game import GameObject
 from adapted.player import Player
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
-from adapted.button import Button
+from adapted.view.button import Button
 from adapted.tower_defense_game_state import TowerDefenseGameState
 
 
 class DisplayBoard(GameObject):
-    def __init__(self, controller: AbstractTowerDefenseController):
+    def __init__(self, controller: AbstractTowerDefenseController, master_frame: tk.Frame):
         # TODO: Check if the global canvas needs to be used here
         self.canvas = tk.Canvas(
-            master=controller.frame, width=600, height=80, bg="gray", highlightthickness=0
+            master=master_frame, width=600, height=80, bg="gray", highlightthickness=0
         )
         self.canvas.grid(row=2, column=0)
         self.health_bar = HealthBar(controller.player)
@@ -58,7 +58,7 @@ class NextWaveButton(Button):
 
     @property
     def can_spawn(self) -> bool:
-        return self.is_idle and len(self.controller.entities.monsters) == 0
+        return self.is_idle and self.controller.monsters_left() == 0
 
     def pressed(self) -> None:
         if not self.can_spawn:
@@ -66,7 +66,7 @@ class NextWaveButton(Button):
         self.controller.state = TowerDefenseGameState.WAIT_FOR_SPAWN
 
     def paint(self, canvas: tk.Canvas):
-        if self.is_idle and len(self.controller.entities.monsters) == 0:
+        if self.is_idle and self.controller.monsters_left() == 0:
             color = "blue"
         else:
             color = "red"

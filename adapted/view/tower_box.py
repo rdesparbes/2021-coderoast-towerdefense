@@ -1,14 +1,13 @@
 import tkinter as tk
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
-from adapted.towers import TOWER_MAPPING
 
 
 class TowerBox:
-    def __init__(self, controller: AbstractTowerDefenseController):
+    def __init__(self, controller: AbstractTowerDefenseController, master_frame: tk.Frame):
         self.controller = controller
         self.box = tk.Listbox(
-            master=controller.frame,
+            master=master_frame,
             selectmode="SINGLE",
             font=("times", 18),
             height=18,
@@ -19,7 +18,7 @@ class TowerBox:
             highlightthickness=0,
         )
         self.box.insert(tk.END, "<None>")
-        for tower_name in TOWER_MAPPING:
+        for tower_name in controller.get_tower_names():
             self.box.insert(tk.END, tower_name)
         for i in range(50):
             self.box.insert(tk.END, "<None>")
@@ -27,6 +26,4 @@ class TowerBox:
         self.box.bind("<<ListboxSelect>>", self.on_select)
 
     def on_select(self, event):
-        self.controller.view.selected_tower_name = str(self.box.get(self.box.curselection()))
-        self.controller.entities.selected_tower_position = None
-        self.controller.info_board.display_generic()
+        self.controller.select_tower_type(str(self.box.get(self.box.curselection())))

@@ -3,14 +3,14 @@ import tkinter as tk
 from PIL import ImageTk, Image
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
-from adapted.button import Button
+from adapted.view.button import Button
 from adapted.towers import TOWER_MAPPING
 
 
 class InfoBoard:
-    def __init__(self, controller: AbstractTowerDefenseController):
+    def __init__(self, controller: AbstractTowerDefenseController, master_frame: tk.Frame):
         self.canvas = tk.Canvas(
-            master=controller.frame, width=162, height=174, bg="gray", highlightthickness=0
+            master=master_frame, width=162, height=174, bg="gray", highlightthickness=0
         )
         self.canvas.grid(row=0, column=1)
         self.info_board_image = ImageTk.PhotoImage(Image.open("images/infoBoard.png"))
@@ -29,22 +29,23 @@ class InfoBoard:
         self.canvas.delete(tk.ALL)  # clear the screen
         self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
         self.current_buttons = []
-        if self.controller.entities.selected_tower is None:
+        selected_tower = self.controller.get_selected_tower()
+        if selected_tower is None:
             return
 
         self.tower_image = ImageTk.PhotoImage(
             Image.open(
                 "images/towerImages/"
-                + self.controller.entities.selected_tower.__class__.__name__
+                + selected_tower.__class__.__name__
                 + "/"
-                + str(self.controller.entities.selected_tower.level)
+                + str(selected_tower.level)
                 + ".png"
             )
         )
-        self.canvas.create_text(80, 75, text=self.controller.entities.selected_tower.get_name(), font=("times", 20))
+        self.canvas.create_text(80, 75, text=selected_tower.get_name(), font=("times", 20))
         self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
 
-        if self.controller.entities.selected_tower is not None:
+        if selected_tower is not None:
             self.current_buttons.append(TargetButton(26, 30, 35, 39, self.controller, 0))
             self.canvas.create_text(
                 37, 28, text="> Health", font=("times", 12), fill="white", anchor=tk.NW
@@ -67,7 +68,7 @@ class InfoBoard:
 
             self.current_buttons.append(StickyButton(10, 40, 19, 49, self.controller))
             self.current_buttons.append(SellButton(5, 145, 78, 168, self.controller))
-            upgrade_cost = self.controller.entities.selected_tower.get_upgrade_cost()
+            upgrade_cost = selected_tower.get_upgrade_cost()
             if upgrade_cost is not None:
                 self.current_buttons.append(UpgradeButton(82, 145, 155, 168, self.controller))
                 self.canvas.create_text(
@@ -83,13 +84,13 @@ class InfoBoard:
                 28, 146, text="Sell", font=("times", 22), fill="light green", anchor=tk.NW
             )
 
-            self.current_buttons[self.controller.entities.selected_tower.targeting_strategy].paint(self.canvas)
-            if self.controller.entities.selected_tower.sticky_target:
+            self.current_buttons[selected_tower.targeting_strategy].paint(self.canvas)
+            if selected_tower.sticky_target:
                 self.current_buttons[4].paint(self.canvas)
 
     def display_generic(self):
         self.current_buttons = []
-        selected_tower_name = self.controller.view.selected_tower_name
+        selected_tower_name = self.controller.selected_tower_name
         if selected_tower_name == "<None>":
             text = None
             self.tower_image = None
@@ -113,30 +114,28 @@ class TargetButton(Button):
         self.targeting_strategy_index: int = targeting_strategy_index
 
     def pressed(self):
-        if self.controller.entities.selected_tower is None:
+        selected_tower = self.controller.get_selected_tower()
+        if selected_tower is None:
             return
-        self.controller.entities.selected_tower.targeting_strategy = self.targeting_strategy_index
+        selected_tower.targeting_strategy = self.targeting_strategy_index
 
 
 class StickyButton(Button):
     def pressed(self):
-        if self.controller.entities.selected_tower is None:
+        selected_tower = self.controller.get_selected_tower()
+        if selected_tower is None:
             return
-        self.controller.entities.selected_tower.sticky_target = not self.controller.entities.selected_tower.sticky_target
+        selected_tower.sticky_target = not selected_tower.sticky_target
 
 
 class SellButton(Button):
     def pressed(self):
-        tower_position = self.controller.entities.selected_tower_position
-        if tower_position is None:
-            return
-        del self.controller.entities.towers[tower_position]
-        self.controller.entities.selected_tower_position = None
+        self.controller.sell_selected_tower()
 
 
 class UpgradeButton(Button):
     def pressed(self):
-        tower = self.controller.entities.selected_tower
+        tower = self.controller.get_selected_tower()
         if tower is None:
             return
         if self.controller.player.money >= tower.get_upgrade_cost():
