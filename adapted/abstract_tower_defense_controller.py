@@ -6,11 +6,16 @@ from adapted.abstract_tower_factory import ITowerFactory
 from adapted.player import Player
 from adapted.tower import ITower
 from adapted.tower_defense_game_state import TowerDefenseGameState
+from adapted.view.abstract_view import IView
 
 
 class AbstractTowerDefenseController(ABC):
     state: TowerDefenseGameState
     player: Player
+
+    @abstractmethod
+    def register_view(self, view: IView) -> None:
+        ...
 
     @abstractmethod
     def spawn_monster(self, monster_type_id: int) -> None:

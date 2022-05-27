@@ -12,7 +12,7 @@ class GameObject(Protocol):
 
 class Game(GameObject):  # the main class that we call "Game"
     def __init__(
-            self, title: str, width: int, height: int, timestep: int = 50
+            self, title: str, timestep: int = 50
     ):  # setting up the window for the game here
         self.root = tk.Tk()  # saying this window will use tkinter
         self.root.title(title)
@@ -22,15 +22,6 @@ class Game(GameObject):  # the main class that we call "Game"
         self.timestep = timestep
         self.frame = tk.Frame(master=self.root)
         self.frame.grid(row=0, column=0)
-
-        # self.canvas = tk.Canvas(
-        #     master=self.frame,
-        #     width=width,
-        #     height=height,
-        #     bg="white",
-        #     highlightthickness=0,
-        # )  # actually creates a window and puts our frame on it  # makes the window called "canvas" complete
-
         self.objects: list[GameObject] = []
 
     def add_object(self, obj: GameObject):

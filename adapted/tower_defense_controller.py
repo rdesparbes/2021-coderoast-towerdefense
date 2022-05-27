@@ -10,10 +10,7 @@ from adapted.player import Player
 from adapted.tower import ITower
 from adapted.tower_defense_game_state import TowerDefenseGameState
 from adapted.towers import TOWER_MAPPING
-from adapted.view.display_board import DisplayBoard
-from adapted.view.info_board import InfoBoard
-from adapted.view.tower_box import TowerBox
-from adapted.view.map import Map
+from adapted.view.abstract_view import IView
 
 
 class TowerDefenseController(AbstractTowerDefenseController):
@@ -23,23 +20,16 @@ class TowerDefenseController(AbstractTowerDefenseController):
             player: Player,
             grid: Grid,
             entities: Entities,
-            master_frame: tk.Frame
     ):
         self.state = state
         self.player = player
         self.grid = grid
         self.entities = entities
         self._selected_tower_factory: Optional[ITowerFactory] = None
+        self.view: Optional[IView] = None
 
-        self.map = self._init_map(master_frame)
-        self.info_board = InfoBoard(self, master_frame)
-        self.tower_box = TowerBox(self, master_frame)
-        self.display_board = DisplayBoard(self, master_frame)
-
-    def _init_map(self, frame) -> Map:
-        map_object = Map(self, frame)
-        map_object.load(self.grid)
-        return map_object
+    def register_view(self, view: IView) -> None:
+        self.view = view
 
     def spawn_monster(self, monster_type_id: int) -> None:
         monster_factory = MONSTER_MAPPING[monster_type_id]
@@ -64,7 +54,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
         if tower is None:
             return False
         self.entities.selected_tower_position = grid_position
-        self.info_board.display_specific()
+        self.view.display_specific()
         return True
 
     def try_build_tower(self, position: Tuple[int, int]) -> bool:
@@ -94,7 +84,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
     def select_tower_factory(self, tower_type_name: str) -> None:
         self._selected_tower_factory = TOWER_MAPPING.get(tower_type_name)
         self.entities.selected_tower_position = None
-        self.info_board.display_generic()
+        self.view.display_generic()
 
     def get_selected_tower_factory(self) -> Optional[ITowerFactory]:
         return self._selected_tower_factory
