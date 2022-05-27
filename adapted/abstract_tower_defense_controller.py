@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import Optional, List, Tuple
 import tkinter as tk
 
 from adapted.abstract_tower_factory import ITowerFactory
@@ -22,6 +22,14 @@ class AbstractTowerDefenseController(ABC):
 
     @abstractmethod
     def get_selected_tower(self) -> Optional[ITower]:
+        ...
+
+    @abstractmethod
+    def try_select_tower(self, position: Tuple[int, int]) -> bool:
+        ...
+
+    @abstractmethod
+    def try_build_tower(self, position: Tuple[int, int]) -> bool:
         ...
 
     @abstractmethod

@@ -13,6 +13,7 @@ from adapted.towers import TOWER_MAPPING
 from adapted.view.display_board import DisplayBoard
 from adapted.view.info_board import InfoBoard
 from adapted.view.tower_box import TowerBox
+from adapted.view.map import Map
 
 
 class TowerDefenseController(AbstractTowerDefenseController):
@@ -30,11 +31,15 @@ class TowerDefenseController(AbstractTowerDefenseController):
         self.entities = entities
         self._selected_tower_factory: Optional[ITowerFactory] = None
 
+        self.map = self._init_map(master_frame)
         self.info_board = InfoBoard(self, master_frame)
         self.tower_box = TowerBox(self, master_frame)
-
-        # GameObject attributes
         self.display_board = DisplayBoard(self, master_frame)
+
+    def _init_map(self, frame) -> Map:
+        map_object = Map(self, frame)
+        map_object.load(self.grid)
+        return map_object
 
     def spawn_monster(self, monster_type_id: int) -> None:
         monster_factory = MONSTER_MAPPING[monster_type_id]
