@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List
 
+from adapted.abstract_tower_factory import ITowerFactory
 from adapted.grid import Grid
 from adapted.player import Player
 from adapted.tower import ITower
@@ -30,9 +31,13 @@ class AbstractTowerDefenseController(ABC):
         ...
 
     @abstractmethod
-    def get_tower_names(self) -> List[str]:
+    def get_tower_factory_names(self) -> List[str]:
         ...
 
     @abstractmethod
-    def select_tower_type(self, selected_tower_name) -> None:
+    def select_tower_factory(self, tower_type_name) -> None:
+        ...
+
+    @abstractmethod
+    def get_selected_tower_factory(self) -> Optional[ITowerFactory]:
         ...

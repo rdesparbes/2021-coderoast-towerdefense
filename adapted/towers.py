@@ -7,6 +7,7 @@ from typing import Dict, Type, Optional, List, Tuple
 
 from PIL import ImageTk, Image
 
+from adapted.abstract_tower_factory import ITowerFactory
 from adapted.constants import FPS, BLOCK_SIZE
 from adapted.entities import Entities
 from adapted.monsters import Monster
@@ -38,7 +39,7 @@ class Tower(ITower, ABC):
         self._to_remove = False
         self._projectiles_to_shoot = set()
         self.image = ImageTk.PhotoImage(Image.open(
-            "images/towerImages/" + self.__class__.__name__ + "/1.png"
+            f"images/towerImages/{self.__class__.__name__}/{self.level}.png"
         ))
 
     def get_position(self) -> Tuple[float, float]:
@@ -181,10 +182,23 @@ class TackTower(Tower):
 
 
 @dataclass
-class TowerFactory:
+class TowerFactory(ITowerFactory):
     tower_type: Type[Tower]
     tower_stats: TowerStats
     tower_upgrades: List[TowerStats] = field(default_factory=list)
+
+    def get_name(self) -> str:
+        return self.tower_type.get_name()
+
+    def get_cost(self) -> int:
+        return self.tower_stats.cost
+
+    def get_image(self) -> ImageTk.PhotoImage:
+        return ImageTk.PhotoImage(
+            Image.open(
+                "images/towerImages/" + self.tower_type.__name__ + "/1.png"
+            )
+        )
 
     def build_tower(self, x, y, entities: Entities) -> Tower:
         return self.tower_type(

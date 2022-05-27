@@ -2,6 +2,7 @@ import tkinter as tk
 from typing import Optional, List, Tuple
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
+from adapted.abstract_tower_factory import ITowerFactory
 from adapted.entities import Entities
 from adapted.grid import Grid
 from adapted.monsters import MONSTER_MAPPING
@@ -84,10 +85,15 @@ class TowerDefenseController(AbstractTowerDefenseController):
         del self.entities.towers[tower_position]
         self.entities.selected_tower_position = None
 
-    def get_tower_names(self) -> List[str]:
+    def get_tower_factory_names(self) -> List[str]:
         return list(TOWER_MAPPING)
 
-    def select_tower_type(self, selected_tower_name) -> None:
-        self.selected_tower_name = selected_tower_name
+    def select_tower_factory(self, tower_type_name) -> None:
+        self.selected_tower_name = tower_type_name
         self.entities.selected_tower_position = None
         self.info_board.display_generic()
+
+    def get_selected_tower_factory(self) -> Optional[ITowerFactory]:
+        if self.selected_tower_name == "<None>":
+            return None
+        return TOWER_MAPPING[self.selected_tower_name]

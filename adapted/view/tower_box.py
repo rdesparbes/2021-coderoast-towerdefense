@@ -18,7 +18,7 @@ class TowerBox:
             highlightthickness=0,
         )
         self.box.insert(tk.END, "<None>")
-        for tower_name in controller.get_tower_names():
+        for tower_name in controller.get_tower_factory_names():
             self.box.insert(tk.END, tower_name)
         for i in range(50):
             self.box.insert(tk.END, "<None>")
@@ -26,4 +26,4 @@ class TowerBox:
         self.box.bind("<<ListboxSelect>>", self.on_select)
 
     def on_select(self, event):
-        self.controller.select_tower_type(str(self.box.get(self.box.curselection())))
+        self.controller.select_tower_factory(str(self.box.get(self.box.curselection())))

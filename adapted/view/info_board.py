@@ -4,7 +4,6 @@ from PIL import ImageTk, Image
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
 from adapted.view.button import Button
-from adapted.towers import TOWER_MAPPING
 
 
 class InfoBoard:
@@ -90,17 +89,13 @@ class InfoBoard:
 
     def display_generic(self):
         self.current_buttons = []
-        selected_tower_name = self.controller.selected_tower_name
-        if selected_tower_name == "<None>":
+        tower_factory = self.controller.get_selected_tower_factory()
+        if tower_factory is None:
             text = None
             self.tower_image = None
         else:
-            text = selected_tower_name + " cost: " + str(TOWER_MAPPING[selected_tower_name].tower_stats.cost)
-            self.tower_image = ImageTk.PhotoImage(
-                Image.open(
-                    "images/towerImages/" + TOWER_MAPPING[selected_tower_name].tower_type.__name__ + "/1.png"
-                )
-            )
+            text = f"{tower_factory.get_name()} cost: {tower_factory.get_cost()}"
+            self.tower_image = tower_factory.get_image()
         self.canvas.delete(tk.ALL)  # clear the screen
         self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
         self.canvas.create_text(80, 75, text=text)
