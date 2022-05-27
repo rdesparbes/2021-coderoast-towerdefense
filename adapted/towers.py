@@ -83,7 +83,7 @@ class Tower(ITower, ABC):
             + ".png"
         ))
 
-    def paint(self, canvas: tk.Canvas):
+    def paint(self, canvas: Optional[tk.Canvas] = None):
         canvas.create_image(self.x, self.y, image=self.image, anchor=tk.CENTER)
 
     def prepare_shot(self):

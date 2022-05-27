@@ -1,12 +1,13 @@
-from typing import List
+from typing import List, Optional
 
 import tkinter as tk
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
+from adapted.game import GameObject
 from adapted.tower_defense_game_state import TowerDefenseGameState
 
 
-class WaveGenerator:
+class WaveGenerator(GameObject):
     def __init__(self, controller: AbstractTowerDefenseController):
         self.controller = controller
         self.current_wave: List[int] = []
@@ -37,5 +38,5 @@ class WaveGenerator:
                 self.controller.spawn_monster(self.current_wave[self.current_monster])
                 self.current_monster += 1
 
-    def paint(self, canvas: tk.Canvas):
+    def paint(self, canvas: Optional[tk.Canvas] = None):
         pass

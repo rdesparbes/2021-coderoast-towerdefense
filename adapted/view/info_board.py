@@ -1,4 +1,5 @@
 import tkinter as tk
+from typing import List
 
 from PIL import ImageTk, Image
 
@@ -15,7 +16,7 @@ class InfoBoard:
         self.info_board_image = ImageTk.PhotoImage(Image.open("images/infoBoard.png"))
         self.tower_image = None
         self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
-        self.current_buttons = []
+        self.current_buttons: List[Button] = []
         self.controller = controller
 
     def press(self, x, y):

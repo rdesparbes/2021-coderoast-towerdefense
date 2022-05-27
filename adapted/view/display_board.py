@@ -1,4 +1,5 @@
 import tkinter as tk
+from typing import Optional
 
 from adapted.game import GameObject
 from adapted.player import Player
@@ -22,7 +23,7 @@ class DisplayBoard(GameObject):
         self.health_bar.update()
         self.money_bar.update()
 
-    def paint(self, canvas: tk.Canvas):
+    def paint(self, canvas: Optional[tk.Canvas] = None):
         self.canvas.delete(tk.ALL)  # clear the screen
         self.health_bar.paint(self.canvas)
         self.money_bar.paint(self.canvas)

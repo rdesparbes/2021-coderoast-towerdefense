@@ -1,10 +1,12 @@
 import tkinter as tk
-from typing import Dict
+from typing import Dict, Optional
 
 from PIL import ImageTk, Image
 
+from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
 from adapted.blocks import BLOCK_MAPPING
 from adapted.constants import MAP_SIZE, BLOCK_SIZE
+from adapted.game import GameObject
 from adapted.grid import Grid
 
 BlockImages = Dict[str, Image.Image]
@@ -15,7 +17,8 @@ def _paint_background(grid: Grid, images: BlockImages) -> Image.Image:
     for block_col in grid.block_grid:
         for block in block_col:
             image = images[block.__class__.__name__]
-            offset = (block.x - image.width // 2, block.y - image.height // 2)
+            x, y = block.get_position()
+            offset = (x - image.width // 2, y - image.height // 2)
             drawn_map.paste(image, offset)
     return drawn_map
 
@@ -32,18 +35,24 @@ def _load_block_images() -> BlockImages:
     return block_images
 
 
-class Map:
-    def __init__(self, image: ImageTk.PhotoImage):
-        self.image = image
+class Map(GameObject):
+    def __init__(self, controller: AbstractTowerDefenseController, master_frame: tk.Frame):
+        self.image: Optional[ImageTk.PhotoImage] = None
+        self.controller = controller
+        self.canvas = tk.Canvas(master=master_frame, width=MAP_SIZE, height=MAP_SIZE, bg="gray", highlightthickness=0)
+        self.canvas.grid(
+            row=0, column=0, rowspan=2, columnspan=1
+        )
 
-    @classmethod
-    def load(cls, grid: Grid) -> "Map":
+    def load(self, grid: Grid) -> None:
         block_images = _load_block_images()
         drawn_map = _paint_background(grid, block_images)
-        return cls(ImageTk.PhotoImage(image=drawn_map))
+        self.image = ImageTk.PhotoImage(image=drawn_map)
 
     def update(self):
-        pass
+        self.controller.update_entities()
 
-    def paint(self, canvas: tk.Canvas):
-        canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
+    def paint(self, canvas: Optional[tk.Canvas] = None):
+        self.canvas.delete(tk.ALL)
+        self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
+        self.controller.paint_entities(self.canvas)

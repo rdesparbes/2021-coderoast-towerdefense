@@ -6,11 +6,11 @@ class GameObject(Protocol):
     def update(self) -> None:
         """Updates the game."""
 
-    def paint(self, canvas: tk.Canvas) -> None:
+    def paint(self, canvas: Optional[tk.Canvas] = None) -> None:
         """Paints the game."""
 
 
-class Game:  # the main class that we call "Game"
+class Game(GameObject):  # the main class that we call "Game"
     def __init__(
             self, title: str, width: int, height: int, timestep: int = 50
     ):  # setting up the window for the game here
@@ -23,16 +23,13 @@ class Game:  # the main class that we call "Game"
         self.frame = tk.Frame(master=self.root)
         self.frame.grid(row=0, column=0)
 
-        self.canvas = tk.Canvas(
-            master=self.frame,
-            width=width,
-            height=height,
-            bg="white",
-            highlightthickness=0,
-        )  # actually creates a window and puts our frame on it
-        self.canvas.grid(
-            row=0, column=0, rowspan=2, columnspan=1
-        )  # makes the window called "canvas" complete
+        # self.canvas = tk.Canvas(
+        #     master=self.frame,
+        #     width=width,
+        #     height=height,
+        #     bg="white",
+        #     highlightthickness=0,
+        # )  # actually creates a window and puts our frame on it  # makes the window called "canvas" complete
 
         self.objects: list[GameObject] = []
 
@@ -65,8 +62,7 @@ class Game:  # the main class that we call "Game"
         for obj in self.objects:
             obj.update()
 
-    def paint(self):
+    def paint(self, canvas: Optional[tk.Canvas] = None):
         """Paints the game."""
-        self.canvas.delete(tk.ALL)  # clear the screen
         for obj in self.objects:
-            obj.paint(self.canvas)
+            obj.paint()

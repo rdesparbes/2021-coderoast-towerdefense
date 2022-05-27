@@ -1,6 +1,6 @@
 import random
 import tkinter as tk
-from typing import List, Set, Tuple, Protocol
+from typing import List, Set, Tuple, Protocol, Optional
 
 from PIL import Image, ImageTk
 
@@ -80,7 +80,7 @@ class Monster(IMonster):
         self.player.health -= self.stats.damage
         self.set_inactive()
 
-    def paint(self, canvas: tk.Canvas):
+    def paint(self, canvas: Optional[tk.Canvas] = None):
         canvas.create_rectangle(
             self.x - self.stats.size,
             self.y - 3 * self.stats.size / 2,

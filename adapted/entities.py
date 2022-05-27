@@ -65,7 +65,7 @@ class Entities(GameObject):
             outline="white",
         )
 
-    def paint(self, canvas: tk.Canvas) -> None:
+    def paint(self, canvas: Optional[tk.Canvas] = None) -> None:
         for tower in self.towers.values():
             tower.paint(canvas)
         for monster in get_monsters_asc_distance(self.monsters):

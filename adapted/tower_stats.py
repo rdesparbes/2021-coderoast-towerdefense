@@ -11,5 +11,3 @@ class TowerStats:
     cost: Optional[int] = None
     projectile_count: Optional[int] = 1
     slow: Optional[int] = None
-
-

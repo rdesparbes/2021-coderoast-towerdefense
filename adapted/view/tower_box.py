@@ -20,7 +20,7 @@ class TowerBox:
         self.box.insert(tk.END, "<None>")
         for tower_name in controller.get_tower_factory_names():
             self.box.insert(tk.END, tower_name)
-        for i in range(50):
+        for i in range(13):
             self.box.insert(tk.END, "<None>")
         self.box.grid(row=1, column=1, rowspan=2)
         self.box.bind("<<ListboxSelect>>", self.on_select)

@@ -93,3 +93,9 @@ class TowerDefenseController(AbstractTowerDefenseController):
 
     def get_selected_tower_factory(self) -> Optional[ITowerFactory]:
         return self._selected_tower_factory
+
+    def update_entities(self) -> None:
+        self.entities.update()
+
+    def paint_entities(self, canvas: tk.Canvas) -> None:
+        self.entities.paint(canvas)

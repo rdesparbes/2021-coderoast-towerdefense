@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List
+import tkinter as tk
 
 from adapted.abstract_tower_factory import ITowerFactory
 from adapted.player import Player
@@ -37,4 +38,12 @@ class AbstractTowerDefenseController(ABC):
 
     @abstractmethod
     def get_selected_tower_factory(self) -> Optional[ITowerFactory]:
+        ...
+
+    @abstractmethod
+    def update_entities(self) -> None:
+        ...
+
+    @abstractmethod
+    def paint_entities(self, canvas: tk.Canvas) -> None:
         ...

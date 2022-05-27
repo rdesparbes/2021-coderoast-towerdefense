@@ -48,7 +48,7 @@ class Projectile(IProjectile, ABC):
     def get_children(self):
         return set()
 
-    def paint(self, canvas: tk.Canvas):
+    def paint(self, canvas: Optional[tk.Canvas] = None):
         canvas.create_image(self.x, self.y, image=self.image)
 
     @abstractmethod
