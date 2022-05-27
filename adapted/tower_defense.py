@@ -1,10 +1,8 @@
 import tkinter as tk
-from typing import Optional, Tuple
+from typing import Tuple
 
 from PIL import Image, ImageTk
 
-from adapted.block import IBlock
-from adapted.blocks import Block
 from adapted.constants import BLOCK_SIZE, MAP_SIZE, TIME_STEP
 from adapted.entities import Entities
 from adapted.grid import Grid
@@ -12,8 +10,6 @@ from adapted.map import Map
 from adapted.player import Player
 from adapted.tower_defense_controller import TowerDefenseController
 from adapted.tower_defense_game_state import TowerDefenseGameState
-from adapted.towers import TOWER_MAPPING, TowerFactory
-from adapted.view.info_board import InfoBoard
 from adapted.wave_generator import WaveGenerator
 from game import Game
 

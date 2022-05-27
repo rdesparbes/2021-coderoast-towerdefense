@@ -207,7 +207,7 @@ class TowerFactory(ITowerFactory):
         )
 
 
-TOWER_MAPPING: Dict[str, TowerFactory] = {
+TOWER_MAPPING: Dict[str, ITowerFactory] = {
     tower_factory.tower_type.get_name(): tower_factory
     for tower_factory in (
         TowerFactory(
