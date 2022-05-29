@@ -10,7 +10,6 @@ from adapted.tower_defense_game_state import TowerDefenseGameState
 
 class DisplayBoard(GameObject):
     def __init__(self, controller: AbstractTowerDefenseController, master_frame: tk.Frame):
-        # TODO: Check if the global canvas needs to be used here
         self.canvas = tk.Canvas(
             master=master_frame, width=600, height=80, bg="gray", highlightthickness=0
         )

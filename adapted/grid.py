@@ -1,13 +1,9 @@
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple, Set, Dict
+from typing import List, Optional, Tuple, Set, Dict, Iterable
 
 from adapted.block import IBlock
-from adapted.blocks import BLOCK_MAPPING, Block
-from adapted.constants import GRID_SIZE, DIRECTIONS, BLOCK_SIZE
-
-
-def generate_default_grid(width: int = GRID_SIZE, height: int = GRID_SIZE) -> List[List[None]]:
-    return [[None for _ in range(width)] for _ in range(height)]
+from adapted.blocks import BLOCK_MAPPING
+from adapted.constants import DIRECTIONS, BLOCK_SIZE
 
 
 class OutOfPathException(Exception):
@@ -33,13 +29,22 @@ def multiply_vector(vector: Vector, scalar: float) -> Vector:
 
 @dataclass
 class Grid:
-    block_grid: List[List[Optional[IBlock]]] = field(default_factory=generate_default_grid)
+    _block_grid: Optional[List[List[IBlock]]] = None
     _path_list: List[Vector] = field(default_factory=list)
 
     def initialize(self):
         spawn = self._find_spawn()
         path = self._find_path(spawn)
         self._path_list = [self.grid_to_global_position(grid_position) for grid_position in path]
+
+    @property
+    def grid_size(self) -> int:
+        return len(self._block_grid)
+
+    def __iter__(self) -> Iterable[IBlock]:
+        for block_col in self._block_grid:
+            for block in block_col:
+                yield block
 
     def compute_position(self, distance: float) -> Vector:
         int_part, last_block_distance = divmod(distance, BLOCK_SIZE)
@@ -62,7 +67,7 @@ class Grid:
 
     def get_block_position(self, position: Vector) -> Vector:
         gridx, gridy = self.global_to_grid_position(position)
-        return self.block_grid[gridx][gridy].get_position()
+        return self._block_grid[gridx][gridy].get_position()
 
     def is_constructible(self, position: Vector) -> bool:
         grid_position = self.global_to_grid_position(position)
@@ -73,22 +78,22 @@ class Grid:
 
     def _is_in_grid(self, grid_position: GridPosition) -> bool:
         x, y = grid_position
-        return 0 <= x < len(self.block_grid) and 0 <= y < len(self.block_grid[0])
+        return 0 <= x < len(self._block_grid) and 0 <= y < len(self._block_grid[0])
 
     @property
     def _grid_size(self) -> int:
-        return len(self.block_grid)
+        return len(self._block_grid)
 
     def _find_spawn(self) -> GridPosition:
         for x in range(self._grid_size):
-            if self.block_grid[x][0].is_walkable():
+            if self._block_grid[x][0].is_walkable():
                 return x, 0
         for y in range(self._grid_size):
-            if self.block_grid[0][y].is_walkable():
+            if self._block_grid[0][y].is_walkable():
                 return 0, y
 
     def _get_block(self, grid_position: GridPosition) -> IBlock:
-        return self.block_grid[grid_position[0]][grid_position[1]]
+        return self._block_grid[grid_position[0]][grid_position[1]]
 
     def _get_neighbors(self, grid_position: GridPosition) -> List[GridPosition]:
         neighbors = []
@@ -116,7 +121,7 @@ class Grid:
 
     def _build_graph(self) -> Dict[GridPosition, Set[GridPosition]]:
         graph = {}
-        for x, x_blocks in enumerate(self.block_grid):
+        for x, x_blocks in enumerate(self._block_grid):
             for y, block in enumerate(x_blocks):
                 if not block.is_walkable():
                     continue
@@ -129,26 +134,31 @@ class Grid:
         return graph
 
     @classmethod
-    def load(cls, map_name: str):
+    def load(cls, map_name: str) -> "Grid":
         with open("texts/mapTexts/" + map_name + ".txt", "r") as map_file:
             grid_values = list(map(int, (map_file.read()).split()))
-        return _fill_grid(grid_values)
+        return cls._fill_grid(grid_values)
 
+    @classmethod
+    def _build_block(cls, grid_x: int, grid_y: int, block_number: int) -> IBlock:
+        block_type = BLOCK_MAPPING[block_number]
+        x, y = cls.grid_to_global_position((grid_x, grid_y))
+        return block_type(x, y)
 
-def _fill_grid(grid_values: List[int]) -> Grid:
-    # TODO: Check if the length of grid_values is a perfect square, and use the square root as GRID_SIZE everywhere
-    #  else in the program
-    if len(grid_values) != GRID_SIZE ** 2:
-        raise ValueError(
-            f"Invalid number of values to initialize the grid: "
-            f"expected {GRID_SIZE ** 2}, found {len(grid_values)}"
-        )
-    grid = Grid()
-    for gridy in range(GRID_SIZE):
-        for gridx in range(GRID_SIZE):
-            block_number = grid_values[GRID_SIZE * gridy + gridx]
-            block_type = BLOCK_MAPPING[block_number]
-            x, y = grid.grid_to_global_position((gridx, gridy))
-            block: Block = block_type(x, y)
-            grid.block_grid[gridx][gridy] = block
-    return grid
+    @classmethod
+    def _fill_grid(cls, grid_values: List[int]) -> "Grid":
+        grid_size = int(len(grid_values) ** 0.5)
+        if grid_size ** 2 != len(grid_values):
+            raise ValueError(
+                f"Invalid number of values to initialize the grid: "
+                f"expected a perfect square, found {len(grid_values)}"
+            )
+        grid = Grid()
+        grid._block_grid = [
+            [
+                cls._build_block(grid_x, grid_y, grid_values[grid_size * grid_y + grid_x])
+                for grid_y in range(grid_size)
+            ]
+            for grid_x in range(grid_size)
+        ]
+        return grid

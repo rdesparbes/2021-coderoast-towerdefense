@@ -14,12 +14,11 @@ BlockImages = Dict[str, Image.Image]
 
 def _paint_background(grid: Grid, images: BlockImages) -> Image.Image:
     drawn_map = Image.new("RGBA", (MAP_SIZE, MAP_SIZE), (255, 255, 255, 255))
-    for block_col in grid.block_grid:
-        for block in block_col:
-            image = images[block.__class__.__name__]
-            x, y = block.get_position()
-            offset = (x - image.width // 2, y - image.height // 2)
-            drawn_map.paste(image, offset)
+    for block in grid:
+        image = images[block.__class__.__name__]
+        x, y = block.get_position()
+        offset = (x - image.width // 2, y - image.height // 2)
+        drawn_map.paste(image, offset)
     return drawn_map
 
 
