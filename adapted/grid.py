@@ -38,7 +38,7 @@ class Grid:
         self._path_list = [self.grid_to_global_position(grid_position) for grid_position in path]
 
     @property
-    def grid_size(self) -> int:
+    def size(self) -> int:
         return len(self._block_grid)
 
     def __iter__(self) -> Iterable[IBlock]:

@@ -27,16 +27,11 @@ class TowerDefenseGame(Game):
         self.view = View(
             InfoBoard(self.controller, self.frame),
             TowerBox(self.controller, self.frame),
-            self._init_map(grid),
+            Map(grid, self.controller, self.frame),
             DisplayBoard(self.controller, self.frame)
         )
         self.view.initialize()
         self.controller.register_view(self.view)
-
-    def _init_map(self, grid) -> Map:
-        map_object = Map(self.controller, self.frame)
-        map_object.load(grid)
-        return map_object
 
     def _init_mouse(self) -> "Mouse":
         mouse = Mouse(self.controller, self.view)
