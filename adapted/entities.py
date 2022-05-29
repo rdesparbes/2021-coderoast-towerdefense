@@ -5,7 +5,6 @@ from typing import Dict, Tuple, Set, Optional, Any
 from adapted.entity import IEntity
 from adapted.game import GameObject
 from adapted.monster import IMonster
-from adapted.projectile import IProjectile
 from adapted.targeting_strategies import get_monsters_asc_distance
 from adapted.tower import ITower
 
@@ -22,7 +21,7 @@ def _update(entities: Set[IEntity]) -> None:
     entities.update(to_add)
 
 
-def _update_towers(towers: Dict[Any, ITower], projectiles: Set[IProjectile]) -> None:
+def _update_towers(towers: Dict[Any, ITower], projectiles: Set[IEntity]) -> None:
     to_remove = set()
     to_add = set()
     for key, tower in towers.items():
@@ -38,7 +37,7 @@ def _update_towers(towers: Dict[Any, ITower], projectiles: Set[IProjectile]) -> 
 @dataclass
 class Entities(GameObject):
     selected_tower_position: Optional[Tuple[int, int]] = None
-    projectiles: Set[IProjectile] = field(default_factory=set)
+    projectiles: Set[IEntity] = field(default_factory=set)
     monsters: Set[IMonster] = field(default_factory=set)
     towers: Dict[Tuple[int, int], ITower] = field(default_factory=dict)
 

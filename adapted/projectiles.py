@@ -7,12 +7,11 @@ from PIL import ImageTk, Image
 
 from adapted.constants import BLOCK_SIZE
 from adapted.entities import Entities
-from adapted.entity import distance
+from adapted.entity import distance, IEntity
 from adapted.monster import IMonster
-from adapted.projectile import IProjectile
 
 
-class Projectile(IProjectile, ABC):
+class Projectile(IEntity, ABC):
     def __init__(self, x, y, damage, speed, entities: Entities, target: Optional[IMonster], image: tk.PhotoImage):
         self.x = x
         self.y = y

@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from collections import Set
 
 from adapted.entity import IEntity
-from adapted.projectile import IProjectile
 from adapted.tower_stats import TowerStats
 
 
@@ -26,5 +25,5 @@ class ITower(IEntity, ABC):
         ...
 
     @abstractmethod
-    def get_children(self) -> Set[IProjectile]:
+    def get_children(self) -> Set[IEntity]:
         ...
