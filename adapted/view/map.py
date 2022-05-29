@@ -48,8 +48,8 @@ def _load_block_images() -> BlockImages:
 class Map(GameObject):
     def __init__(self, grid: Grid, controller: AbstractTowerDefenseController, master_frame: tk.Frame):
         block_images = _load_block_images()
-        self._block_size = _compute_block_size(block_images)
-        map_size = self._block_size * grid.size
+        self.block_size = _compute_block_size(block_images)
+        map_size = self.block_size * grid.size
         drawn_map = _paint_background(grid, block_images, map_size)
         self.image: ImageTk.PhotoImage = ImageTk.PhotoImage(image=drawn_map)
         self.controller = controller
@@ -57,10 +57,6 @@ class Map(GameObject):
         self.canvas.grid(
             row=0, column=0, rowspan=2, columnspan=1
         )
-
-    @property
-    def block_size(self) -> int:
-        return self._block_size
 
     def update(self):
         self.controller.update_entities()

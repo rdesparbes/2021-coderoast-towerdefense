@@ -15,16 +15,20 @@ GridPosition = Tuple[int, int]
 BlockGrid = List[List[Optional[IBlock]]]
 
 
-def add_vectors(vector_a: Vector, vector_b: Vector) -> Vector:
+def _add_vectors(vector_a: Vector, vector_b: Vector) -> Vector:
     return vector_a[0] + vector_b[0], vector_a[1] + vector_b[1]
 
 
-def subtract_vectors(vector_a: Vector, vector_b: Vector) -> Vector:
+def _subtract_vectors(vector_a: Vector, vector_b: Vector) -> Vector:
     return vector_a[0] - vector_b[0], vector_a[1] - vector_b[1]
 
 
-def multiply_vector(vector: Vector, scalar: float) -> Vector:
+def _multiply_vector(vector: Vector, scalar: float) -> Vector:
     return scalar * vector[0], scalar * vector[1]
+
+
+def _grid_to_global_position(grid_position: GridPosition) -> Vector:
+    return grid_position[0] * BLOCK_SIZE + BLOCK_SIZE // 2, grid_position[1] * BLOCK_SIZE + BLOCK_SIZE // 2
 
 
 @dataclass
@@ -35,7 +39,7 @@ class Grid:
     def initialize(self):
         spawn = self._find_spawn()
         path = self._find_path(spawn)
-        self._path_list = [self.grid_to_global_position(grid_position) for grid_position in path]
+        self._path_list = [_grid_to_global_position(grid_position) for grid_position in path]
 
     @property
     def size(self) -> int:
@@ -53,21 +57,17 @@ class Grid:
             raise OutOfPathException
         before_position = self._path_list[before_index]
         after_position = self._path_list[before_index + 1]
-        vector = subtract_vectors(after_position, before_position)
-        scaled_vector = multiply_vector(vector, last_block_distance / BLOCK_SIZE)
-        return add_vectors(before_position, scaled_vector)
+        vector = _subtract_vectors(after_position, before_position)
+        scaled_vector = _multiply_vector(vector, last_block_distance / BLOCK_SIZE)
+        return _add_vectors(before_position, scaled_vector)
 
     @staticmethod
     def global_to_grid_position(position: Vector) -> GridPosition:
         return int(position[0] / BLOCK_SIZE), int(position[1] / BLOCK_SIZE)
 
-    @staticmethod
-    def grid_to_global_position(grid_position: GridPosition) -> Vector:
-        return grid_position[0] * BLOCK_SIZE + BLOCK_SIZE // 2, grid_position[1] * BLOCK_SIZE + BLOCK_SIZE // 2
-
     def get_block_position(self, position: Vector) -> Vector:
-        gridx, gridy = self.global_to_grid_position(position)
-        return self._block_grid[gridx][gridy].get_position()
+        grid_position = self.global_to_grid_position(position)
+        return self._get_block(grid_position).get_position()
 
     def is_constructible(self, position: Vector) -> bool:
         grid_position = self.global_to_grid_position(position)
@@ -98,7 +98,7 @@ class Grid:
     def _get_neighbors(self, grid_position: GridPosition) -> List[GridPosition]:
         neighbors = []
         for direction in DIRECTIONS:
-            neighbor_position = add_vectors(grid_position, direction)
+            neighbor_position = _add_vectors(grid_position, direction)
             if self._is_in_grid(neighbor_position) and self._get_block(neighbor_position).is_walkable():
                 neighbors.append(neighbor_position)
         return neighbors
@@ -139,10 +139,10 @@ class Grid:
             grid_values = list(map(int, (map_file.read()).split()))
         return cls._fill_grid(grid_values)
 
-    @classmethod
-    def _build_block(cls, grid_x: int, grid_y: int, block_number: int) -> IBlock:
+    @staticmethod
+    def _build_block(grid_x: int, grid_y: int, block_number: int) -> IBlock:
         block_type = BLOCK_MAPPING[block_number]
-        x, y = cls.grid_to_global_position((grid_x, grid_y))
+        x, y = _grid_to_global_position((grid_x, grid_y))
         return block_type(x, y)
 
     @classmethod
