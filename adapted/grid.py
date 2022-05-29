@@ -61,28 +61,31 @@ class Grid:
         scaled_vector = _multiply_vector(vector, last_block_distance / BLOCK_SIZE)
         return _add_vectors(before_position, scaled_vector)
 
-    @staticmethod
-    def global_to_grid_position(position: Vector) -> GridPosition:
-        return int(position[0] / BLOCK_SIZE), int(position[1] / BLOCK_SIZE)
+    @classmethod
+    def load(cls, map_name: str) -> "Grid":
+        with open("texts/mapTexts/" + map_name + ".txt", "r") as map_file:
+            grid_values = list(map(int, (map_file.read()).split()))
+        return cls._fill_grid(grid_values)
 
-    def get_block_position(self, position: Vector) -> Vector:
-        grid_position = self.global_to_grid_position(position)
+    def get_block_position(self, position: Vector) -> Tuple[int, int]:
+        grid_position = self._global_to_grid_position(position)
         return self._get_block(grid_position).get_position()
 
     def is_constructible(self, position: Vector) -> bool:
-        grid_position = self.global_to_grid_position(position)
+        grid_position = self._global_to_grid_position(position)
         return self._get_block(grid_position).is_constructible()
 
-    def is_in_grid(self, position: Vector) -> bool:
-        return self._is_in_grid(self.global_to_grid_position(position))
-
-    def _is_in_grid(self, grid_position: GridPosition) -> bool:
-        x, y = grid_position
-        return 0 <= x < len(self._block_grid) and 0 <= y < len(self._block_grid[0])
+    @staticmethod
+    def _global_to_grid_position(position: Vector) -> GridPosition:
+        return int(position[0] / BLOCK_SIZE), int(position[1] / BLOCK_SIZE)
 
     @property
     def _grid_size(self) -> int:
         return len(self._block_grid)
+
+    def _is_in_grid(self, grid_position: GridPosition) -> bool:
+        x, y = grid_position
+        return 0 <= x < len(self._block_grid) and 0 <= y < len(self._block_grid[0])
 
     def _find_spawn(self) -> GridPosition:
         for x in range(self._grid_size):
@@ -132,12 +135,6 @@ class Grid:
                     if neighbor_block.is_walkable():
                         graph[position].add(neighbor_position)
         return graph
-
-    @classmethod
-    def load(cls, map_name: str) -> "Grid":
-        with open("texts/mapTexts/" + map_name + ".txt", "r") as map_file:
-            grid_values = list(map(int, (map_file.read()).split()))
-        return cls._fill_grid(grid_values)
 
     @staticmethod
     def _build_block(grid_x: int, grid_y: int, block_number: int) -> IBlock:

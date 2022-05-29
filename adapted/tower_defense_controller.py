@@ -46,14 +46,13 @@ class TowerDefenseController(AbstractTowerDefenseController):
         return self.entities.selected_tower
 
     def try_select_tower(self, position: Tuple[int, int]) -> bool:
-        block_position = self.grid.get_block_position(position)
         if self._selected_tower_factory is not None:
             return False
-        grid_position = self.grid.global_to_grid_position(block_position)
-        tower = self.entities.towers.get(grid_position)
+        block_position = self.grid.get_block_position(position)
+        tower: Optional[ITower] = self.entities.towers.get(block_position)
         if tower is None:
             return False
-        self.entities.selected_tower_position = grid_position
+        self.entities.selected_tower_position = tower.get_position()
         self.view.display_specific()
         return True
 
@@ -66,8 +65,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
             return False
         block_position = self.grid.get_block_position(position)
         tower = self._selected_tower_factory.build_tower(*block_position, self.entities)
-        grid_position = self.grid.global_to_grid_position(block_position)
-        self.entities.towers[grid_position] = tower
+        self.entities.towers[block_position] = tower
         self.player.money -= tower.stats.cost
         return True
 
