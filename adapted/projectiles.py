@@ -7,18 +7,19 @@ from PIL import ImageTk, Image
 
 from adapted.constants import BLOCK_SIZE
 from adapted.entities import Entities
-from adapted.monsters import Monster
+from adapted.entity import distance
+from adapted.monster import IMonster
 from adapted.projectile import IProjectile
 
 
 class Projectile(IProjectile, ABC):
-    def __init__(self, x, y, damage, speed, entities: Entities, target: Optional[Monster], image: tk.PhotoImage):
+    def __init__(self, x, y, damage, speed, entities: Entities, target: Optional[IMonster], image: tk.PhotoImage):
         self.x = x
         self.y = y
         self.damage = damage
         self.speed = speed
         self.entities = entities
-        self.target: Optional[Monster] = target
+        self.target: Optional[IMonster] = target
         self.image = image
         self.hit = False
         self._active = True
@@ -73,24 +74,20 @@ class TrackingBullet(Projectile):
         )
 
     def _move(self):
-        length = (
-                         (self.x - self.target.x) ** 2 + (self.y - self.target.y) ** 2
-                 ) ** 0.5
+        length = distance(self, self.target)
         if length <= 0:
             return
-        self.x += self.speed * (self.target.x - self.x) / length
-        self.y += self.speed * (self.target.y - self.y) / length
+        x, y = self.target.get_position()
+        self.x += self.speed * (x - self.x) / length
+        self.y += self.speed * (y - self.y) / length
 
     def _check_hit(self):
-        if (
-                self.speed ** 2
-                > (self.x - self.target.x) ** 2 + (self.y - self.target.y) ** 2
-        ):
+        if distance(self, self.target) < self.speed:
             self.hit = True
 
 
 class PowerShot(TrackingBullet):
-    def __init__(self, x, y, damage, speed, entities, target: Optional[Monster], slow):
+    def __init__(self, x, y, damage, speed, entities, target: Optional[IMonster], slow):
         super().__init__(
             x,
             y,
@@ -127,10 +124,7 @@ class AngledProjectile(Projectile):
 
     def _check_hit(self):
         for monster in self.entities.monsters:
-            monster: Monster
-            if (monster.x - self.x) ** 2 + (monster.y - self.y) ** 2 <= (
-                    BLOCK_SIZE
-            ) ** 2:
+            if distance(self, monster) <= BLOCK_SIZE:
                 self.hit = True
                 self.target = monster
                 return

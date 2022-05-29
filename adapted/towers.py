@@ -10,7 +10,8 @@ from PIL import ImageTk, Image
 from adapted.abstract_tower_factory import ITowerFactory
 from adapted.constants import FPS, BLOCK_SIZE
 from adapted.entities import Entities
-from adapted.monsters import Monster
+from adapted.entity import distance
+from adapted.monster import IMonster
 from adapted.projectiles import AngledProjectile, TrackingBullet, PowerShot
 from adapted.targeting_strategies import TARGETING_STRATEGIES
 from adapted.tower import ITower
@@ -33,7 +34,7 @@ class Tower(ITower, ABC):
         self.y = y
         self.entities = entities
         self.ticks = 0
-        self.target: Optional[Monster] = None
+        self.target: Optional[IMonster] = None
         self.targeting_strategy = 0
         self.sticky_target = False
         self._to_remove = False
@@ -92,18 +93,10 @@ class Tower(ITower, ABC):
             self.ticks += 1
         if not self.sticky_target:
             for monster in check_list:
-                monster: Monster
-                if (self.stats.range + BLOCK_SIZE / 2) ** 2 >= (
-                        self.x - monster.x
-                ) ** 2 + (self.y - monster.y) ** 2:
+                if distance(self, monster) <= self.stats.range:
                     self.target = monster
         if self.target:
-            if (
-                    self.target.alive
-                    and (self.stats.range + BLOCK_SIZE / 2)
-                    >= ((self.x - self.target.x) ** 2 + (self.y - self.target.y) ** 2)
-                    ** 0.5
-            ):
+            if self.target.alive and distance(self.target, self) <= self.stats.range:
                 if self.ticks >= FPS / self.stats.shots_per_second:
                     self._shoot()
                     self.ticks = 0
@@ -111,9 +104,7 @@ class Tower(ITower, ABC):
                 self.target = None
         elif self.sticky_target:
             for monster in check_list:
-                if (self.stats.range + BLOCK_SIZE / 2) ** 2 >= (
-                        self.x - monster.x
-                ) ** 2 + (self.y - monster.y) ** 2:
+                if distance(self, monster) <= self.stats.range:
                     self.target = monster
 
     def update(self):
@@ -130,7 +121,8 @@ class ArrowShooterTower(Tower):
         return "Arrow Shooter"
 
     def _shoot(self):
-        angle = math.atan2(self.y - self.target.y, self.target.x - self.x)
+        x, y = self.target.get_position()
+        angle = math.atan2(self.y - y, x - self.x)
         self._projectiles_to_shoot.add(
             AngledProjectile(
                 self.x,
@@ -139,7 +131,7 @@ class ArrowShooterTower(Tower):
                 self.stats.speed,
                 self.entities,
                 angle,
-                self.stats.range + BLOCK_SIZE / 2,
+                self.stats.range,
             )
         )
 
@@ -213,7 +205,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         TowerFactory(
             ArrowShooterTower,
             TowerStats(
-                range=BLOCK_SIZE * 10,
+                range=BLOCK_SIZE * 10 + BLOCK_SIZE / 2,
                 shots_per_second=1,
                 damage=10,
                 speed=BLOCK_SIZE,
@@ -222,7 +214,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
             [
                 TowerStats(
                     cost=50,
-                    range=BLOCK_SIZE * 11,
+                    range=BLOCK_SIZE * 11 + BLOCK_SIZE / 2,
                     damage=12,
                 ),
                 TowerStats(
@@ -234,7 +226,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         TowerFactory(
             BulletShooterTower,
             TowerStats(
-                range=BLOCK_SIZE * 6,
+                range=BLOCK_SIZE * 6 + BLOCK_SIZE / 2,
                 shots_per_second=4,
                 damage=5,
                 speed=BLOCK_SIZE / 2,
@@ -244,7 +236,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         TowerFactory(
             PowerTower,
             TowerStats(
-                range=BLOCK_SIZE * 8,
+                range=BLOCK_SIZE * 8 + BLOCK_SIZE / 2,
                 shots_per_second=10,
                 damage=1,
                 speed=BLOCK_SIZE,
