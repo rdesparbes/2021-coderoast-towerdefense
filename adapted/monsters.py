@@ -14,18 +14,21 @@ from adapted.player import Player
 class Monster(IMonster):
     def __init__(self, stats: MonsterStats, player: Player, grid: Grid, distance: float = 0.0):
         self.stats = stats
-        self.health = stats.max_health
+        self.health_ = stats.max_health
         self.speed = stats.speed
         self.player = player
         self.grid = grid
         self.tick: int = 0
         self.max_tick: int = 1
-        self.distance_travelled = max(distance, 0)
-        self.x, self.y = self.grid.compute_position(self.distance_travelled)
+        self.distance_travelled_ = max(distance, 0)
+        self.x, self.y = self.grid.compute_position(self.distance_travelled_)
         self._children = set()
         self.image = ImageTk.PhotoImage(Image.open(
             "images/monsterImages/" + self.stats.name + ".png"
         ))
+
+    def inflict_damage(self, damage: int) -> None:
+        self.health_ -= damage
 
     def get_position(self) -> Tuple[float, float]:
         return self.x, self.y
@@ -39,11 +42,11 @@ class Monster(IMonster):
         return not self.alive
 
     def set_inactive(self) -> None:
-        self.health = 0
+        self.health_ = 0
 
     @property
     def alive(self):
-        return self.health > 0
+        return self.health_ > 0
 
     def update(self):
         if self.alive:
@@ -53,9 +56,9 @@ class Monster(IMonster):
 
     def move(self):
         if self.tick >= self.max_tick:
-            self.distance_travelled += self.speed
+            self.distance_travelled_ += self.speed
             try:
-                self.x, self.y = self.grid.compute_position(self.distance_travelled)
+                self.x, self.y = self.grid.compute_position(self.distance_travelled_)
             except OutOfPathException:
                 self.got_through()
             self.speed = self.stats.speed
@@ -71,7 +74,7 @@ class Monster(IMonster):
                 factory(
                     self.player,
                     self.grid,
-                    self.distance_travelled + BLOCK_SIZE * (0.5 - random.random()),
+                    self.distance_travelled_ + BLOCK_SIZE * (0.5 - random.random()),
                 )
             )
         self.set_inactive()
@@ -92,7 +95,7 @@ class Monster(IMonster):
         canvas.create_rectangle(
             self.x - self.stats.size + 1,
             self.y - 3 * self.stats.size / 2 + 1,
-            self.x - self.stats.size + (self.stats.size * 2 - 2) * self.health / self.stats.max_health,
+            self.x - self.stats.size + (self.stats.size * 2 - 2) * self.health_ / self.stats.max_health,
             self.y - self.stats.size - 2,
             fill="green",
             outline="green",

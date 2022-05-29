@@ -4,11 +4,11 @@ from adapted.monster import IMonster
 
 
 def _by_health(monster: IMonster) -> int:
-    return monster.health
+    return monster.health_
 
 
 def _by_distance(monster: IMonster) -> float:
-    return monster.distance_travelled
+    return monster.distance_travelled_
 
 
 def get_monsters_desc_health(monsters: Iterable[IMonster]) -> List[IMonster]:

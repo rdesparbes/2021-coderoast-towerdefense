@@ -37,7 +37,7 @@ class Projectile(IProjectile, ABC):
         self._check_hit()
 
     def _got_monster(self):
-        self.target.health -= self.damage
+        self.target.inflict_damage(self.damage)
         self.set_inactive()
 
     def set_inactive(self) -> None:
