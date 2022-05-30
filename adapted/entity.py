@@ -10,6 +10,18 @@ class IEntity(GameObject, ABC):
         ...
 
     @abstractmethod
+    def get_orientation(self) -> float:
+        ...
+
+    @abstractmethod
+    def get_scale(self) -> float:
+        ...
+
+    @abstractmethod
+    def get_model_name(self) -> str:
+        ...
+
+    @abstractmethod
     def get_children(self) -> Set["IEntity"]:
         ...
 

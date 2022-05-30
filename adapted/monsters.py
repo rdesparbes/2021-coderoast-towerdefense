@@ -25,15 +25,22 @@ class Monster(IMonster):
         self.distance_travelled_ = max(distance, 0)
         self.x, self.y = self.compute_position()
         self._children = set()
-        self.image = ImageTk.PhotoImage(Image.open(
-            "images/monsterImages/" + self.stats.name + ".png"
-        ))
+        self.image = ImageTk.PhotoImage(Image.open(self.get_model_name()))
 
     def inflict_damage(self, damage: int) -> None:
         self.health_ -= damage
 
     def get_position(self) -> Tuple[float, float]:
         return self.x, self.y
+
+    def get_orientation(self) -> float:
+        return 0.0
+
+    def get_scale(self) -> float:
+        return self.stats.size
+
+    def get_model_name(self) -> str:
+        return f"images/monsterImages/{self.stats.name}.png"
 
     def get_children(self) -> Set[IMonster]:
         children = self._children

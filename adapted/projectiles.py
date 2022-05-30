@@ -26,6 +26,12 @@ class Projectile(IEntity, ABC):
     def get_position(self) -> Tuple[float, float]:
         return self.x, self.y
 
+    def get_orientation(self) -> float:
+        return 0.0
+
+    def get_scale(self) -> float:
+        return 1.0
+
     def update(self):
         if self.target is not None and not self.target.alive:
             self.set_inactive()
@@ -69,8 +75,11 @@ class TrackingBullet(Projectile):
             speed,
             entities,
             target,
-            ImageTk.PhotoImage(Image.open("images/projectileImages/bullet.png")) if image is None else image,
+            ImageTk.PhotoImage(Image.open(self.get_model_name())) if image is None else image,
         )
+
+    def get_model_name(self) -> str:
+        return "images/projectileImages/bullet.png"
 
     def _move(self):
         length = distance(self, self.target)
@@ -94,9 +103,12 @@ class PowerShot(TrackingBullet):
             speed,
             entities,
             target,
-            image=ImageTk.PhotoImage(Image.open("images/projectileImages/powerShot.png"))
+            image=ImageTk.PhotoImage(Image.open(self.get_model_name()))
         )
         self.slow = slow
+
+    def get_model_name(self) -> str:
+        return "images/projectileImages/powerShot.png"
 
     def _got_monster(self):
         super()._got_monster()
@@ -114,12 +126,19 @@ class AngledProjectile(Projectile):
             speed,
             entities,
             None,
-            image=ImageTk.PhotoImage(Image.open("images/projectileImages/arrow.png").rotate(math.degrees(angle)))
+            image=ImageTk.PhotoImage(Image.open(self.get_model_name()).rotate(math.degrees(angle)))
         )
         self.x_change = speed * math.cos(angle)
         self.y_change = speed * math.sin(-angle)
         self.range = given_range
+        self.angle = angle
         self.distance = 0
+
+    def get_orientation(self) -> float:
+        return self.angle
+
+    def get_model_name(self) -> str:
+        return "images/projectileImages/arrow.png"
 
     def _check_hit(self):
         for monster in self.entities.monsters:

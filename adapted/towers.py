@@ -39,12 +39,19 @@ class Tower(ITower, ABC):
         self.sticky_target = False
         self._to_remove = False
         self._projectiles_to_shoot = set()
-        self.image = ImageTk.PhotoImage(Image.open(
-            f"images/towerImages/{self.__class__.__name__}/{self.level}.png"
-        ))
+        self.image = ImageTk.PhotoImage(Image.open(self.get_model_name()))
 
     def get_position(self) -> Tuple[float, float]:
         return self.x, self.y
+
+    def get_orientation(self) -> float:
+        return 0.0
+
+    def get_scale(self) -> float:
+        return 1.0
+
+    def get_model_name(self) -> str:
+        return f"images/towerImages/{self.__class__.__name__}/{self.level}.png"
 
     def set_inactive(self) -> None:
         self._to_remove = True
