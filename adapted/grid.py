@@ -6,10 +6,6 @@ from adapted.blocks import BLOCK_MAPPING
 from adapted.constants import DIRECTIONS, BLOCK_SIZE
 
 
-class OutOfPathException(Exception):
-    ...
-
-
 Vector = Tuple[float, float]
 GridPosition = Tuple[int, int]
 BlockGrid = List[List[Optional[IBlock]]]
@@ -70,7 +66,7 @@ class Grid:
     @classmethod
     def load(cls, map_name: str) -> "Grid":
         with open("texts/mapTexts/" + map_name + ".txt", "r") as map_file:
-            grid_values = list(map(int, (map_file.read()).split()))
+            grid_values = list(map(int, map_file.read().split()))
         return cls._fill_grid(grid_values)
 
     def get_block_position(self, position: Vector) -> Tuple[int, int]:
