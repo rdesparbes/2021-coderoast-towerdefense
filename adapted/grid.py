@@ -52,14 +52,20 @@ class Grid:
 
     def compute_position(self, distance: float) -> Vector:
         int_part, last_block_distance = divmod(distance, BLOCK_SIZE)
-        before_index = int(int_part)
-        if before_index >= len(self._path_list) - 1:
-            raise OutOfPathException
+
+        def clip(value):
+            return min(max(value, 0), len(self._path_list) - 1)
+
+        before_index = clip(int(int_part))
+        after_index = clip(int(int_part) + 1)
         before_position = self._path_list[before_index]
-        after_position = self._path_list[before_index + 1]
+        after_position = self._path_list[after_index]
         vector = _subtract_vectors(after_position, before_position)
         scaled_vector = _multiply_vector(vector, last_block_distance / BLOCK_SIZE)
         return _add_vectors(before_position, scaled_vector)
+
+    def has_arrived(self, distance: float) -> bool:
+        return distance >= (len(self._path_list) - 1) * BLOCK_SIZE
 
     @classmethod
     def load(cls, map_name: str) -> "Grid":

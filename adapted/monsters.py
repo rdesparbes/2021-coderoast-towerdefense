@@ -1,27 +1,29 @@
 import random
 import tkinter as tk
-from typing import List, Set, Tuple, Protocol, Optional
+from typing import List, Set, Tuple, Protocol, Optional, Callable
 
 from PIL import Image, ImageTk
 
 from adapted.constants import BLOCK_SIZE
-from adapted.grid import Grid, OutOfPathException
 from adapted.monster import IMonster
 from adapted.monster_stats import MonsterStats
+from adapted.path import Path
 from adapted.player import Player
+
+PositionGetter = Callable[[float], Tuple[float, float]]
 
 
 class Monster(IMonster):
-    def __init__(self, stats: MonsterStats, player: Player, grid: Grid, distance: float = 0.0):
+    def __init__(self, stats: MonsterStats, player: Player, path: Path, distance: float = 0.0):
         self.stats = stats
         self.health_ = stats.max_health
         self.speed = stats.speed
         self.player = player
-        self.grid = grid
+        self.path = path
         self.tick: int = 0
         self.max_tick: int = 1
         self.distance_travelled_ = max(distance, 0)
-        self.x, self.y = self.grid.compute_position(self.distance_travelled_)
+        self.x, self.y = self.compute_position()
         self._children = set()
         self.image = ImageTk.PhotoImage(Image.open(
             "images/monsterImages/" + self.stats.name + ".png"
@@ -54,13 +56,15 @@ class Monster(IMonster):
         else:
             self.killed()
 
+    def compute_position(self):
+        if self.path.has_arrived(self.distance_travelled_):
+            self.got_through()
+        return self.path.compute_position(self.distance_travelled_)
+
     def move(self):
         if self.tick >= self.max_tick:
             self.distance_travelled_ += self.speed
-            try:
-                self.x, self.y = self.grid.compute_position(self.distance_travelled_)
-            except OutOfPathException:
-                self.got_through()
+            self.x, self.y = self.compute_position()
             self.speed = self.stats.speed
             self.tick = 0
             self.max_tick = 1
@@ -73,7 +77,7 @@ class Monster(IMonster):
             self._children.add(
                 factory(
                     self.player,
-                    self.grid,
+                    self.path,
                     self.distance_travelled_ + BLOCK_SIZE * (0.5 - random.random()),
                 )
             )
@@ -104,13 +108,13 @@ class Monster(IMonster):
 
 
 class MonsterInitializer(Protocol):
-    def __call__(self, player: Player, grid: Grid, distance: float = 0.0) -> Monster:
+    def __call__(self, player: Player, path: Path, distance: float = 0.0) -> Monster:
         ...
 
 
 def monster_factory(stats: MonsterStats) -> MonsterInitializer:
-    def _factory(player: Player, grid: Grid, distance: float = 0.0) -> Monster:
-        return Monster(stats, player, grid, distance=distance)
+    def _factory(player: Player, path: Path, distance: float = 0.0) -> Monster:
+        return Monster(stats, player, path, distance=distance)
 
     return _factory
 

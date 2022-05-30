@@ -35,7 +35,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
         monster_factory = MONSTER_MAPPING[monster_type_id]
         monster = monster_factory(
             self.player,
-            self.grid
+            self.grid,
         )
         self.entities.monsters.add(monster)
 
