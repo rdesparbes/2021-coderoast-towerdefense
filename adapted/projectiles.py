@@ -1,9 +1,6 @@
 import math
-import tkinter as tk
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple
-
-from PIL import ImageTk, Image
 
 from adapted.constants import BLOCK_SIZE
 from adapted.entities import Entities
@@ -12,14 +9,13 @@ from adapted.monster import IMonster
 
 
 class Projectile(IEntity, ABC):
-    def __init__(self, x, y, damage, speed, entities: Entities, target: Optional[IMonster], image: tk.PhotoImage):
+    def __init__(self, x, y, damage, speed, entities: Entities, target: Optional[IMonster]):
         self.x = x
         self.y = y
         self.damage = damage
         self.speed = speed
         self.entities = entities
         self.target: Optional[IMonster] = target
-        self.image = image
         self.hit = False
         self._active = True
 
@@ -28,9 +24,6 @@ class Projectile(IEntity, ABC):
 
     def get_orientation(self) -> float:
         return 0.0
-
-    def get_scale(self) -> float:
-        return 1.0
 
     def update(self):
         if self.target is not None and not self.target.alive:
@@ -54,9 +47,6 @@ class Projectile(IEntity, ABC):
     def get_children(self):
         return set()
 
-    def paint(self, canvas: Optional[tk.Canvas] = None):
-        canvas.create_image(self.x, self.y, image=self.image)
-
     @abstractmethod
     def _move(self):
         ...
@@ -67,7 +57,7 @@ class Projectile(IEntity, ABC):
 
 
 class TrackingBullet(Projectile):
-    def __init__(self, x, y, damage, speed, entities: Entities, target, image: Optional[ImageTk.PhotoImage] = None):
+    def __init__(self, x, y, damage, speed, entities: Entities, target):
         super().__init__(
             x,
             y,
@@ -75,7 +65,6 @@ class TrackingBullet(Projectile):
             speed,
             entities,
             target,
-            ImageTk.PhotoImage(Image.open(self.get_model_name())) if image is None else image,
         )
 
     def get_model_name(self) -> str:
@@ -103,7 +92,6 @@ class PowerShot(TrackingBullet):
             speed,
             entities,
             target,
-            image=ImageTk.PhotoImage(Image.open(self.get_model_name()))
         )
         self.slow = slow
 
@@ -126,7 +114,6 @@ class AngledProjectile(Projectile):
             speed,
             entities,
             None,
-            image=ImageTk.PhotoImage(Image.open(self.get_model_name()).rotate(math.degrees(angle)))
         )
         self.x_change = speed * math.cos(angle)
         self.y_change = speed * math.sin(-angle)

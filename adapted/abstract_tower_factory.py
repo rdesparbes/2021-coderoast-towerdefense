@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
 
-from PIL import ImageTk
-
 from adapted.entities import Entities
 from adapted.tower import ITower
 
@@ -20,5 +18,5 @@ class ITowerFactory(ABC):
         ...
 
     @abstractmethod
-    def get_image(self) -> ImageTk.PhotoImage:
+    def get_model_name(self) -> str:
         ...

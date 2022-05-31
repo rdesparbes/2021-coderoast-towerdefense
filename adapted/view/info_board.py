@@ -96,7 +96,7 @@ class InfoBoard:
             self.tower_image = None
         else:
             text = f"{tower_factory.get_name()} cost: {tower_factory.get_cost()}"
-            self.tower_image = tower_factory.get_image()
+            self.tower_image = ImageTk.PhotoImage(Image.open(tower_factory.get_model_name()))
         self.canvas.delete(tk.ALL)  # clear the screen
         self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
         self.canvas.create_text(80, 75, text=text)

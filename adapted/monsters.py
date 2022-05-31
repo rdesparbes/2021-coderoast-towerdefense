@@ -1,8 +1,5 @@
 import random
-import tkinter as tk
-from typing import List, Set, Tuple, Protocol, Optional, Callable
-
-from PIL import Image, ImageTk
+from typing import List, Set, Tuple, Protocol, Callable
 
 from adapted.constants import BLOCK_SIZE
 from adapted.monster import IMonster
@@ -25,7 +22,6 @@ class Monster(IMonster):
         self.distance_travelled_ = max(distance, 0)
         self.x, self.y = self.compute_position()
         self._children = set()
-        self.image = ImageTk.PhotoImage(Image.open(self.get_model_name()))
 
     def inflict_damage(self, damage: int) -> None:
         self.health_ -= damage
@@ -35,9 +31,6 @@ class Monster(IMonster):
 
     def get_orientation(self) -> float:
         return 0.0
-
-    def get_scale(self) -> float:
-        return self.stats.size
 
     def get_model_name(self) -> str:
         return f"images/monsterImages/{self.stats.name}.png"
@@ -93,25 +86,6 @@ class Monster(IMonster):
     def got_through(self):
         self.player.health -= self.stats.damage
         self.set_inactive()
-
-    def paint(self, canvas: Optional[tk.Canvas] = None):
-        canvas.create_rectangle(
-            self.x - self.stats.size,
-            self.y - 3 * self.stats.size / 2,
-            self.x + self.stats.size - 1,
-            self.y - self.stats.size - 1,
-            fill="red",
-            outline="black",
-        )
-        canvas.create_rectangle(
-            self.x - self.stats.size + 1,
-            self.y - 3 * self.stats.size / 2 + 1,
-            self.x - self.stats.size + (self.stats.size * 2 - 2) * self.health_ / self.stats.max_health,
-            self.y - self.stats.size - 2,
-            fill="green",
-            outline="green",
-        )
-        canvas.create_image(self.x, self.y, image=self.image, anchor=tk.CENTER)
 
 
 class MonsterInitializer(Protocol):

@@ -1,11 +1,8 @@
 import math
-import tkinter as tk
 from abc import ABC, abstractmethod
 from copy import copy
 from dataclasses import dataclass, field, fields
 from typing import Dict, Type, Optional, List, Tuple
-
-from PIL import ImageTk, Image
 
 from adapted.abstract_tower_factory import ITowerFactory
 from adapted.constants import FPS, BLOCK_SIZE
@@ -39,16 +36,12 @@ class Tower(ITower, ABC):
         self.sticky_target = False
         self._to_remove = False
         self._projectiles_to_shoot = set()
-        self.image = ImageTk.PhotoImage(Image.open(self.get_model_name()))
 
     def get_position(self) -> Tuple[float, float]:
         return self.x, self.y
 
     def get_orientation(self) -> float:
         return 0.0
-
-    def get_scale(self) -> float:
-        return 1.0
 
     def get_model_name(self) -> str:
         return f"images/towerImages/{self.__class__.__name__}/{self.level}.png"
@@ -83,16 +76,6 @@ class Tower(ITower, ABC):
             if stat_value is not None:
                 setattr(self.stats, stat_field.name, stat_value)
         self.level += 1
-        self.image = ImageTk.PhotoImage(Image.open(
-            "images/towerImages/"
-            + self.__class__.__name__
-            + "/"
-            + str(self.level)
-            + ".png"
-        ))
-
-    def paint(self, canvas: Optional[tk.Canvas] = None):
-        canvas.create_image(self.x, self.y, image=self.image, anchor=tk.CENTER)
 
     def prepare_shot(self):
         check_list = TARGETING_STRATEGIES[self.targeting_strategy](self.entities.monsters)
@@ -192,12 +175,8 @@ class TowerFactory(ITowerFactory):
     def get_cost(self) -> int:
         return self.tower_stats.cost
 
-    def get_image(self) -> ImageTk.PhotoImage:
-        return ImageTk.PhotoImage(
-            Image.open(
-                "images/towerImages/" + self.tower_type.__name__ + "/1.png"
-            )
-        )
+    def get_model_name(self) -> str:
+        return f"images/towerImages/{self.tower_type.__name__}/1.png"
 
     def build_tower(self, x, y, entities: Entities) -> Tower:
         return self.tower_type(

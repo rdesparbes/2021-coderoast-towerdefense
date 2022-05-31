@@ -40,9 +40,10 @@ class Mouse(GameObject):
             return
 
         if self.hovered_widget is self.view.map_object.canvas:
-            if self.controller.try_build_tower(self.position):
+            world_position = self.view.map_object.pixel_to_position(self.position)
+            if self.controller.try_build_tower(world_position):
                 return
-            elif self.controller.try_select_tower(self.position):
+            elif self.controller.try_select_tower(world_position):
                 return
         elif self.hovered_widget is self.view.display_board.canvas:
             self.view.display_board.next_wave_button.press(
@@ -55,18 +56,19 @@ class Mouse(GameObject):
 
     def paint(self, canvas: Optional[tk.Canvas] = None):
         if self.hovered_widget is self.view.map_object.canvas:
-            x, y = self.controller.grid.get_block_position(self.position)
-            if self.controller.grid.is_constructible(self.position):
-                self.view.map_object.canvas.create_image(
-                    x,
-                    y,
-                    image=self.pressed_image if self.pressed else self.can_press_image,
-                    anchor=tk.CENTER,
-                )
+            world_position = self.view.map_object.pixel_to_position(self.position)
+            x, y = self.controller.grid.get_block_position(world_position)
+            block_col, block_row = self.view.map_object.position_to_pixel((x, y))
+            if self.controller.grid.is_constructible(world_position):
+                if self.pressed:
+                    image = self.pressed_image
+                else:
+                    image = self.can_press_image
             else:
-                self.view.map_object.canvas.create_image(
-                    x,
-                    y,
-                    image=self.cannot_press_image,
-                    anchor=tk.CENTER,
-                )
+                image = self.cannot_press_image
+            self.view.map_object.canvas.create_image(
+                block_col,
+                block_row,
+                image=image,
+                anchor=tk.CENTER,
+            )

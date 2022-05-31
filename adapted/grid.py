@@ -5,7 +5,6 @@ from adapted.block import IBlock
 from adapted.blocks import BLOCK_MAPPING
 from adapted.constants import DIRECTIONS, BLOCK_SIZE
 
-
 Vector = Tuple[float, float]
 GridPosition = Tuple[int, int]
 BlockGrid = List[List[Optional[IBlock]]]
@@ -23,10 +22,6 @@ def _multiply_vector(vector: Vector, scalar: float) -> Vector:
     return scalar * vector[0], scalar * vector[1]
 
 
-def _grid_to_global_position(grid_position: GridPosition) -> Vector:
-    return grid_position[0] * BLOCK_SIZE + BLOCK_SIZE // 2, grid_position[1] * BLOCK_SIZE + BLOCK_SIZE // 2
-
-
 @dataclass
 class Grid:
     _block_grid: Optional[List[List[IBlock]]] = None
@@ -34,8 +29,7 @@ class Grid:
 
     def initialize(self):
         spawn = self._find_spawn()
-        path = self._find_path(spawn)
-        self._path_list = [_grid_to_global_position(grid_position) for grid_position in path]
+        self._path_list = self._find_path(spawn)
 
     @property
     def size(self) -> int:
@@ -141,8 +135,8 @@ class Grid:
     @staticmethod
     def _build_block(grid_x: int, grid_y: int, block_number: int) -> IBlock:
         block_type = BLOCK_MAPPING[block_number]
-        x, y = _grid_to_global_position((grid_x, grid_y))
-        return block_type(x, y)
+        # TODO: is the block position still used somewhere?
+        return block_type(grid_x, grid_y)
 
     @classmethod
     def _fill_grid(cls, grid_values: List[int]) -> "Grid":

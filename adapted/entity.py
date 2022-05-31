@@ -14,10 +14,6 @@ class IEntity(GameObject, ABC):
         ...
 
     @abstractmethod
-    def get_scale(self) -> float:
-        ...
-
-    @abstractmethod
     def get_model_name(self) -> str:
         ...
 
