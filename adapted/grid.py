@@ -3,7 +3,7 @@ from typing import List, Optional, Tuple, Set, Dict, Iterable
 
 from adapted.block import IBlock
 from adapted.blocks import BLOCK_MAPPING
-from adapted.constants import DIRECTIONS, BLOCK_SIZE
+from adapted.constants import DIRECTIONS
 
 Vector = Tuple[float, float]
 GridPosition = Tuple[int, int]
@@ -35,13 +35,13 @@ class Grid:
     def size(self) -> int:
         return len(self._block_grid)
 
-    def __iter__(self) -> Iterable[IBlock]:
-        for block_col in self._block_grid:
-            for block in block_col:
-                yield block
+    def __iter__(self) -> Iterable[Tuple[Tuple[int, int], IBlock]]:
+        for col, block_col in enumerate(self._block_grid):
+            for row, block in enumerate(block_col):
+                yield (col, row), block
 
     def compute_position(self, distance: float) -> Vector:
-        int_part, last_block_distance = divmod(distance, BLOCK_SIZE)
+        int_part, last_block_distance = divmod(distance, 1)
 
         def clip(value):
             return min(max(value, 0), len(self._path_list) - 1)
@@ -51,11 +51,11 @@ class Grid:
         before_position = self._path_list[before_index]
         after_position = self._path_list[after_index]
         vector = _subtract_vectors(after_position, before_position)
-        scaled_vector = _multiply_vector(vector, last_block_distance / BLOCK_SIZE)
+        scaled_vector = _multiply_vector(vector, last_block_distance)
         return _add_vectors(before_position, scaled_vector)
 
     def has_arrived(self, distance: float) -> bool:
-        return distance >= (len(self._path_list) - 1) * BLOCK_SIZE
+        return distance >= len(self._path_list) - 1
 
     @classmethod
     def load(cls, map_name: str) -> "Grid":
@@ -63,17 +63,13 @@ class Grid:
             grid_values = list(map(int, map_file.read().split()))
         return cls._fill_grid(grid_values)
 
-    def get_block_position(self, position: Vector) -> Tuple[int, int]:
-        grid_position = self._global_to_grid_position(position)
-        return self._get_block(grid_position).get_position()
+    @staticmethod
+    def get_block_position(position: Vector) -> Tuple[int, int]:
+        return int(position[0]), int(position[1])
 
     def is_constructible(self, position: Vector) -> bool:
-        grid_position = self._global_to_grid_position(position)
+        grid_position = self.get_block_position(position)
         return self._get_block(grid_position).is_constructible()
-
-    @staticmethod
-    def _global_to_grid_position(position: Vector) -> GridPosition:
-        return int(position[0] / BLOCK_SIZE), int(position[1] / BLOCK_SIZE)
 
     @property
     def _grid_size(self) -> int:
@@ -133,10 +129,9 @@ class Grid:
         return graph
 
     @staticmethod
-    def _build_block(grid_x: int, grid_y: int, block_number: int) -> IBlock:
+    def _build_block(block_number: int) -> IBlock:
         block_type = BLOCK_MAPPING[block_number]
-        # TODO: is the block position still used somewhere?
-        return block_type(grid_x, grid_y)
+        return block_type()
 
     @classmethod
     def _fill_grid(cls, grid_values: List[int]) -> "Grid":
@@ -149,7 +144,7 @@ class Grid:
         grid = Grid()
         grid._block_grid = [
             [
-                cls._build_block(grid_x, grid_y, grid_values[grid_size * grid_y + grid_x])
+                cls._build_block(grid_values[grid_size * grid_y + grid_x])
                 for grid_y in range(grid_size)
             ]
             for grid_x in range(grid_size)

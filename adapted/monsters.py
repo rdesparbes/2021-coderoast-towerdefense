@@ -1,7 +1,7 @@
 import random
 from typing import List, Set, Tuple, Protocol, Callable
 
-from adapted.constants import BLOCK_SIZE
+from adapted.constants import MONSTER_SPREAD
 from adapted.monster import IMonster
 from adapted.monster_stats import MonsterStats
 from adapted.path import Path
@@ -78,7 +78,7 @@ class Monster(IMonster):
                 factory(
                     self.player,
                     self.path,
-                    self.distance_travelled_ + BLOCK_SIZE * (0.5 - random.random()),
+                    self.distance_travelled_ + MONSTER_SPREAD * (1 - 2 * random.random()),
                 )
             )
         self.set_inactive()
@@ -105,15 +105,15 @@ MONSTER_MAPPING: List[MonsterInitializer] = [
         name="Monster1",
         max_health=30,
         value=5,
-        speed=BLOCK_SIZE / 2.,
-        size=BLOCK_SIZE / 2,
+        speed=0.5,
+        size=0.5,
     )),
     monster_factory(MonsterStats(
         name="Monster2",
         max_health=50,
         value=10,
-        speed=BLOCK_SIZE / 4.,
-        size=BLOCK_SIZE / 2,
+        speed=0.25,
+        size=0.5,
         respawn_count=1,
         respawn_stats_index=0,
     )),
@@ -121,8 +121,8 @@ MONSTER_MAPPING: List[MonsterInitializer] = [
         name="AlexMonster",
         max_health=500,
         value=100,
-        speed=BLOCK_SIZE / 5.,
-        size=BLOCK_SIZE,
+        speed=0.2,
+        size=1,
         respawn_count=5,
         respawn_stats_index=1,
     )),
@@ -130,8 +130,8 @@ MONSTER_MAPPING: List[MonsterInitializer] = [
         name="BenMonster",
         max_health=200,
         value=30,
-        speed=BLOCK_SIZE / 4.,
-        size=BLOCK_SIZE / 2.,
+        speed=0.25,
+        size=0.2,
         respawn_count=2,
         respawn_stats_index=4,
     )),
@@ -139,14 +139,14 @@ MONSTER_MAPPING: List[MonsterInitializer] = [
         name="LeoMonster",
         max_health=20,
         value=2,
-        speed=BLOCK_SIZE / 2.,
-        size=BLOCK_SIZE / 4.,
+        speed=0.5,
+        size=0.25,
     )),
     monster_factory(MonsterStats(
         name="MonsterBig",
         max_health=1000,
         value=10,
-        speed=BLOCK_SIZE / 6.,
-        size=3 * BLOCK_SIZE / 2.,
+        speed=1 / 6,
+        size=1.5,
     )),
 ]

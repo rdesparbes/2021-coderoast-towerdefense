@@ -30,9 +30,8 @@ def _compute_block_size(block_images: BlockImages) -> int:
 
 def _paint_background(grid: Grid, images: BlockImages, map_size: int) -> Image.Image:
     drawn_map = Image.new("RGBA", (map_size, map_size), (255, 255, 255, 255))
-    for block in grid:
+    for (x, y), block in grid:
         image = images[block.__class__.__name__]
-        x, y = block.get_position()
         offset = (x * image.width, y * image.height)
         drawn_map.paste(image, offset)
     return drawn_map

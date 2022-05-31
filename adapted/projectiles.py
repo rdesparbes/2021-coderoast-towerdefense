@@ -2,7 +2,7 @@ import math
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple
 
-from adapted.constants import BLOCK_SIZE
+from adapted.constants import HIT_BOX_RADIUS
 from adapted.entities import Entities
 from adapted.entity import distance, IEntity
 from adapted.monster import IMonster
@@ -129,7 +129,7 @@ class AngledProjectile(Projectile):
 
     def _check_hit(self):
         for monster in self.entities.monsters:
-            if distance(self, monster) <= BLOCK_SIZE:
+            if distance(self, monster) <= HIT_BOX_RADIUS:
                 self.hit = True
                 self.target = monster
                 return

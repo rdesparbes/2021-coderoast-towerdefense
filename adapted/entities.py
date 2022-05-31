@@ -2,7 +2,6 @@ import tkinter as tk
 from dataclasses import dataclass, field
 from typing import Dict, Tuple, Set, Optional, Any
 
-from adapted.constants import BLOCK_SIZE
 from adapted.entity import IEntity
 from adapted.game import GameObject
 from adapted.monster import IMonster
@@ -56,7 +55,7 @@ class Entities(GameObject):
         if tower is None:
             return
         x, y = tower.get_position()
-        radius = tower.stats.range - BLOCK_SIZE / 2  # TODO: Remove this, only here to keep the original behavior
+        radius = tower.stats.range - 0.5  # TODO: Remove this, only here to keep the original behavior
         canvas.create_oval(
             x - radius,
             y - radius,

@@ -5,7 +5,7 @@ from dataclasses import dataclass, field, fields
 from typing import Dict, Type, Optional, List, Tuple
 
 from adapted.abstract_tower_factory import ITowerFactory
-from adapted.constants import FPS, BLOCK_SIZE
+from adapted.constants import FPS
 from adapted.entities import Entities
 from adapted.entity import distance
 from adapted.monster import IMonster
@@ -191,16 +191,16 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         TowerFactory(
             ArrowShooterTower,
             TowerStats(
-                range=BLOCK_SIZE * 10 + BLOCK_SIZE / 2,
+                range=10.5,
                 shots_per_second=1,
                 damage=10,
-                speed=BLOCK_SIZE,
+                speed=1,
                 cost=150,
             ),
             [
                 TowerStats(
                     cost=50,
-                    range=BLOCK_SIZE * 11 + BLOCK_SIZE / 2,
+                    range=11.5,
                     damage=12,
                 ),
                 TowerStats(
@@ -212,20 +212,20 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         TowerFactory(
             BulletShooterTower,
             TowerStats(
-                range=BLOCK_SIZE * 6 + BLOCK_SIZE / 2,
+                range=6.5,
                 shots_per_second=4,
                 damage=5,
-                speed=BLOCK_SIZE / 2,
+                speed=0.5,
                 cost=150
             ),
         ),
         TowerFactory(
             PowerTower,
             TowerStats(
-                range=BLOCK_SIZE * 8 + BLOCK_SIZE / 2,
+                range=8.5,
                 shots_per_second=10,
                 damage=1,
-                speed=BLOCK_SIZE,
+                speed=1,
                 cost=150,
                 slow=3,
             ),
@@ -233,10 +233,10 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         TowerFactory(
             TackTower,
             TowerStats(
-                range=BLOCK_SIZE * 5,
+                range=5,
                 shots_per_second=1,
                 damage=10,
-                speed=BLOCK_SIZE,
+                speed=1,
                 cost=200,
                 projectile_count=8,
             ),
