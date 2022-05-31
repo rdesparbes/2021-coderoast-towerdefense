@@ -2,7 +2,7 @@ import math
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple
 
-from adapted.constants import HIT_BOX_RADIUS
+from adapted.constants import HIT_BOX_RADIUS, FPS
 from adapted.entities import Entities
 from adapted.entity import distance, IEntity
 from adapted.monster import IMonster
@@ -77,11 +77,11 @@ class TrackingBullet(Projectile):
         if length <= 0:
             return
         x, y = self.target.get_position()
-        self.x += self.speed * (x - self.x) / length
-        self.y += self.speed * (y - self.y) / length
+        self.x += self.speed * (x - self.x) / (length * FPS)
+        self.y += self.speed * (y - self.y) / (length * FPS)
 
     def _check_hit(self):
-        if distance(self, self.target) < self.speed:
+        if distance(self, self.target) < self.speed / FPS:
             self.hit = True
 
 
@@ -142,8 +142,8 @@ class AngledProjectile(Projectile):
         self.target.max_tick = 5
 
     def _move(self):
-        self.x += self.x_change
-        self.y += self.y_change
-        self.distance += self.speed
+        self.x += self.x_change / FPS
+        self.y += self.y_change / FPS
+        self.distance += self.speed / FPS
         if self.distance >= self.range:
             self.set_inactive()

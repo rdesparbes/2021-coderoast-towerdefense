@@ -1,7 +1,7 @@
 import random
 from typing import List, Set, Tuple, Protocol, Callable
 
-from adapted.constants import MONSTER_SPREAD
+from adapted.constants import MONSTER_SPREAD, FPS
 from adapted.monster import IMonster
 from adapted.monster_stats import MonsterStats
 from adapted.path import Path
@@ -68,7 +68,7 @@ class Monster(IMonster):
 
     def move(self):
         if self.tick >= self.max_tick:
-            self.distance_travelled_ += self.speed
+            self.distance_travelled_ += self.speed / FPS
             self.x, self.y = self.compute_position()
             self.speed = self.stats.speed
             self.tick = 0
@@ -78,7 +78,7 @@ class Monster(IMonster):
     def killed(self):
         self.player.money += self.stats.value
         for _ in range(self.stats.respawn_count):
-            factory = MONSTER_MAPPING[self.stats.respawn_stats_index]
+            factory = MONSTER_MAPPING[self.stats.respawn_monster_index]
             self._children.add(
                 factory(
                     self.player,
@@ -112,8 +112,7 @@ MONSTER_MAPPING: List[MonsterInitializer] = [
             name="Monster1",
             max_health=30,
             value=5,
-            speed=0.5,
-            size=0.5,
+            speed=10,
         )
     ),
     monster_factory(
@@ -121,10 +120,9 @@ MONSTER_MAPPING: List[MonsterInitializer] = [
             name="Monster2",
             max_health=50,
             value=10,
-            speed=0.25,
-            size=0.5,
+            speed=5,
             respawn_count=1,
-            respawn_stats_index=0,
+            respawn_monster_index=0,
         )
     ),
     monster_factory(
@@ -132,10 +130,9 @@ MONSTER_MAPPING: List[MonsterInitializer] = [
             name="AlexMonster",
             max_health=500,
             value=100,
-            speed=0.2,
-            size=1,
+            speed=4,
             respawn_count=5,
-            respawn_stats_index=1,
+            respawn_monster_index=1,
         )
     ),
     monster_factory(
@@ -143,10 +140,9 @@ MONSTER_MAPPING: List[MonsterInitializer] = [
             name="BenMonster",
             max_health=200,
             value=30,
-            speed=0.25,
-            size=0.2,
+            speed=5,
             respawn_count=2,
-            respawn_stats_index=4,
+            respawn_monster_index=4,
         )
     ),
     monster_factory(
@@ -154,8 +150,7 @@ MONSTER_MAPPING: List[MonsterInitializer] = [
             name="LeoMonster",
             max_health=20,
             value=2,
-            speed=0.5,
-            size=0.25,
+            speed=10,
         )
     ),
     monster_factory(
@@ -163,8 +158,7 @@ MONSTER_MAPPING: List[MonsterInitializer] = [
             name="MonsterBig",
             max_health=1000,
             value=10,
-            speed=1 / 6,
-            size=1.5,
+            speed=20 / 6,
         )
     ),
 ]

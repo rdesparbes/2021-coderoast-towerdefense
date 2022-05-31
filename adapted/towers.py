@@ -87,7 +87,8 @@ class Tower(ITower, ABC):
         check_list = TARGETING_STRATEGIES[self.targeting_strategy](
             self.entities.monsters
         )
-        if self.ticks != FPS / self.stats.shots_per_second:
+        frame_count_between_shots = FPS / self.stats.shots_per_second
+        if self.ticks < frame_count_between_shots:
             self.ticks += 1
         if not self.sticky_target:
             for monster in check_list:
@@ -95,7 +96,7 @@ class Tower(ITower, ABC):
                     self.target = monster
         if self.target:
             if self.target.alive and distance(self.target, self) <= self.stats.range:
-                if self.ticks >= FPS / self.stats.shots_per_second:
+                if self.ticks >= frame_count_between_shots:
                     self._shoot()
                     self.ticks = 0
             else:
@@ -222,7 +223,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
                 range=10.5,
                 shots_per_second=1,
                 damage=10,
-                speed=1,
+                speed=20,
                 cost=150,
             ),
             [
@@ -239,7 +240,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         ),
         TowerFactory(
             BulletShooterTower,
-            TowerStats(range=6.5, shots_per_second=4, damage=5, speed=0.5, cost=150),
+            TowerStats(range=6.5, shots_per_second=4, damage=5, speed=10, cost=150),
         ),
         TowerFactory(
             PowerTower,
@@ -247,7 +248,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
                 range=8.5,
                 shots_per_second=10,
                 damage=1,
-                speed=1,
+                speed=20,
                 cost=150,
                 slow=3,
             ),
@@ -258,7 +259,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
                 range=5,
                 shots_per_second=1,
                 damage=10,
-                speed=1,
+                speed=20,
                 cost=200,
                 projectile_count=8,
             ),
