@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List, Tuple
-import tkinter as tk
+from typing import Optional, List, Tuple, Iterable
 
 from adapted.abstract_tower_factory import ITowerFactory
+from adapted.entity import IEntity
+from adapted.monster import IMonster
 from adapted.player import Player
 from adapted.tower import ITower
 from adapted.tower_defense_game_state import TowerDefenseGameState
@@ -58,5 +59,13 @@ class AbstractTowerDefenseController(ABC):
         ...
 
     @abstractmethod
-    def paint_entities(self, canvas: tk.Canvas) -> None:
+    def iter_monsters(self) -> Iterable[IMonster]:
+        ...
+
+    @abstractmethod
+    def iter_projectiles(self) -> Iterable[IEntity]:
+        ...
+
+    @abstractmethod
+    def iter_towers(self) -> Iterable[ITower]:
         ...

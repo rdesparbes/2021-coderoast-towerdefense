@@ -23,6 +23,9 @@ class Monster(IMonster):
         self.x, self.y = self.compute_position()
         self._children = set()
 
+    def get_max_health(self) -> int:
+        return self.stats.max_health
+
     def inflict_damage(self, damage: int) -> None:
         self.health_ -= damage
 

@@ -1,5 +1,4 @@
-import tkinter as tk
-from typing import List, Optional, NamedTuple
+from typing import List, NamedTuple
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
 from adapted.game import GameObject
@@ -47,6 +46,3 @@ class WaveGenerator(GameObject):
                 self.ticks = 0
                 self.controller.spawn_monster(current_wave.monster_ids[self.current_monster_index])
                 self.current_monster_index += 1
-
-    def paint(self, canvas: Optional[tk.Canvas] = None):
-        pass

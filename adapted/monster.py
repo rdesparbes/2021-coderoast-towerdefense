@@ -8,6 +8,10 @@ class IMonster(IEntity, ABC):
     distance_travelled_: float
 
     @abstractmethod
+    def get_max_health(self) -> int:
+        ...
+
+    @abstractmethod
     def inflict_damage(self, damage: int) -> None:
         ...
 

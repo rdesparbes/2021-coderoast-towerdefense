@@ -1,10 +1,11 @@
-import tkinter as tk
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Iterable
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
 from adapted.abstract_tower_factory import ITowerFactory
 from adapted.entities import Entities
+from adapted.entity import IEntity
 from adapted.grid import Grid
+from adapted.monster import IMonster
 from adapted.monsters import MONSTER_MAPPING
 from adapted.player import Player
 from adapted.tower import ITower
@@ -66,7 +67,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
         block_position = self.grid.get_block_position(position)
         tower = self._selected_tower_factory.build_tower(*block_position, self.entities)
         self.entities.towers[block_position] = tower
-        self.player.money -= tower.stats.cost
+        self.player.money -= tower.get_cost()
         return True
 
     def sell_selected_tower(self) -> None:
@@ -90,5 +91,11 @@ class TowerDefenseController(AbstractTowerDefenseController):
     def update_entities(self) -> None:
         self.entities.update()
 
-    def paint_entities(self, canvas: tk.Canvas) -> None:
-        self.entities.paint(canvas)
+    def iter_towers(self) -> Iterable[ITower]:
+        return iter(self.entities.towers.values())
+
+    def iter_monsters(self) -> Iterable[IMonster]:
+        return iter(self.entities.monsters)
+
+    def iter_projectiles(self) -> Iterable[IEntity]:
+        return iter(self.entities.projectiles)

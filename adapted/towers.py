@@ -40,6 +40,9 @@ class Tower(ITower, ABC):
     def get_position(self) -> Tuple[float, float]:
         return self.x, self.y
 
+    def get_range(self) -> float:
+        return self.stats.range
+
     def get_orientation(self) -> float:
         return 0.0
 
@@ -62,6 +65,9 @@ class Tower(ITower, ABC):
             return self.upgrades[self.level - 1]
         except IndexError:
             return None
+
+    def get_cost(self) -> int:
+        return self.stats.cost
 
     def get_upgrade_cost(self) -> Optional[int]:
         upgrade = self._get_upgrade()

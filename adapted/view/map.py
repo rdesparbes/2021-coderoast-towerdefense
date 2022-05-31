@@ -101,7 +101,8 @@ class Map(GameObject):
         if tower is None:
             return
         x, y = self.position_to_pixel(tower.get_position())
-        radius = tower.stats.range * self.block_size - self.block_size / 2
+        # On the original version, the radius of the circle is 0.5 units smaller than the actual range
+        radius = tower.get_range() * self.block_size - self.block_size / 2
         self.canvas.create_oval(
             x - radius,
             y - radius,
@@ -125,19 +126,19 @@ class Map(GameObject):
         self.canvas.create_rectangle(
             x - scale + 1,
             y - 3 * scale / 2 + 1,
-            x - scale + (scale * 2 - 2) * monster.health_ / monster.stats.max_health,
+            x - scale + (scale * 2 - 2) * monster.health_ / monster.get_max_health(),
             y - scale - 2,
             fill="green",
             outline="green",
         )
 
     def _paint_entities(self) -> None:
-        for tower in self.controller.entities.towers.values():
+        for tower in self.controller.iter_towers():
             self._paint_entity(tower)
-        for monster in sorted(self.controller.entities.monsters, key=lambda m: m.distance_travelled_):
+        for monster in sorted(self.controller.iter_monsters(), key=lambda m: m.distance_travelled_):
             self._paint_entity(monster)
             self._paint_monster_health(monster)
-        for projectile in self.controller.entities.projectiles:
+        for projectile in self.controller.iter_projectiles():
             self._paint_entity(projectile)
         self._paint_selected_tower_range()
 
