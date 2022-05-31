@@ -44,5 +44,7 @@ class WaveGenerator(GameObject):
             self.ticks += 1
             if self.ticks == current_wave.max_ticks:
                 self.ticks = 0
-                self.controller.spawn_monster(current_wave.monster_ids[self.current_monster_index])
+                self.controller.spawn_monster(
+                    current_wave.monster_ids[self.current_monster_index]
+                )
                 self.current_monster_index += 1

@@ -94,7 +94,10 @@ class Grid:
         neighbors = []
         for direction in DIRECTIONS:
             neighbor_position = _add_vectors(grid_position, direction)
-            if self._is_in_grid(neighbor_position) and self._get_block(neighbor_position).is_walkable():
+            if (
+                self._is_in_grid(neighbor_position)
+                and self._get_block(neighbor_position).is_walkable()
+            ):
                 neighbors.append(neighbor_position)
         return neighbors
 
@@ -105,11 +108,15 @@ class Grid:
         path_list = []
         while True:
             path_list.append(node)
-            next_nodes = [neighbor for neighbor in graph[node] if neighbor != previous_node]
+            next_nodes = [
+                neighbor for neighbor in graph[node] if neighbor != previous_node
+            ]
             if len(next_nodes) == 0:
                 break
             elif len(next_nodes) > 1:
-                raise ValueError(f"Found an ambiguous path choice in the provided map at block {node}")
+                raise ValueError(
+                    f"Found an ambiguous path choice in the provided map at block {node}"
+                )
             previous_node = node
             node = next_nodes[0]
         return path_list
@@ -136,7 +143,7 @@ class Grid:
     @classmethod
     def _fill_grid(cls, grid_values: List[int]) -> "Grid":
         grid_size = int(len(grid_values) ** 0.5)
-        if grid_size ** 2 != len(grid_values):
+        if grid_size**2 != len(grid_values):
             raise ValueError(
                 f"Invalid number of values to initialize the grid: "
                 f"expected a perfect square, found {len(grid_values)}"

@@ -11,7 +11,9 @@ PositionGetter = Callable[[float], Tuple[float, float]]
 
 
 class Monster(IMonster):
-    def __init__(self, stats: MonsterStats, player: Player, path: Path, distance: float = 0.0):
+    def __init__(
+        self, stats: MonsterStats, player: Player, path: Path, distance: float = 0.0
+    ):
         self.stats = stats
         self.health_ = stats.max_health
         self.speed = stats.speed
@@ -81,7 +83,8 @@ class Monster(IMonster):
                 factory(
                     self.player,
                     self.path,
-                    self.distance_travelled_ + MONSTER_SPREAD * (1 - 2 * random.random()),
+                    self.distance_travelled_
+                    + MONSTER_SPREAD * (1 - 2 * random.random()),
                 )
             )
         self.set_inactive()
@@ -104,52 +107,64 @@ def monster_factory(stats: MonsterStats) -> MonsterInitializer:
 
 
 MONSTER_MAPPING: List[MonsterInitializer] = [
-    monster_factory(MonsterStats(
-        name="Monster1",
-        max_health=30,
-        value=5,
-        speed=0.5,
-        size=0.5,
-    )),
-    monster_factory(MonsterStats(
-        name="Monster2",
-        max_health=50,
-        value=10,
-        speed=0.25,
-        size=0.5,
-        respawn_count=1,
-        respawn_stats_index=0,
-    )),
-    monster_factory(MonsterStats(
-        name="AlexMonster",
-        max_health=500,
-        value=100,
-        speed=0.2,
-        size=1,
-        respawn_count=5,
-        respawn_stats_index=1,
-    )),
-    monster_factory(MonsterStats(
-        name="BenMonster",
-        max_health=200,
-        value=30,
-        speed=0.25,
-        size=0.2,
-        respawn_count=2,
-        respawn_stats_index=4,
-    )),
-    monster_factory(MonsterStats(
-        name="LeoMonster",
-        max_health=20,
-        value=2,
-        speed=0.5,
-        size=0.25,
-    )),
-    monster_factory(MonsterStats(
-        name="MonsterBig",
-        max_health=1000,
-        value=10,
-        speed=1 / 6,
-        size=1.5,
-    )),
+    monster_factory(
+        MonsterStats(
+            name="Monster1",
+            max_health=30,
+            value=5,
+            speed=0.5,
+            size=0.5,
+        )
+    ),
+    monster_factory(
+        MonsterStats(
+            name="Monster2",
+            max_health=50,
+            value=10,
+            speed=0.25,
+            size=0.5,
+            respawn_count=1,
+            respawn_stats_index=0,
+        )
+    ),
+    monster_factory(
+        MonsterStats(
+            name="AlexMonster",
+            max_health=500,
+            value=100,
+            speed=0.2,
+            size=1,
+            respawn_count=5,
+            respawn_stats_index=1,
+        )
+    ),
+    monster_factory(
+        MonsterStats(
+            name="BenMonster",
+            max_health=200,
+            value=30,
+            speed=0.25,
+            size=0.2,
+            respawn_count=2,
+            respawn_stats_index=4,
+        )
+    ),
+    monster_factory(
+        MonsterStats(
+            name="LeoMonster",
+            max_health=20,
+            value=2,
+            speed=0.5,
+            size=0.25,
+        )
+    ),
+    monster_factory(
+        MonsterStats(
+            name="MonsterBig",
+            max_health=1000,
+            value=10,
+            speed=1 / 6,
+            size=1.5,
+        )
+    ),
 ]

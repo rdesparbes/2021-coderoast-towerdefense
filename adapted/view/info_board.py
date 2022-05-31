@@ -8,7 +8,9 @@ from adapted.view.button import Button
 
 
 class InfoBoard:
-    def __init__(self, controller: AbstractTowerDefenseController, master_frame: tk.Frame):
+    def __init__(
+        self, controller: AbstractTowerDefenseController, master_frame: tk.Frame
+    ):
         self.canvas = tk.Canvas(
             master=master_frame, width=162, height=174, bg="gray", highlightthickness=0
         )
@@ -42,35 +44,57 @@ class InfoBoard:
                 + ".png"
             )
         )
-        self.canvas.create_text(80, 75, text=selected_tower.get_name(), font=("times", 20))
+        self.canvas.create_text(
+            80, 75, text=selected_tower.get_name(), font=("times", 20)
+        )
         self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
 
         if selected_tower is not None:
-            self.current_buttons.append(TargetButton(26, 30, 35, 39, self.controller, 0))
+            self.current_buttons.append(
+                TargetButton(26, 30, 35, 39, self.controller, 0)
+            )
             self.canvas.create_text(
                 37, 28, text="> Health", font=("times", 12), fill="white", anchor=tk.NW
             )
 
-            self.current_buttons.append(TargetButton(26, 50, 35, 59, self.controller, 1))
+            self.current_buttons.append(
+                TargetButton(26, 50, 35, 59, self.controller, 1)
+            )
             self.canvas.create_text(
                 37, 48, text="< Health", font=("times", 12), fill="white", anchor=tk.NW
             )
 
-            self.current_buttons.append(TargetButton(92, 50, 101, 59, self.controller, 2))
+            self.current_buttons.append(
+                TargetButton(92, 50, 101, 59, self.controller, 2)
+            )
             self.canvas.create_text(
-                103, 48, text="> Distance", font=("times", 12), fill="white", anchor=tk.NW
+                103,
+                48,
+                text="> Distance",
+                font=("times", 12),
+                fill="white",
+                anchor=tk.NW,
             )
 
-            self.current_buttons.append(TargetButton(92, 30, 101, 39, self.controller, 3))
+            self.current_buttons.append(
+                TargetButton(92, 30, 101, 39, self.controller, 3)
+            )
             self.canvas.create_text(
-                103, 28, text="< Distance", font=("times", 12), fill="white", anchor=tk.NW
+                103,
+                28,
+                text="< Distance",
+                font=("times", 12),
+                fill="white",
+                anchor=tk.NW,
             )
 
             self.current_buttons.append(StickyButton(10, 40, 19, 49, self.controller))
             self.current_buttons.append(SellButton(5, 145, 78, 168, self.controller))
             upgrade_cost = selected_tower.get_upgrade_cost()
             if upgrade_cost is not None:
-                self.current_buttons.append(UpgradeButton(82, 145, 155, 168, self.controller))
+                self.current_buttons.append(
+                    UpgradeButton(82, 145, 155, 168, self.controller)
+                )
                 self.canvas.create_text(
                     120,
                     157,
@@ -81,7 +105,12 @@ class InfoBoard:
                 )
 
             self.canvas.create_text(
-                28, 146, text="Sell", font=("times", 22), fill="light green", anchor=tk.NW
+                28,
+                146,
+                text="Sell",
+                font=("times", 22),
+                fill="light green",
+                anchor=tk.NW,
             )
 
             self.current_buttons[selected_tower.targeting_strategy].paint(self.canvas)
@@ -96,7 +125,9 @@ class InfoBoard:
             self.tower_image = None
         else:
             text = f"{tower_factory.get_name()} cost: {tower_factory.get_cost()}"
-            self.tower_image = ImageTk.PhotoImage(Image.open(tower_factory.get_model_name()))
+            self.tower_image = ImageTk.PhotoImage(
+                Image.open(tower_factory.get_model_name())
+            )
         self.canvas.delete(tk.ALL)  # clear the screen
         self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
         self.canvas.create_text(80, 75, text=text)
@@ -104,8 +135,15 @@ class InfoBoard:
 
 
 class TargetButton(Button):
-    def __init__(self, x_min: int, y_min: int, x_max: int, y_max: int, controller: AbstractTowerDefenseController,
-                 targeting_strategy_index: int):
+    def __init__(
+        self,
+        x_min: int,
+        y_min: int,
+        x_max: int,
+        y_max: int,
+        controller: AbstractTowerDefenseController,
+        targeting_strategy_index: int,
+    ):
         super().__init__(x_min, y_min, x_max, y_max, controller)
         self.targeting_strategy_index: int = targeting_strategy_index
 

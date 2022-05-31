@@ -9,7 +9,9 @@ from adapted.monster import IMonster
 
 
 class Projectile(IEntity, ABC):
-    def __init__(self, x, y, damage, speed, entities: Entities, target: Optional[IMonster]):
+    def __init__(
+        self, x, y, damage, speed, entities: Entities, target: Optional[IMonster]
+    ):
         self.x = x
         self.y = y
         self.damage = damage

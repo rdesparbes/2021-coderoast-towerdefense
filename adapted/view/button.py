@@ -4,7 +4,14 @@ from adapted.abstract_tower_defense_controller import AbstractTowerDefenseContro
 
 
 class Button:
-    def __init__(self, x_min: int, y_min: int, x_max: int, y_max: int, controller: AbstractTowerDefenseController):
+    def __init__(
+        self,
+        x_min: int,
+        y_min: int,
+        x_max: int,
+        y_max: int,
+        controller: AbstractTowerDefenseController,
+    ):
         self.x_min = x_min
         self.y_min = y_min
         self.x_max = x_max

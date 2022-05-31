@@ -16,9 +16,15 @@ class Mouse(GameObject):
         self.y = 0
         self.hovered_widget: Optional[tk.Widget] = None
         self.pressed = False
-        self.pressed_image = ImageTk.PhotoImage(Image.open("images/mouseImages/Pressed.png"))
-        self.can_press_image = ImageTk.PhotoImage(Image.open("images/mouseImages/HoveringCanPress.png"))
-        self.cannot_press_image = ImageTk.PhotoImage(Image.open("images/mouseImages/HoveringCanNotPress.png"))
+        self.pressed_image = ImageTk.PhotoImage(
+            Image.open("images/mouseImages/Pressed.png")
+        )
+        self.can_press_image = ImageTk.PhotoImage(
+            Image.open("images/mouseImages/HoveringCanPress.png")
+        )
+        self.cannot_press_image = ImageTk.PhotoImage(
+            Image.open("images/mouseImages/HoveringCanNotPress.png")
+        )
 
     def clicked(self, event):
         self.pressed = True
@@ -46,13 +52,9 @@ class Mouse(GameObject):
             elif self.controller.try_select_tower(world_position):
                 return
         elif self.hovered_widget is self.view.display_board.canvas:
-            self.view.display_board.next_wave_button.press(
-                self.x, self.y
-            )
+            self.view.display_board.next_wave_button.press(self.x, self.y)
         elif self.hovered_widget is self.view.info_board.canvas:
-            self.view.info_board.press(
-                self.x, self.y
-            )
+            self.view.info_board.press(self.x, self.y)
 
     def paint(self, canvas: Optional[tk.Canvas] = None):
         if self.hovered_widget is self.view.map_object.canvas:

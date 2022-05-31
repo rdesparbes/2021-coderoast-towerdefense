@@ -20,11 +20,15 @@ def _compute_block_size(block_images: BlockImages) -> int:
     block_size = None
     for image in block_images.values():
         if image.width != image.height:
-            raise ValueError(f"Only square blocks are supported: found a block of shape {image.size}")
+            raise ValueError(
+                f"Only square blocks are supported: found a block of shape {image.size}"
+            )
         if block_size is None:
             block_size = image.width
         elif block_size != image.width:
-            raise ValueError(f"Heterogeneous block sizes: found {image.width} and {block_size}")
+            raise ValueError(
+                f"Heterogeneous block sizes: found {image.width} and {block_size}"
+            )
     return block_size
 
 
@@ -40,15 +44,18 @@ def _paint_background(grid: Grid, images: BlockImages, map_size: int) -> Image.I
 def _load_block_images() -> BlockImages:
     block_images = {}
     for block_type in BLOCK_MAPPING:
-        image = Image.open(
-            f"images/blockImages/{block_type.__name__}.png"
-        )
+        image = Image.open(f"images/blockImages/{block_type.__name__}.png")
         block_images[block_type.__name__] = image
     return block_images
 
 
 class Map(GameObject):
-    def __init__(self, grid: Grid, controller: AbstractTowerDefenseController, master_frame: tk.Frame):
+    def __init__(
+        self,
+        grid: Grid,
+        controller: AbstractTowerDefenseController,
+        master_frame: tk.Frame,
+    ):
         block_images = _load_block_images()
         self.block_size = _compute_block_size(block_images)
         map_size = self.block_size * grid.size
@@ -61,10 +68,14 @@ class Map(GameObject):
         # Must be emptied each turn to avoid memory leak
         self.image_references: List[ImageTk.PhotoImage] = []
         self.controller = controller
-        self.canvas = tk.Canvas(master=master_frame, width=map_size, height=map_size, bg="gray", highlightthickness=0)
-        self.canvas.grid(
-            row=0, column=0, rowspan=2, columnspan=1
+        self.canvas = tk.Canvas(
+            master=master_frame,
+            width=map_size,
+            height=map_size,
+            bg="gray",
+            highlightthickness=0,
         )
+        self.canvas.grid(row=0, column=0, rowspan=2, columnspan=1)
 
     def update(self):
         self.controller.update_entities()
@@ -78,12 +89,13 @@ class Map(GameObject):
             return image
 
     def position_to_pixel(self, position: Tuple[float, float]) -> Tuple[int, int]:
-        return int(position[0] * self.block_size) + self.block_size // 2, \
-               int(position[1] * self.block_size) + self.block_size // 2
+        return (
+            int(position[0] * self.block_size) + self.block_size // 2,
+            int(position[1] * self.block_size) + self.block_size // 2,
+        )
 
     def pixel_to_position(self, pixel: Tuple[int, int]) -> Tuple[float, float]:
-        return pixel[0] / self.block_size, \
-               pixel[1] / self.block_size
+        return pixel[0] / self.block_size, pixel[1] / self.block_size
 
     def _paint_entity(self, entity: IEntity):
         x, y = self.position_to_pixel(entity.get_position())
@@ -135,7 +147,9 @@ class Map(GameObject):
     def _paint_entities(self) -> None:
         for tower in self.controller.iter_towers():
             self._paint_entity(tower)
-        for monster in sorted(self.controller.iter_monsters(), key=lambda m: m.distance_travelled_):
+        for monster in sorted(
+            self.controller.iter_monsters(), key=lambda m: m.distance_travelled_
+        ):
             self._paint_entity(monster)
             self._paint_monster_health(monster)
         for projectile in self.controller.iter_projectiles():

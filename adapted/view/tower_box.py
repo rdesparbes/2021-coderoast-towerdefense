@@ -4,7 +4,9 @@ from adapted.abstract_tower_defense_controller import AbstractTowerDefenseContro
 
 
 class TowerBox:
-    def __init__(self, controller: AbstractTowerDefenseController, master_frame: tk.Frame):
+    def __init__(
+        self, controller: AbstractTowerDefenseController, master_frame: tk.Frame
+    ):
         self.controller = controller
         self.box = tk.Listbox(
             master=master_frame,

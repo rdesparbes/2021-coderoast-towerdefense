@@ -28,7 +28,7 @@ class TowerDefenseGame(Game):
             InfoBoard(self.controller, self.frame),
             TowerBox(self.controller, self.frame),
             Map(grid, self.controller, self.frame),
-            DisplayBoard(self.controller, self.frame)
+            DisplayBoard(self.controller, self.frame),
         )
         self.view.initialize()
         self.controller.register_view(self.view)

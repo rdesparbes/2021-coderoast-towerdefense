@@ -12,7 +12,7 @@ class GameObject(Protocol):
 
 class Game(GameObject):  # the main class that we call "Game"
     def __init__(
-            self, title: str, timestep: int = 50
+        self, title: str, timestep: int = 50
     ):  # setting up the window for the game here
         self.root = tk.Tk()  # saying this window will use tkinter
         self.root.title(title)

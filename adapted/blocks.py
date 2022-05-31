@@ -4,9 +4,7 @@ from adapted.block import IBlock
 
 
 class Block(IBlock):
-    def __init__(
-            self, can_place=False, can_walk=False
-    ):
+    def __init__(self, can_place=False, can_walk=False):
         self.can_place = can_place
         self.can_walk = can_walk
 
@@ -31,8 +29,4 @@ class WaterBlock(Block):
     ...
 
 
-BLOCK_MAPPING: List[Type[Block]] = [
-    NormalBlock,
-    PathBlock,
-    WaterBlock
-]
+BLOCK_MAPPING: List[Type[Block]] = [NormalBlock, PathBlock, WaterBlock]

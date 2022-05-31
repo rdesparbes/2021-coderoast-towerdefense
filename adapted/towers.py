@@ -17,12 +17,12 @@ from adapted.tower_stats import TowerStats
 
 class Tower(ITower, ABC):
     def __init__(
-            self,
-            x,
-            y,
-            entities: Entities,
-            stats: TowerStats,
-            upgrades: List[TowerStats] = None
+        self,
+        x,
+        y,
+        entities: Entities,
+        stats: TowerStats,
+        upgrades: List[TowerStats] = None,
     ):
         self.upgrades = [] if upgrades is None else upgrades
         self.stats = stats
@@ -84,7 +84,9 @@ class Tower(ITower, ABC):
         self.level += 1
 
     def prepare_shot(self):
-        check_list = TARGETING_STRATEGIES[self.targeting_strategy](self.entities.monsters)
+        check_list = TARGETING_STRATEGIES[self.targeting_strategy](
+            self.entities.monsters
+        )
         if self.ticks != FPS / self.stats.shots_per_second:
             self.ticks += 1
         if not self.sticky_target:
@@ -139,7 +141,14 @@ class BulletShooterTower(Tower):
 
     def _shoot(self):
         self._projectiles_to_shoot.add(
-            TrackingBullet(self.x, self.y, self.stats.damage, self.stats.speed, self.entities, self.target)
+            TrackingBullet(
+                self.x,
+                self.y,
+                self.stats.damage,
+                self.stats.speed,
+                self.entities,
+                self.target,
+            )
         )
 
 
@@ -150,7 +159,15 @@ class PowerTower(Tower):
 
     def _shoot(self):
         self._projectiles_to_shoot.add(
-            PowerShot(self.x, self.y, self.stats.damage, self.stats.speed, self.entities, self.target, self.stats.slow)
+            PowerShot(
+                self.x,
+                self.y,
+                self.stats.damage,
+                self.stats.speed,
+                self.entities,
+                self.target,
+                self.stats.slow,
+            )
         )
 
 
@@ -164,7 +181,13 @@ class TackTower(Tower):
             angle = math.radians(i * 360 / self.stats.projectile_count)
             self._projectiles_to_shoot.add(
                 AngledProjectile(
-                    self.x, self.y, self.stats.damage, self.stats.speed, self.entities, angle, self.stats.range
+                    self.x,
+                    self.y,
+                    self.stats.damage,
+                    self.stats.speed,
+                    self.entities,
+                    angle,
+                    self.stats.range,
                 )
             )
 
@@ -186,8 +209,7 @@ class TowerFactory(ITowerFactory):
 
     def build_tower(self, x, y, entities: Entities) -> Tower:
         return self.tower_type(
-            x, y, entities,
-            copy(self.tower_stats), self.tower_upgrades
+            x, y, entities, copy(self.tower_stats), self.tower_upgrades
         )
 
 
@@ -217,13 +239,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         ),
         TowerFactory(
             BulletShooterTower,
-            TowerStats(
-                range=6.5,
-                shots_per_second=4,
-                damage=5,
-                speed=0.5,
-                cost=150
-            ),
+            TowerStats(range=6.5, shots_per_second=4, damage=5, speed=0.5, cost=150),
         ),
         TowerFactory(
             PowerTower,

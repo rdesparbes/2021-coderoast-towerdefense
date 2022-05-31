@@ -16,11 +16,11 @@ from adapted.view.abstract_view import IView
 
 class TowerDefenseController(AbstractTowerDefenseController):
     def __init__(
-            self,
-            state: TowerDefenseGameState,
-            player: Player,
-            grid: Grid,
-            entities: Entities,
+        self,
+        state: TowerDefenseGameState,
+        player: Player,
+        grid: Grid,
+        entities: Entities,
     ):
         self.state = state
         self.player = player
@@ -59,9 +59,9 @@ class TowerDefenseController(AbstractTowerDefenseController):
 
     def try_build_tower(self, position: Tuple[int, int]) -> bool:
         if (
-                self._selected_tower_factory is None
-                or not self.grid.is_constructible(position)
-                or self.player.money < self._selected_tower_factory.get_cost()
+            self._selected_tower_factory is None
+            or not self.grid.is_constructible(position)
+            or self.player.money < self._selected_tower_factory.get_cost()
         ):
             return False
         block_position = self.grid.get_block_position(position)

@@ -13,11 +13,11 @@ from adapted.view.tower_box import TowerBox
 @dataclass
 class View(IView, GameObject):
     def __init__(
-            self,
-            info_board: InfoBoard,
-            tower_box: TowerBox,
-            map_object: Map,
-            display_board: DisplayBoard,
+        self,
+        info_board: InfoBoard,
+        tower_box: TowerBox,
+        map_object: Map,
+        display_board: DisplayBoard,
     ):
         self.info_board = info_board
         self.tower_box = tower_box
