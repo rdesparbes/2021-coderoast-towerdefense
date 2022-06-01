@@ -2,10 +2,10 @@ from abc import ABC, abstractmethod
 from typing import Optional, List, Tuple, Iterable
 
 from adapted.abstract_tower_factory import ITowerFactory
-from adapted.entity import IEntity
-from adapted.monster import IMonster
+from adapted.entities.entity import IEntity
+from adapted.entities.monster import IMonster
 from adapted.player import Player
-from adapted.tower import ITower
+from adapted.entities.tower import ITower
 from adapted.tower_defense_game_state import TowerDefenseGameState
 from adapted.view.abstract_view import IView
 

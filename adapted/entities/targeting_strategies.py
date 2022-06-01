@@ -1,6 +1,6 @@
 from typing import Iterable, List, Callable
 
-from adapted.monster import IMonster
+from adapted.entities.monster import IMonster
 
 
 def _by_health(monster: IMonster) -> int:

@@ -2,8 +2,8 @@ import random
 from typing import List, Set, Tuple, Protocol, Callable
 
 from adapted.constants import MONSTER_SPREAD, FPS
-from adapted.monster import IMonster
-from adapted.monster_stats import MonsterStats
+from adapted.entities.monster import IMonster
+from adapted.entities.monster_stats import MonsterStats
 from adapted.path import Path
 from adapted.player import Player
 

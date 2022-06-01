@@ -1,5 +1,5 @@
 from adapted.constants import TIME_STEP
-from adapted.entities import Entities
+from adapted.entities.entities import Entities
 from adapted.game import Game
 from adapted.grid import Grid
 from adapted.player import Player

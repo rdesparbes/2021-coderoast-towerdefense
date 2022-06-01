@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from adapted.entity import IEntity
+from adapted.entities.entity import IEntity
 
 
 class IMonster(IEntity, ABC):

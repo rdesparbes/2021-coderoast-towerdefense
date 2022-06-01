@@ -2,15 +2,15 @@ from typing import Optional, List, Tuple, Iterable
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
 from adapted.abstract_tower_factory import ITowerFactory
-from adapted.entities import Entities
-from adapted.entity import IEntity
+from adapted.entities.entities import Entities
+from adapted.entities.entity import IEntity
 from adapted.grid import Grid
-from adapted.monster import IMonster
-from adapted.monsters import MONSTER_MAPPING
+from adapted.entities.monster import IMonster
+from adapted.entities.monsters import MONSTER_MAPPING
 from adapted.player import Player
-from adapted.tower import ITower
+from adapted.entities.tower import ITower
 from adapted.tower_defense_game_state import TowerDefenseGameState
-from adapted.towers import TOWER_MAPPING
+from adapted.entities.towers import TOWER_MAPPING
 from adapted.view.abstract_view import IView
 
 

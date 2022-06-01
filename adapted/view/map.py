@@ -6,10 +6,10 @@ from PIL import ImageTk, Image
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
 from adapted.blocks import BLOCK_MAPPING
-from adapted.entity import IEntity
+from adapted.entities.entity import IEntity
 from adapted.game import GameObject
 from adapted.grid import Grid
-from adapted.monster import IMonster
+from adapted.entities.monster import IMonster
 
 BlockImages = Dict[str, Image.Image]
 

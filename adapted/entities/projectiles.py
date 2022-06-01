@@ -3,9 +3,9 @@ from abc import ABC, abstractmethod
 from typing import Optional, Tuple
 
 from adapted.constants import HIT_BOX_RADIUS, FPS
-from adapted.entities import Entities
-from adapted.entity import distance, IEntity
-from adapted.monster import IMonster
+from adapted.entities.entities import Entities
+from adapted.entities.entity import distance, IEntity
+from adapted.entities.monster import IMonster
 
 
 class Projectile(IEntity, ABC):

@@ -1,10 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Dict, Tuple, Set, Optional, Any
 
-from adapted.entity import IEntity
+from adapted.entities.entity import IEntity
 from adapted.game import GameObject
-from adapted.monster import IMonster
-from adapted.tower import ITower
+from adapted.entities.monster import IMonster
+from adapted.entities.tower import ITower
 
 
 def _update(entities: Set[IEntity]) -> None:

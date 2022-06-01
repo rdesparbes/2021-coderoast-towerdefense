@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from adapted.entities import Entities
-from adapted.tower import ITower
+from adapted.entities.entities import Entities
+from adapted.entities.tower import ITower
 
 
 class ITowerFactory(ABC):

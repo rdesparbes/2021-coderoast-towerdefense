@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import Set
 
-from adapted.entity import IEntity
+from adapted.entities.entity import IEntity
 
 
 class ITower(IEntity, ABC):
