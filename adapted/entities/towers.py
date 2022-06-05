@@ -133,6 +133,7 @@ class ArrowShooterTower(Tower):
                 self.stats.range,
                 self.stats.slow_factor,
                 self.stats.slow_duration,
+                self.stats.hitbox_radius,
             )
         )
 
@@ -151,6 +152,7 @@ class BulletShooterTower(Tower):
                 self.stats.speed,
                 self.entities,
                 self.target,
+                self.stats.hitbox_radius,
             )
         )
 
@@ -171,6 +173,7 @@ class PowerTower(Tower):
                 self.target,
                 self.stats.slow_factor,
                 self.stats.slow_duration,
+                self.stats.hitbox_radius,
             )
         )
 
@@ -194,6 +197,7 @@ class TackTower(Tower):
                     self.stats.range,
                     self.stats.slow_factor,
                     self.stats.slow_duration,
+                    self.stats.hitbox_radius,
                 )
             )
 
@@ -232,6 +236,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
                 cost=150,
                 slow_factor=float("inf"),
                 slow_duration=0.25,
+                hitbox_radius=1.0,
             ),
             [
                 TowerStats(
@@ -247,7 +252,14 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         ),
         TowerFactory(
             BulletShooterTower,
-            TowerStats(range=6.5, shots_per_second=4, damage=5, speed=10, cost=150),
+            TowerStats(
+                range=6.5,
+                shots_per_second=4,
+                damage=5,
+                speed=10,
+                cost=150,
+                hitbox_radius=0.5,
+            ),
         ),
         TowerFactory(
             PowerTower,
@@ -259,6 +271,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
                 cost=150,
                 slow_factor=3,
                 slow_duration=0.1,
+                hitbox_radius=0.25,
             ),
         ),
         TowerFactory(
@@ -272,6 +285,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
                 projectile_count=8,
                 slow_factor=float("inf"),
                 slow_duration=0.25,
+                hitbox_radius=1.0,
             ),
         ),
     )

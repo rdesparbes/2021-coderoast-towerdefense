@@ -2,7 +2,7 @@ import math
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple
 
-from adapted.constants import HIT_BOX_RADIUS, FPS
+from adapted.constants import FPS
 from adapted.entities.entities import Entities
 from adapted.entities.entity import distance, IEntity
 from adapted.entities.monster import IMonster
@@ -10,7 +10,14 @@ from adapted.entities.monster import IMonster
 
 class Projectile(IEntity, ABC):
     def __init__(
-        self, x, y, damage, speed, entities: Entities, target: Optional[IMonster]
+        self,
+        x,
+        y,
+        damage,
+        speed,
+        entities: Entities,
+        target: Optional[IMonster],
+        hitbox_radius: float,
     ):
         self.x = x
         self.y = y
@@ -20,6 +27,7 @@ class Projectile(IEntity, ABC):
         self.target: Optional[IMonster] = target
         self.hit = False
         self._active = True
+        self.hitbox_radius = hitbox_radius
 
     def get_position(self) -> Tuple[float, float]:
         return self.x, self.y
@@ -49,6 +57,9 @@ class Projectile(IEntity, ABC):
     def get_children(self):
         return set()
 
+    def _hit_monster(self, monster: IMonster) -> bool:
+        return distance(self, monster) <= self.hitbox_radius
+
     @abstractmethod
     def _move(self):
         ...
@@ -59,15 +70,8 @@ class Projectile(IEntity, ABC):
 
 
 class TrackingBullet(Projectile):
-    def __init__(self, x, y, damage, speed, entities: Entities, target):
-        super().__init__(
-            x,
-            y,
-            damage,
-            speed,
-            entities,
-            target,
-        )
+    def __init__(self, x, y, damage, speed, entities: Entities, target, hitbox_radius):
+        super().__init__(x, y, damage, speed, entities, target, hitbox_radius)
 
     def get_model_name(self) -> str:
         return "images/projectileImages/bullet.png"
@@ -81,7 +85,7 @@ class TrackingBullet(Projectile):
         self.y += self.speed * (y - self.y) / (length * FPS)
 
     def _check_hit(self):
-        if distance(self, self.target) < self.speed / FPS:
+        if self._hit_monster(self.target):
             self.hit = True
 
 
@@ -96,15 +100,9 @@ class PowerShot(TrackingBullet):
         target: Optional[IMonster],
         slow_factor: float,
         slow_duration: float,
+        hitbox_radius: float,
     ):
-        super().__init__(
-            x,
-            y,
-            damage,
-            speed,
-            entities,
-            target,
-        )
+        super().__init__(x, y, damage, speed, entities, target, hitbox_radius)
         self.slow_factor = slow_factor
         self.slow_duration = slow_duration
 
@@ -128,14 +126,10 @@ class AngledProjectile(Projectile):
         given_range,
         slow_factor: float,
         slow_duration: float,
+        hitbox_radius: float,
     ):
         super().__init__(
-            x,
-            y,
-            damage,
-            speed,
-            entities,
-            None,
+            x, y, damage, speed, entities, target=None, hitbox_radius=hitbox_radius
         )
         self.x_change = speed * math.cos(angle)
         self.y_change = speed * math.sin(-angle)
@@ -153,7 +147,7 @@ class AngledProjectile(Projectile):
 
     def _check_hit(self):
         for monster in self.entities.monsters:
-            if distance(self, monster) <= HIT_BOX_RADIUS:
+            if self._hit_monster(monster):
                 self.hit = True
                 self.target = monster
                 return
