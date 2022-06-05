@@ -1,13 +1,35 @@
 import random
 from typing import List, Set, Tuple, Protocol, Callable
 
-from adapted.constants import MONSTER_SPREAD, FPS
+from adapted.constants import FPS
 from adapted.entities.monster import IMonster
 from adapted.entities.monster_stats import MonsterStats
 from adapted.path import Path
 from adapted.player import Player
 
 PositionGetter = Callable[[float], Tuple[float, float]]
+
+
+class CountDown:
+    def __init__(self, duration: float = 1.0, fps: float = FPS):
+        self._fps = fps
+        self._duration: float = duration
+        self._tick = 0
+
+    @property
+    def _max_tick(self):
+        return self._duration * self._fps
+
+    def start(self, duration: float) -> None:
+        self._tick = 0
+        self._duration = duration
+
+    def ended(self) -> bool:
+        return self._tick >= self._max_tick
+
+    def update(self) -> None:
+        if not self.ended():
+            self._tick += 1
 
 
 class Monster(IMonster):
@@ -19,8 +41,7 @@ class Monster(IMonster):
         self.speed = stats.speed
         self.player = player
         self.path = path
-        self.tick: int = 0
-        self.max_tick: int = 1
+        self.countdown = CountDown()
         self.distance_travelled_ = max(distance, 0)
         self.x, self.y = self.compute_position()
         self._children = set()
@@ -30,6 +51,12 @@ class Monster(IMonster):
 
     def inflict_damage(self, damage: int) -> None:
         self.health_ -= damage
+
+    def slow_down(self, slow_factor: float, duration: float) -> None:
+        if self.speed != self.stats.speed:
+            return
+        self.countdown.start(duration)
+        self.speed /= slow_factor
 
     def get_position(self) -> Tuple[float, float]:
         return self.x, self.y
@@ -58,6 +85,7 @@ class Monster(IMonster):
     def update(self):
         if self.alive:
             self.move()
+            self.countdown.update()
         else:
             self.killed()
 
@@ -67,13 +95,10 @@ class Monster(IMonster):
         return self.path.compute_position(self.distance_travelled_)
 
     def move(self):
-        if self.tick >= self.max_tick:
-            self.distance_travelled_ += self.speed / FPS
-            self.x, self.y = self.compute_position()
+        self.distance_travelled_ += self.speed / FPS
+        self.x, self.y = self.compute_position()
+        if self.countdown.ended():
             self.speed = self.stats.speed
-            self.tick = 0
-            self.max_tick = 1
-        self.tick += 1
 
     def killed(self):
         self.player.money += self.stats.value
@@ -84,7 +109,7 @@ class Monster(IMonster):
                     self.player,
                     self.path,
                     self.distance_travelled_
-                    + MONSTER_SPREAD * (1 - 2 * random.random()),
+                    + self.stats.respawn_spread * (1 - 2 * random.random()),
                 )
             )
         self.set_inactive()

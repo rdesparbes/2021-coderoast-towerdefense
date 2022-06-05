@@ -11,3 +11,4 @@ class MonsterStats(NamedTuple):
         int
     ] = None  # Index of the type of monster to use for children
     damage: int = 1  # Damage inflicted to the player when arriving at destination
+    respawn_spread: float = 0.5  # Maximum radius around a monster where its children can spawn when it is dead

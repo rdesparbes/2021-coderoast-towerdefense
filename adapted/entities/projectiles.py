@@ -86,7 +86,17 @@ class TrackingBullet(Projectile):
 
 
 class PowerShot(TrackingBullet):
-    def __init__(self, x, y, damage, speed, entities, target: Optional[IMonster], slow):
+    def __init__(
+        self,
+        x,
+        y,
+        damage,
+        speed,
+        entities,
+        target: Optional[IMonster],
+        slow_factor: float,
+        slow_duration: float,
+    ):
         super().__init__(
             x,
             y,
@@ -95,20 +105,30 @@ class PowerShot(TrackingBullet):
             entities,
             target,
         )
-        self.slow = slow
+        self.slow_factor = slow_factor
+        self.slow_duration = slow_duration
 
     def get_model_name(self) -> str:
         return "images/projectileImages/powerShot.png"
 
     def _got_monster(self):
         super()._got_monster()
-        max_speed = self.target.speed / self.slow
-        if self.target.speed > max_speed:
-            self.target.speed = max_speed
+        self.target.slow_down(self.slow_factor, self.slow_duration)
 
 
 class AngledProjectile(Projectile):
-    def __init__(self, x, y, damage, speed, entities, angle, given_range):
+    def __init__(
+        self,
+        x,
+        y,
+        damage,
+        speed,
+        entities,
+        angle,
+        given_range,
+        slow_factor: float,
+        slow_duration: float,
+    ):
         super().__init__(
             x,
             y,
@@ -122,6 +142,8 @@ class AngledProjectile(Projectile):
         self.range = given_range
         self.angle = angle
         self.distance = 0
+        self.slow_factor = slow_factor
+        self.slow_duration = slow_duration
 
     def get_orientation(self) -> float:
         return self.angle
@@ -138,8 +160,7 @@ class AngledProjectile(Projectile):
 
     def _got_monster(self):
         super()._got_monster()
-        self.target.tick = 0
-        self.target.max_tick = 5
+        self.target.slow_down(self.slow_factor, self.slow_duration)
 
     def _move(self):
         self.x += self.x_change / FPS

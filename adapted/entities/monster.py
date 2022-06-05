@@ -15,6 +15,10 @@ class IMonster(IEntity, ABC):
     def inflict_damage(self, damage: int) -> None:
         ...
 
+    @abstractmethod
+    def slow_down(self, slow_factor: float, duration: float) -> None:
+        ...
+
     @property
     @abstractmethod
     def alive(self) -> bool:

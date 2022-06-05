@@ -131,6 +131,8 @@ class ArrowShooterTower(Tower):
                 self.entities,
                 angle,
                 self.stats.range,
+                self.stats.slow_factor,
+                self.stats.slow_duration,
             )
         )
 
@@ -167,7 +169,8 @@ class PowerTower(Tower):
                 self.stats.speed,
                 self.entities,
                 self.target,
-                self.stats.slow,
+                self.stats.slow_factor,
+                self.stats.slow_duration,
             )
         )
 
@@ -189,6 +192,8 @@ class TackTower(Tower):
                     self.entities,
                     angle,
                     self.stats.range,
+                    self.stats.slow_factor,
+                    self.stats.slow_duration,
                 )
             )
 
@@ -225,6 +230,8 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
                 damage=10,
                 speed=20,
                 cost=150,
+                slow_factor=float("inf"),
+                slow_duration=0.25,
             ),
             [
                 TowerStats(
@@ -250,7 +257,8 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
                 damage=1,
                 speed=20,
                 cost=150,
-                slow=3,
+                slow_factor=3,
+                slow_duration=0.1,
             ),
         ),
         TowerFactory(
@@ -262,6 +270,8 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
                 speed=20,
                 cost=200,
                 projectile_count=8,
+                slow_factor=float("inf"),
+                slow_duration=0.25,
             ),
         ),
     )
