@@ -1,7 +1,7 @@
 import math
 from abc import ABC, abstractmethod
-from copy import copy
-from dataclasses import dataclass, field, fields
+from copy import deepcopy
+from dataclasses import dataclass, field
 from typing import Dict, Type, Optional, List, Tuple
 
 from adapted.abstract_tower_factory import ITowerFactory
@@ -12,7 +12,7 @@ from adapted.entities.monster import IMonster
 from adapted.entities.projectiles import AngledProjectile, TrackingBullet, PowerShot
 from adapted.entities.targeting_strategies import TARGETING_STRATEGIES
 from adapted.entities.tower import ITower
-from adapted.entities.tower_stats import TowerStats
+from adapted.entities.stats import TowerStats, ProjectileStats, upgrade_stats
 
 
 class Tower(ITower, ABC):
@@ -41,7 +41,7 @@ class Tower(ITower, ABC):
         return self.x, self.y
 
     def get_range(self) -> float:
-        return self.stats.range
+        return self.stats.projectile_stats.range
 
     def get_orientation(self) -> float:
         return 0.0
@@ -77,10 +77,7 @@ class Tower(ITower, ABC):
         upgrade = self._get_upgrade()
         if upgrade is None:
             return
-        for stat_field in fields(upgrade):
-            stat_value = getattr(upgrade, stat_field.name)
-            if stat_value is not None:
-                setattr(self.stats, stat_field.name, stat_value)
+        upgrade_stats(self.stats, upgrade)
         self.level += 1
 
     def prepare_shot(self):
@@ -92,10 +89,13 @@ class Tower(ITower, ABC):
             self.ticks += 1
         if not self.sticky_target:
             for monster in check_list:
-                if distance(self, monster) <= self.stats.range:
+                if distance(self, monster) <= self.stats.projectile_stats.range:
                     self.target = monster
         if self.target:
-            if self.target.alive and distance(self.target, self) <= self.stats.range:
+            if (
+                self.target.alive
+                and distance(self.target, self) <= self.stats.projectile_stats.range
+            ):
                 if self.ticks >= frame_count_between_shots:
                     self._shoot()
                     self.ticks = 0
@@ -103,7 +103,7 @@ class Tower(ITower, ABC):
                 self.target = None
         elif self.sticky_target:
             for monster in check_list:
-                if distance(self, monster) <= self.stats.range:
+                if distance(self, monster) <= self.stats.projectile_stats.range:
                     self.target = monster
 
     def update(self):
@@ -126,14 +126,9 @@ class ArrowShooterTower(Tower):
             AngledProjectile(
                 self.x,
                 self.y,
-                self.stats.damage,
-                self.stats.speed,
+                self.stats.projectile_stats,
                 self.entities,
                 angle,
-                self.stats.range,
-                self.stats.slow_factor,
-                self.stats.slow_duration,
-                self.stats.hitbox_radius,
             )
         )
 
@@ -148,11 +143,9 @@ class BulletShooterTower(Tower):
             TrackingBullet(
                 self.x,
                 self.y,
-                self.stats.damage,
-                self.stats.speed,
+                self.stats.projectile_stats,
                 self.entities,
                 self.target,
-                self.stats.hitbox_radius,
             )
         )
 
@@ -167,13 +160,9 @@ class PowerTower(Tower):
             PowerShot(
                 self.x,
                 self.y,
-                self.stats.damage,
-                self.stats.speed,
+                self.stats.projectile_stats,
                 self.entities,
                 self.target,
-                self.stats.slow_factor,
-                self.stats.slow_duration,
-                self.stats.hitbox_radius,
             )
         )
 
@@ -190,14 +179,9 @@ class TackTower(Tower):
                 AngledProjectile(
                     self.x,
                     self.y,
-                    self.stats.damage,
-                    self.stats.speed,
+                    self.stats.projectile_stats,
                     self.entities,
                     angle,
-                    self.stats.range,
-                    self.stats.slow_factor,
-                    self.stats.slow_duration,
-                    self.stats.hitbox_radius,
                 )
             )
 
@@ -219,7 +203,7 @@ class TowerFactory(ITowerFactory):
 
     def build_tower(self, x, y, entities: Entities) -> Tower:
         return self.tower_type(
-            x, y, entities, copy(self.tower_stats), self.tower_upgrades
+            x, y, entities, deepcopy(self.tower_stats), self.tower_upgrades
         )
 
 
@@ -229,20 +213,21 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         TowerFactory(
             ArrowShooterTower,
             TowerStats(
-                range=10.5,
                 shots_per_second=1,
-                damage=10,
-                speed=20,
                 cost=150,
-                slow_factor=float("inf"),
-                slow_duration=0.25,
-                hitbox_radius=1.0,
+                projectile_count=1,
+                projectile_stats=ProjectileStats(
+                    damage=10,
+                    speed=20,
+                    range=10.5,
+                    slow_factor=float("inf"),
+                    slow_duration=0.25,
+                    hitbox_radius=1.0,
+                ),
             ),
             [
                 TowerStats(
-                    cost=50,
-                    range=11.5,
-                    damage=12,
+                    cost=50, projectile_stats=ProjectileStats(range=11.5, damage=12)
                 ),
                 TowerStats(
                     cost=100,
@@ -253,39 +238,47 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         TowerFactory(
             BulletShooterTower,
             TowerStats(
-                range=6.5,
                 shots_per_second=4,
-                damage=5,
-                speed=10,
                 cost=150,
-                hitbox_radius=0.5,
+                projectile_count=1,
+                projectile_stats=ProjectileStats(
+                    damage=5,
+                    speed=10,
+                    range=6.5,
+                    hitbox_radius=0.5,
+                ),
             ),
         ),
         TowerFactory(
             PowerTower,
             TowerStats(
-                range=8.5,
                 shots_per_second=10,
-                damage=1,
-                speed=20,
                 cost=150,
-                slow_factor=3,
-                slow_duration=0.1,
-                hitbox_radius=0.25,
+                projectile_count=1,
+                projectile_stats=ProjectileStats(
+                    damage=1,
+                    speed=20,
+                    range=8.5,
+                    slow_factor=3,
+                    slow_duration=0.1,
+                    hitbox_radius=0.25,
+                ),
             ),
         ),
         TowerFactory(
             TackTower,
             TowerStats(
-                range=5,
                 shots_per_second=1,
-                damage=10,
-                speed=20,
                 cost=200,
                 projectile_count=8,
-                slow_factor=float("inf"),
-                slow_duration=0.25,
-                hitbox_radius=1.0,
+                projectile_stats=ProjectileStats(
+                    damage=10,
+                    speed=20,
+                    range=5,
+                    slow_factor=float("inf"),
+                    slow_duration=0.25,
+                    hitbox_radius=1.0,
+                ),
             ),
         ),
     )
