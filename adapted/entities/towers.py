@@ -9,7 +9,7 @@ from adapted.constants import FPS
 from adapted.entities.entities import Entities
 from adapted.entities.entity import distance
 from adapted.entities.monster import IMonster
-from adapted.entities.projectiles import AngledProjectile, TrackingBullet, PowerShot
+from adapted.entities.projectiles import AngledProjectile, TrackingBullet
 from adapted.entities.targeting_strategies import TARGETING_STRATEGIES
 from adapted.entities.tower import ITower
 from adapted.entities.stats import TowerStats, ProjectileStats, upgrade_stats
@@ -152,7 +152,7 @@ class BulletShooterTower(Tower):
 class PowerTower(Tower):
     def _shoot(self):
         self._projectiles_to_shoot.add(
-            PowerShot(
+            TrackingBullet(
                 "powerShot",
                 self.x,
                 self.y,
@@ -261,7 +261,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
                     damage=1,
                     speed=20,
                     range=8.5,
-                    slow_factor=3,
+                    slow_factor=3.0,
                     slow_duration=0.1,
                     hitbox_radius=0.25,
                 ),

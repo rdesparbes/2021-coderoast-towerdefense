@@ -6,7 +6,7 @@ from adapted.constants import FPS
 from adapted.entities.entities import Entities
 from adapted.entities.entity import distance, IEntity
 from adapted.entities.monster import IMonster
-from adapted.entities.stats import ProjectileStats
+from adapted.entities.stats import ProjectileStats, is_missing
 
 
 class Projectile(IEntity, ABC):
@@ -49,6 +49,8 @@ class Projectile(IEntity, ABC):
     def _got_monster(self):
         self.target.inflict_damage(self.stats.damage)
         self.set_inactive()
+        if not is_missing(self.stats.slow_factor):
+            self.target.slow_down(self.stats.slow_factor, self.stats.slow_duration)
 
     def set_inactive(self) -> None:
         self._active = False
@@ -83,12 +85,6 @@ class TrackingBullet(Projectile):
     def _check_hit(self):
         if self._hit_monster(self.target):
             self.hit = True
-
-
-class PowerShot(TrackingBullet):
-    def _got_monster(self):
-        super()._got_monster()
-        self.target.slow_down(self.stats.slow_factor, self.stats.slow_duration)
 
 
 class AngledProjectile(Projectile):
