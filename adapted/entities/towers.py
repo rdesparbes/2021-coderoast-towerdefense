@@ -18,12 +18,14 @@ from adapted.entities.stats import TowerStats, ProjectileStats, upgrade_stats
 class Tower(ITower, ABC):
     def __init__(
         self,
-        x,
-        y,
+        name: str,
+        x: float,
+        y: float,
         entities: Entities,
         stats: TowerStats,
         upgrades: List[TowerStats] = None,
     ):
+        self.name = name
         self.upgrades = [] if upgrades is None else upgrades
         self.stats = stats
         self.level = 1
@@ -109,21 +111,21 @@ class Tower(ITower, ABC):
     def update(self):
         self.prepare_shot()
 
+    def get_name(self) -> str:
+        return self.name
+
     @abstractmethod
     def _shoot(self):
         ...
 
 
 class ArrowShooterTower(Tower):
-    @staticmethod
-    def get_name():
-        return "Arrow Shooter"
-
     def _shoot(self):
         x, y = self.target.get_position()
         angle = math.atan2(self.y - y, x - self.x)
         self._projectiles_to_shoot.add(
             AngledProjectile(
+                "arrow",
                 self.x,
                 self.y,
                 self.stats.projectile_stats,
@@ -134,13 +136,10 @@ class ArrowShooterTower(Tower):
 
 
 class BulletShooterTower(Tower):
-    @staticmethod
-    def get_name():
-        return "Bullet Shooter"
-
     def _shoot(self):
         self._projectiles_to_shoot.add(
             TrackingBullet(
+                "bullet",
                 self.x,
                 self.y,
                 self.stats.projectile_stats,
@@ -151,13 +150,10 @@ class BulletShooterTower(Tower):
 
 
 class PowerTower(Tower):
-    @staticmethod
-    def get_name():
-        return "Power Tower"
-
     def _shoot(self):
         self._projectiles_to_shoot.add(
             PowerShot(
+                "powerShot",
                 self.x,
                 self.y,
                 self.stats.projectile_stats,
@@ -168,15 +164,12 @@ class PowerTower(Tower):
 
 
 class TackTower(Tower):
-    @staticmethod
-    def get_name():
-        return "Tack Tower"
-
     def _shoot(self):
         for i in range(self.stats.projectile_count):
             angle = math.radians(i * 360 / self.stats.projectile_count)
             self._projectiles_to_shoot.add(
                 AngledProjectile(
+                    "arrow",
                     self.x,
                     self.y,
                     self.stats.projectile_stats,
@@ -188,12 +181,13 @@ class TackTower(Tower):
 
 @dataclass
 class TowerFactory(ITowerFactory):
+    tower_name: str
     tower_type: Type[Tower]
     tower_stats: TowerStats
     tower_upgrades: List[TowerStats] = field(default_factory=list)
 
     def get_name(self) -> str:
-        return self.tower_type.get_name()
+        return self.tower_name
 
     def get_cost(self) -> int:
         return self.tower_stats.cost
@@ -203,14 +197,20 @@ class TowerFactory(ITowerFactory):
 
     def build_tower(self, x, y, entities: Entities) -> Tower:
         return self.tower_type(
-            x, y, entities, deepcopy(self.tower_stats), self.tower_upgrades
+            self.tower_name,
+            x,
+            y,
+            entities,
+            deepcopy(self.tower_stats),
+            self.tower_upgrades,
         )
 
 
 TOWER_MAPPING: Dict[str, ITowerFactory] = {
-    tower_factory.tower_type.get_name(): tower_factory
+    tower_factory.get_name(): tower_factory
     for tower_factory in (
         TowerFactory(
+            "Arrow Shooter",
             ArrowShooterTower,
             TowerStats(
                 shots_per_second=1,
@@ -236,6 +236,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
             ],
         ),
         TowerFactory(
+            "Bullet Shooter",
             BulletShooterTower,
             TowerStats(
                 shots_per_second=4,
@@ -250,6 +251,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
             ),
         ),
         TowerFactory(
+            "Power Tower",
             PowerTower,
             TowerStats(
                 shots_per_second=10,
@@ -266,6 +268,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
             ),
         ),
         TowerFactory(
+            "Tack Tower",
             TackTower,
             TowerStats(
                 shots_per_second=1,

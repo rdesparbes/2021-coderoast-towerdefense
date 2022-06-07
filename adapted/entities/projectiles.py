@@ -12,12 +12,14 @@ from adapted.entities.stats import ProjectileStats
 class Projectile(IEntity, ABC):
     def __init__(
         self,
-        x,
-        y,
+        name: str,
+        x: float,
+        y: float,
         stats: ProjectileStats,
         entities: Entities,
         target: Optional[IMonster],
     ):
+        self.name = name
         self.x = x
         self.y = y
         self.stats = stats
@@ -25,6 +27,9 @@ class Projectile(IEntity, ABC):
         self.target: Optional[IMonster] = target
         self.hit = False
         self._active = True
+
+    def get_model_name(self) -> str:
+        return f"images/projectileImages/{self.name}.png"
 
     def get_position(self) -> Tuple[float, float]:
         return self.x, self.y
@@ -67,9 +72,6 @@ class Projectile(IEntity, ABC):
 
 
 class TrackingBullet(Projectile):
-    def get_model_name(self) -> str:
-        return "images/projectileImages/bullet.png"
-
     def _move(self):
         length = distance(self, self.target)
         if length <= 0:
@@ -84,9 +86,6 @@ class TrackingBullet(Projectile):
 
 
 class PowerShot(TrackingBullet):
-    def get_model_name(self) -> str:
-        return "images/projectileImages/powerShot.png"
-
     def _got_monster(self):
         super()._got_monster()
         self.target.slow_down(self.stats.slow_factor, self.stats.slow_duration)
@@ -95,13 +94,14 @@ class PowerShot(TrackingBullet):
 class AngledProjectile(Projectile):
     def __init__(
         self,
+        name: str,
         x,
         y,
         stats: ProjectileStats,
         entities,
         angle,
     ):
-        super().__init__(x, y, stats, entities, target=None)
+        super().__init__(name, x, y, stats, entities, target=None)
         self.x_change = self.stats.speed * math.cos(angle)
         self.y_change = self.stats.speed * math.sin(-angle)
         self.angle = angle
@@ -109,9 +109,6 @@ class AngledProjectile(Projectile):
 
     def get_orientation(self) -> float:
         return self.angle
-
-    def get_model_name(self) -> str:
-        return "images/projectileImages/arrow.png"
 
     def _check_hit(self):
         for monster in self.entities.monsters:

@@ -21,13 +21,13 @@ class Button:
     def is_within_bounds(self, x: int, y: int) -> bool:
         return self.x_min <= x <= self.x_max and self.y_min <= y <= self.y_max
 
-    def press(self, x, y):
+    def press(self, x, y) -> bool:
         if self.is_within_bounds(x, y):
             self.pressed()
             return True
         return False
 
-    def pressed(self):
+    def pressed(self) -> None:
         pass
 
     def paint(self, canvas: tk.Canvas):

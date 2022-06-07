@@ -21,13 +21,13 @@ class InfoBoard:
         self.current_buttons: List[Button] = []
         self.controller = controller
 
-    def press(self, x, y):
+    def press(self, x, y) -> None:
         for current_button in self.current_buttons:
             if current_button.press(x, y):
                 self.display_specific()
                 return
 
-    def display_specific(self):
+    def display_specific(self) -> None:
         self.canvas.delete(tk.ALL)  # clear the screen
         self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
         self.current_buttons = []
@@ -117,7 +117,7 @@ class InfoBoard:
             if selected_tower.sticky_target:
                 self.current_buttons[4].paint(self.canvas)
 
-    def display_generic(self):
+    def display_generic(self) -> None:
         self.current_buttons = []
         tower_factory = self.controller.get_selected_tower_factory()
         if tower_factory is None:

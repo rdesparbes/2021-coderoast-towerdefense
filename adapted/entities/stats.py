@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, fields
-from typing import Optional, Any
+from typing import Any
 
 
 class Missing:
