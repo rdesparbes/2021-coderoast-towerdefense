@@ -9,10 +9,16 @@ from adapted.constants import FPS
 from adapted.entities.entities import Entities
 from adapted.entities.entity import distance
 from adapted.entities.monster import IMonster
-from adapted.entities.projectiles import AngledProjectile, TrackingBullet
+from adapted.entities.projectile_strategies import (
+    TrackingMovementStrategy,
+    NearestHitStrategy,
+    ConstantAngleMovementStrategy,
+    TrackingHitStrategy,
+)
+from adapted.entities.projectiles import Projectile
+from adapted.entities.stats import TowerStats, ProjectileStats, upgrade_stats
 from adapted.entities.targeting_strategies import TARGETING_STRATEGIES
 from adapted.entities.tower import ITower
-from adapted.entities.stats import TowerStats, ProjectileStats, upgrade_stats
 
 
 class Tower(ITower, ABC):
@@ -124,13 +130,16 @@ class ArrowShooterTower(Tower):
         x, y = self.target.get_position()
         angle = math.atan2(self.y - y, x - self.x)
         self._projectiles_to_shoot.add(
-            AngledProjectile(
+            Projectile(
                 "arrow",
                 self.x,
                 self.y,
                 angle,
                 self.stats.projectile_stats,
                 self.entities,
+                None,
+                ConstantAngleMovementStrategy(),
+                NearestHitStrategy(self.entities),
             )
         )
 
@@ -138,7 +147,7 @@ class ArrowShooterTower(Tower):
 class BulletShooterTower(Tower):
     def _shoot(self):
         self._projectiles_to_shoot.add(
-            TrackingBullet(
+            Projectile(
                 "bullet",
                 self.x,
                 self.y,
@@ -146,6 +155,8 @@ class BulletShooterTower(Tower):
                 self.stats.projectile_stats,
                 self.entities,
                 self.target,
+                TrackingMovementStrategy(),
+                TrackingHitStrategy(),
             )
         )
 
@@ -153,7 +164,7 @@ class BulletShooterTower(Tower):
 class PowerTower(Tower):
     def _shoot(self):
         self._projectiles_to_shoot.add(
-            TrackingBullet(
+            Projectile(
                 "powerShot",
                 self.x,
                 self.y,
@@ -161,6 +172,8 @@ class PowerTower(Tower):
                 self.stats.projectile_stats,
                 self.entities,
                 self.target,
+                TrackingMovementStrategy(),
+                TrackingHitStrategy(),
             )
         )
 
@@ -170,13 +183,16 @@ class TackTower(Tower):
         for i in range(self.stats.projectile_count):
             angle = math.radians(i * 360 / self.stats.projectile_count)
             self._projectiles_to_shoot.add(
-                AngledProjectile(
+                Projectile(
                     "arrow",
                     self.x,
                     self.y,
                     angle,
                     self.stats.projectile_stats,
                     self.entities,
+                    None,
+                    ConstantAngleMovementStrategy(),
+                    NearestHitStrategy(self.entities),
                 )
             )
 

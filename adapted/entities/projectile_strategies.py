@@ -22,26 +22,15 @@ class IHitStrategy(ABC):
 
 
 class TrackingMovementStrategy(IMovementStrategy):
-    def __init__(self, target: IMonster):
-        self.target = target
-
     def move(self, projectile: IProjectile) -> Tuple[float, float]:
-        length = distance(projectile, self.target)
+        length = distance(projectile, projectile.get_target())
         new_x, new_y = projectile.get_position()
         if length > 0:
-            x, y = self.target.get_position()
+            x, y = projectile.get_target().get_position()
             speed = projectile.get_speed()
             new_x += speed * (x - new_x) / (length * FPS)
             new_y += speed * (y - new_y) / (length * FPS)
         return new_x, new_y
-
-
-class TrackingHitStrategy(IHitStrategy):
-    def __init__(self, target: IMonster):
-        self.target = target
-
-    def check_hit(self, projectile: IProjectile) -> Optional[IMonster]:
-        return self.target if projectile.is_in_range(self.target) else None
 
 
 class ConstantAngleMovementStrategy(IMovementStrategy):
@@ -50,8 +39,9 @@ class ConstantAngleMovementStrategy(IMovementStrategy):
 
     def move(self, projectile: IProjectile) -> Tuple[float, float]:
         speed = projectile.get_speed()
-        x_change = speed * math.cos(projectile.get_orientation())
-        y_change = speed * math.sin(projectile.get_orientation())
+        angle = projectile.get_orientation()
+        x_change = speed * math.cos(angle)
+        y_change = speed * math.sin(-angle)
         x, y = projectile.get_position()
         x += x_change / FPS
         y += y_change / FPS
@@ -59,6 +49,12 @@ class ConstantAngleMovementStrategy(IMovementStrategy):
         if self.distance >= projectile.get_range():
             projectile.set_inactive()
         return x, y
+
+
+class TrackingHitStrategy(IHitStrategy):
+    def check_hit(self, projectile: IProjectile) -> Optional[IMonster]:
+        target = projectile.get_target()
+        return target if projectile.is_in_range(target) else None
 
 
 class NearestHitStrategy(IHitStrategy):

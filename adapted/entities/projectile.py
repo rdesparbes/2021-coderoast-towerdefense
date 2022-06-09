@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 
 from adapted.entities.entity import IEntity
+from adapted.entities.monster import IMonster
 
 
 class IProjectile(IEntity, ABC):
@@ -14,4 +16,8 @@ class IProjectile(IEntity, ABC):
 
     @abstractmethod
     def get_range(self) -> float:
+        ...
+
+    @abstractmethod
+    def get_target(self) -> Optional[IMonster]:
         ...

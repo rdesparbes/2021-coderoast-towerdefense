@@ -1,25 +1,25 @@
-import math
-from abc import ABC, abstractmethod
 from typing import Optional, Tuple
 
-from adapted.constants import FPS
 from adapted.entities.entities import Entities
 from adapted.entities.entity import distance, IEntity
 from adapted.entities.monster import IMonster
 from adapted.entities.projectile import IProjectile
+from adapted.entities.projectile_strategies import IMovementStrategy, IHitStrategy
 from adapted.entities.stats import ProjectileStats, is_missing
 
 
-class Projectile(IProjectile, ABC):
+class Projectile(IProjectile):
     def __init__(
-        self,
-        name: str,
-        x: float,
-        y: float,
-        angle: float,
-        stats: ProjectileStats,
-        entities: Entities,
-        target: Optional[IMonster],
+            self,
+            name: str,
+            x: float,
+            y: float,
+            angle: float,
+            stats: ProjectileStats,
+            entities: Entities,
+            target: Optional[IMonster],
+            movement_strategy: IMovementStrategy,
+            hit_strategy: IHitStrategy,
     ):
         self.name = name
         self.x = x
@@ -28,12 +28,16 @@ class Projectile(IProjectile, ABC):
         self.stats = stats
         self.entities = entities
         self.target: Optional[IMonster] = target
+        self.movement_strategy = movement_strategy
+        self.hit_strategy = hit_strategy
         self.is_tracking = target is not None
-        self.hit = False
         self._active = True
 
     def get_orientation(self) -> float:
         return self.angle
+
+    def get_target(self) -> Optional[IMonster]:
+        return self.target
 
     def get_range(self) -> float:
         return self.stats.range
@@ -48,13 +52,14 @@ class Projectile(IProjectile, ABC):
         return self.x, self.y
 
     def update(self):
-        if self.target is not None and not self.target.alive:
-            self.set_inactive()
-            return
-        if self.hit:
+        self.x, self.y = self.movement_strategy.move(self)
+        target = self.hit_strategy.check_hit(self)
+        if target is not None:
+            self.target = target
             self._got_monster()
-        self._move()
-        self._check_hit()
+            if not self.target.alive:
+                self.set_inactive()
+                return
 
     def _got_monster(self):
         self.target.inflict_damage(self.stats.damage)
@@ -73,55 +78,3 @@ class Projectile(IProjectile, ABC):
 
     def is_in_range(self, entity: IEntity) -> bool:
         return distance(self, entity) <= self.stats.hitbox_radius
-
-    @abstractmethod
-    def _move(self):
-        ...
-
-    @abstractmethod
-    def _check_hit(self):
-        ...
-
-
-class TrackingBullet(Projectile):
-    def _move(self):
-        length = distance(self, self.target)
-        if length <= 0:
-            return
-        x, y = self.target.get_position()
-        self.x += self.stats.speed * (x - self.x) / (length * FPS)
-        self.y += self.stats.speed * (y - self.y) / (length * FPS)
-
-    def _check_hit(self):
-        if self.is_in_range(self.target):
-            self.hit = True
-
-
-class AngledProjectile(Projectile):
-    def __init__(
-        self,
-        name: str,
-        x,
-        y,
-        angle,
-        stats: ProjectileStats,
-        entities,
-    ):
-        super().__init__(name, x, y, angle, stats, entities, target=None)
-        self.x_change = self.stats.speed * math.cos(angle)
-        self.y_change = self.stats.speed * math.sin(-angle)
-        self.distance = 0
-
-    def _move(self):
-        self.x += self.x_change / FPS
-        self.y += self.y_change / FPS
-        self.distance += self.stats.speed / FPS
-        if self.distance >= self.stats.range:
-            self.set_inactive()
-
-    def _check_hit(self):
-        for monster in self.entities.monsters:
-            if self.is_in_range(monster):
-                self.hit = True
-                self.target = monster
-                return
