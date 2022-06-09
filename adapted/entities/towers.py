@@ -128,9 +128,9 @@ class ArrowShooterTower(Tower):
                 "arrow",
                 self.x,
                 self.y,
+                angle,
                 self.stats.projectile_stats,
                 self.entities,
-                angle,
             )
         )
 
@@ -142,6 +142,7 @@ class BulletShooterTower(Tower):
                 "bullet",
                 self.x,
                 self.y,
+                0.0,
                 self.stats.projectile_stats,
                 self.entities,
                 self.target,
@@ -156,6 +157,7 @@ class PowerTower(Tower):
                 "powerShot",
                 self.x,
                 self.y,
+                0.0,
                 self.stats.projectile_stats,
                 self.entities,
                 self.target,
@@ -172,9 +174,9 @@ class TackTower(Tower):
                     "arrow",
                     self.x,
                     self.y,
+                    angle,
                     self.stats.projectile_stats,
                     self.entities,
-                    angle,
                 )
             )
 

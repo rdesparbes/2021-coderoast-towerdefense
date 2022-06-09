@@ -6,15 +6,17 @@ from adapted.constants import FPS
 from adapted.entities.entities import Entities
 from adapted.entities.entity import distance, IEntity
 from adapted.entities.monster import IMonster
+from adapted.entities.projectile import IProjectile
 from adapted.entities.stats import ProjectileStats, is_missing
 
 
-class Projectile(IEntity, ABC):
+class Projectile(IProjectile, ABC):
     def __init__(
         self,
         name: str,
         x: float,
         y: float,
+        angle: float,
         stats: ProjectileStats,
         entities: Entities,
         target: Optional[IMonster],
@@ -22,20 +24,28 @@ class Projectile(IEntity, ABC):
         self.name = name
         self.x = x
         self.y = y
+        self.angle = angle
         self.stats = stats
         self.entities = entities
         self.target: Optional[IMonster] = target
+        self.is_tracking = target is not None
         self.hit = False
         self._active = True
+
+    def get_orientation(self) -> float:
+        return self.angle
+
+    def get_range(self) -> float:
+        return self.stats.range
+
+    def get_speed(self) -> float:
+        return self.stats.speed
 
     def get_model_name(self) -> str:
         return f"images/projectileImages/{self.name}.png"
 
     def get_position(self) -> Tuple[float, float]:
         return self.x, self.y
-
-    def get_orientation(self) -> float:
-        return 0.0
 
     def update(self):
         if self.target is not None and not self.target.alive:
@@ -61,8 +71,8 @@ class Projectile(IEntity, ABC):
     def get_children(self):
         return set()
 
-    def _hit_monster(self, monster: IMonster) -> bool:
-        return distance(self, monster) <= self.stats.hitbox_radius
+    def is_in_range(self, entity: IEntity) -> bool:
+        return distance(self, entity) <= self.stats.hitbox_radius
 
     @abstractmethod
     def _move(self):
@@ -83,7 +93,7 @@ class TrackingBullet(Projectile):
         self.y += self.stats.speed * (y - self.y) / (length * FPS)
 
     def _check_hit(self):
-        if self._hit_monster(self.target):
+        if self.is_in_range(self.target):
             self.hit = True
 
 
@@ -93,29 +103,14 @@ class AngledProjectile(Projectile):
         name: str,
         x,
         y,
+        angle,
         stats: ProjectileStats,
         entities,
-        angle,
     ):
-        super().__init__(name, x, y, stats, entities, target=None)
+        super().__init__(name, x, y, angle, stats, entities, target=None)
         self.x_change = self.stats.speed * math.cos(angle)
         self.y_change = self.stats.speed * math.sin(-angle)
-        self.angle = angle
         self.distance = 0
-
-    def get_orientation(self) -> float:
-        return self.angle
-
-    def _check_hit(self):
-        for monster in self.entities.monsters:
-            if self._hit_monster(monster):
-                self.hit = True
-                self.target = monster
-                return
-
-    def _got_monster(self):
-        super()._got_monster()
-        self.target.slow_down(self.stats.slow_factor, self.stats.slow_duration)
 
     def _move(self):
         self.x += self.x_change / FPS
@@ -123,3 +118,10 @@ class AngledProjectile(Projectile):
         self.distance += self.stats.speed / FPS
         if self.distance >= self.stats.range:
             self.set_inactive()
+
+    def _check_hit(self):
+        for monster in self.entities.monsters:
+            if self.is_in_range(monster):
+                self.hit = True
+                self.target = monster
+                return
