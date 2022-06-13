@@ -14,6 +14,8 @@ from adapted.entities.projectile_strategies import (
     NearestHitStrategy,
     ConstantAngleMovementStrategy,
     TrackingHitStrategy,
+    IMovementStrategy,
+    IHitStrategy,
 )
 from adapted.entities.projectiles import Projectile
 from adapted.entities.stats import TowerStats, ProjectileStats, upgrade_stats
@@ -25,6 +27,9 @@ class Tower(ITower, ABC):
     def __init__(
         self,
         name: str,
+        projectile_name: str,
+        movement_strategy: IMovementStrategy,
+        hit_strategy: IHitStrategy,
         x: float,
         y: float,
         entities: Entities,
@@ -32,6 +37,9 @@ class Tower(ITower, ABC):
         upgrades: List[TowerStats] = None,
     ):
         self.name = name
+        self.projectile_name = projectile_name
+        self.movement_strategy = movement_strategy
+        self.hit_strategy = hit_strategy
         self.upgrades = [] if upgrades is None else upgrades
         self.stats = stats
         self.level = 1
@@ -121,85 +129,49 @@ class Tower(ITower, ABC):
         return self.name
 
     @abstractmethod
-    def _shoot(self):
+    def _compute_angle(self, projectile_index: int) -> float:
         ...
 
-
-class ArrowShooterTower(Tower):
     def _shoot(self):
-        x, y = self.target.get_position()
-        angle = math.atan2(self.y - y, x - self.x)
-        self._projectiles_to_shoot.add(
-            Projectile(
-                "arrow",
-                self.x,
-                self.y,
-                angle,
-                self.stats.projectile_stats,
-                self.entities,
-                None,
-                ConstantAngleMovementStrategy(),
-                NearestHitStrategy(self.entities),
-            )
-        )
-
-
-class BulletShooterTower(Tower):
-    def _shoot(self):
-        self._projectiles_to_shoot.add(
-            Projectile(
-                "bullet",
-                self.x,
-                self.y,
-                0.0,
-                self.stats.projectile_stats,
-                self.entities,
-                self.target,
-                TrackingMovementStrategy(),
-                TrackingHitStrategy(),
-            )
-        )
-
-
-class PowerTower(Tower):
-    def _shoot(self):
-        self._projectiles_to_shoot.add(
-            Projectile(
-                "powerShot",
-                self.x,
-                self.y,
-                0.0,
-                self.stats.projectile_stats,
-                self.entities,
-                self.target,
-                TrackingMovementStrategy(),
-                TrackingHitStrategy(),
-            )
-        )
-
-
-class TackTower(Tower):
-    def _shoot(self):
-        for i in range(self.stats.projectile_count):
-            angle = math.radians(i * 360 / self.stats.projectile_count)
+        for projectile_index in range(self.stats.projectile_count):
+            angle = self._compute_angle(projectile_index)
             self._projectiles_to_shoot.add(
                 Projectile(
-                    "arrow",
+                    self.projectile_name,
                     self.x,
                     self.y,
                     angle,
                     self.stats.projectile_stats,
                     self.entities,
-                    None,
+                    self.target,
                     ConstantAngleMovementStrategy(),
                     NearestHitStrategy(self.entities),
                 )
             )
 
 
+class ArrowShooterTower(Tower):
+    def _compute_angle(self, projectile_index: int) -> float:
+        x, y = self.target.get_position()
+        return math.atan2(self.y - y, x - self.x)
+
+
+class TargetingTower(Tower):
+    def _compute_angle(self, projectile_index: int) -> float:
+        return 0.0
+
+
+class TackTower(Tower):
+    def _compute_angle(self, projectile_index: int) -> float:
+        return math.radians(projectile_index * 360 / self.stats.projectile_count)
+
+
 @dataclass
 class TowerFactory(ITowerFactory):
     tower_name: str
+    projectile_name: str
+    movement_strategy: IMovementStrategy
+    hit_strategy: IHitStrategy
     tower_type: Type[Tower]
     tower_stats: TowerStats
     tower_upgrades: List[TowerStats] = field(default_factory=list)
@@ -216,6 +188,9 @@ class TowerFactory(ITowerFactory):
     def build_tower(self, x, y, entities: Entities) -> Tower:
         return self.tower_type(
             self.tower_name,
+            self.projectile_name,
+            self.movement_strategy,
+            self.hit_strategy,
             x,
             y,
             entities,
@@ -229,6 +204,9 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
     for tower_factory in (
         TowerFactory(
             "Arrow Shooter",
+            "arrow",
+            ConstantAngleMovementStrategy,
+            NearestHitStrategy,
             ArrowShooterTower,
             TowerStats(
                 shots_per_second=1,
@@ -255,7 +233,10 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         ),
         TowerFactory(
             "Bullet Shooter",
-            BulletShooterTower,
+            "bullet",
+            TrackingMovementStrategy,
+            TrackingHitStrategy,
+            TargetingTower,
             TowerStats(
                 shots_per_second=4,
                 cost=150,
@@ -270,7 +251,10 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         ),
         TowerFactory(
             "Power Tower",
-            PowerTower,
+            "powerShot",
+            TrackingMovementStrategy,
+            TrackingHitStrategy,
+            TargetingTower,
             TowerStats(
                 shots_per_second=10,
                 cost=150,
@@ -287,6 +271,9 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         ),
         TowerFactory(
             "Tack Tower",
+            "arrow",
+            ConstantAngleMovementStrategy,
+            NearestHitStrategy,
             TackTower,
             TowerStats(
                 shots_per_second=1,

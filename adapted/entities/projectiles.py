@@ -10,16 +10,16 @@ from adapted.entities.stats import ProjectileStats, is_missing
 
 class Projectile(IProjectile):
     def __init__(
-            self,
-            name: str,
-            x: float,
-            y: float,
-            angle: float,
-            stats: ProjectileStats,
-            entities: Entities,
-            target: Optional[IMonster],
-            movement_strategy: IMovementStrategy,
-            hit_strategy: IHitStrategy,
+        self,
+        name: str,
+        x: float,
+        y: float,
+        angle: float,
+        stats: ProjectileStats,
+        entities: Entities,
+        target: Optional[IMonster],
+        movement_strategy: IMovementStrategy,
+        hit_strategy: IHitStrategy,
     ):
         self.name = name
         self.x = x
