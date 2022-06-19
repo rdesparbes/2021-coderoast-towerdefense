@@ -2,34 +2,13 @@ import random
 from typing import List, Set, Tuple, Protocol, Callable
 
 from adapted.constants import FPS
+from adapted.entities.count_down import CountDown
 from adapted.entities.monster import IMonster
 from adapted.entities.monster_stats import MonsterStats
 from adapted.path import Path
 from adapted.player import Player
 
 PositionGetter = Callable[[float], Tuple[float, float]]
-
-
-class CountDown:
-    def __init__(self, duration: float = 1.0, fps: float = FPS):
-        self._fps = fps
-        self._duration: float = duration
-        self._tick = 0
-
-    @property
-    def _max_tick(self):
-        return self._duration * self._fps
-
-    def start(self, duration: float) -> None:
-        self._tick = 0
-        self._duration = duration
-
-    def ended(self) -> bool:
-        return self._tick >= self._max_tick
-
-    def update(self) -> None:
-        if not self.ended():
-            self._tick += 1
 
 
 class Monster(IMonster):

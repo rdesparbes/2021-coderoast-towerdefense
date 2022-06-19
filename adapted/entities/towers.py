@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Dict, Type, Optional, List, Tuple
 
 from adapted.abstract_tower_factory import ITowerFactory
-from adapted.constants import FPS
+from adapted.entities.count_down import CountDown
 from adapted.entities.entities import Entities
 from adapted.entities.entity import distance
 from adapted.entities.monster import IMonster
@@ -54,7 +54,7 @@ class Tower(ITower, ABC):
         self.x = x
         self.y = y
         self.entities = entities
-        self.ticks = 0
+        self.countdown = CountDown()
         self.target: Optional[IMonster] = None
         self.sticky_target = False
         self._to_remove = False
@@ -112,17 +112,13 @@ class Tower(ITower, ABC):
                 self.target = monster
 
     def prepare_shot(self) -> None:
-        # TODO: Use the CountDown class
-        frame_count_between_shots = FPS / self.stats.shots_per_second
-        if self.ticks < frame_count_between_shots:
-            self.ticks += 1
         if not self.sticky_target:
             self._select_target()
         if self.target:
             if self.target.alive and self._monster_is_close_enough(self.target):
-                if self.ticks >= frame_count_between_shots:
+                if self.countdown.ended():
                     self._shoot()
-                    self.ticks = 0
+                    self.countdown.start(self.stats.shots_per_second)
             else:
                 self.target = None
         elif self.sticky_target:
@@ -130,6 +126,7 @@ class Tower(ITower, ABC):
 
     def update(self):
         self.prepare_shot()
+        self.countdown.update()
 
     def get_name(self) -> str:
         return self.name
