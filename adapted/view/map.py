@@ -1,15 +1,16 @@
 import math
 import tkinter as tk
-from typing import Dict, Optional, Tuple, List
+from typing import Dict, Optional, Tuple
 
 from PIL import ImageTk, Image
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
 from adapted.blocks import BLOCK_MAPPING
 from adapted.entities.entity import IEntity
+from adapted.entities.monster import IMonster
 from adapted.game import GameObject
 from adapted.grid import Grid
-from adapted.entities.monster import IMonster
+from adapted.view.image_cache import ImageCache
 
 BlockImages = Dict[str, Image.Image]
 
@@ -61,12 +62,7 @@ class Map(GameObject):
         map_size = self.block_size * grid.size
         drawn_map = _paint_background(grid, block_images, map_size)
         self.image: ImageTk.PhotoImage = ImageTk.PhotoImage(image=drawn_map)
-        # The image_cache limits disk accesses at runtime
-        self.images_cache: Dict[str, Image.Image] = {}
-        # The next attribute's goal is to keep a reference to the images in the object,
-        # as the Python reference counter removes it before Tkinter has a chance to display it
-        # Must be emptied each turn to avoid memory leak
-        self.image_references: List[ImageTk.PhotoImage] = []
+        self.image_cache = ImageCache()
         self.controller = controller
         self.canvas = tk.Canvas(
             master=master_frame,
@@ -80,14 +76,6 @@ class Map(GameObject):
     def update(self):
         self.controller.update_entities()
 
-    def _get_image(self, path: str) -> Image.Image:
-        try:
-            return self.images_cache[path]
-        except KeyError:
-            image = Image.open(path)
-            self.images_cache[path] = image
-            return image
-
     def position_to_pixel(self, position: Tuple[float, float]) -> Tuple[int, int]:
         return (
             int(position[0] * self.block_size) + self.block_size // 2,
@@ -100,12 +88,12 @@ class Map(GameObject):
     def _paint_entity(self, entity: IEntity):
         x, y = self.position_to_pixel(entity.get_position())
         angle = entity.get_orientation()
-        image = self._get_image(entity.get_model_name())
+        image = self.image_cache.get_image(entity.get_model_name())
         if angle:
             image = image.rotate(math.degrees(angle))
         tk_image = ImageTk.PhotoImage(image)
         # Storing a reference to tk_image so that the reference counter does not remove it before Tkinter uses it
-        self.image_references.append(tk_image)
+        self.image_cache.add_reference(tk_image)
         self.canvas.create_image(x, y, image=tk_image, anchor=tk.CENTER)
 
     def _paint_selected_tower_range(self):
@@ -125,7 +113,7 @@ class Map(GameObject):
 
     def _paint_monster_health(self, monster: IMonster):
         x, y = self.position_to_pixel(monster.get_position())
-        image = self._get_image(monster.get_model_name())
+        image = self.image_cache.get_image(monster.get_model_name())
         scale = image.width // 2
         self.canvas.create_rectangle(
             x - scale,
@@ -158,7 +146,7 @@ class Map(GameObject):
 
     def paint(self, canvas: Optional[tk.Canvas] = None):
         self.canvas.delete(tk.ALL)
-        # Deleting image_references as they are not used anymore
-        self.image_references = []
+        # Deleting image references as they are not used anymore
+        self.image_cache.clear_references()
         self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
         self._paint_entities()

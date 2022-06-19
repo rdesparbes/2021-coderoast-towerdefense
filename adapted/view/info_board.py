@@ -1,14 +1,16 @@
 import tkinter as tk
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from PIL import ImageTk, Image
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
 from adapted.entities.targeting_strategies import SortingParam, TargetingStrategy
+from adapted.game import GameObject
 from adapted.view.button import Button
+from adapted.view.image_cache import ImageCache
 
 
-class InfoBoard:
+class InfoBoard(GameObject):
     def __init__(
         self, controller: AbstractTowerDefenseController, master_frame: tk.Frame
     ):
@@ -21,12 +23,13 @@ class InfoBoard:
         self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
         self.current_buttons: List[Button] = []
         self.controller = controller
+        self.image_cache = ImageCache()
         self.target_buttons = {}
 
     def press(self, x, y) -> None:
         for current_button in self.current_buttons:
             if current_button.press(x, y):
-                self.display_specific()
+                self._display_specific()
                 return
 
     def _create_target_strategy_button(
@@ -57,22 +60,13 @@ class InfoBoard:
             text_x, text_y, text=text, font=("times", 12), fill="white", anchor=tk.NW
         )
 
-    def display_specific(self) -> None:
-        self.canvas.delete(tk.ALL)  # clear the screen
-        self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
-        self.current_buttons = []
+    def _display_specific(self) -> None:
         selected_tower = self.controller.get_selected_tower()
         if selected_tower is None:
             return
 
         self.tower_image = ImageTk.PhotoImage(
-            Image.open(
-                "images/towerImages/"
-                + selected_tower.__class__.__name__
-                + "/"
-                + str(selected_tower.level)
-                + ".png"
-            )
+            self.image_cache.get_image(selected_tower.get_model_name())
         )
         self.canvas.create_text(
             80, 75, text=selected_tower.get_name(), font=("times", 20)
@@ -129,8 +123,7 @@ class InfoBoard:
                     anchor=tk.CENTER,
                 )
 
-    def display_generic(self) -> None:
-        self.current_buttons = []
+    def _display_generic(self) -> None:
         tower_factory = self.controller.get_selected_tower_factory()
         if tower_factory is None:
             text = None
@@ -140,10 +133,20 @@ class InfoBoard:
             self.tower_image = ImageTk.PhotoImage(
                 Image.open(tower_factory.get_model_name())
             )
-        self.canvas.delete(tk.ALL)  # clear the screen
-        self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
         self.canvas.create_text(80, 75, text=text)
         self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
+
+    def update(self) -> None:
+        pass
+
+    def paint(self, canvas: Optional[tk.Canvas] = None) -> None:
+        self.canvas.delete(tk.ALL)
+        self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
+        self.current_buttons = []
+        if self.controller.get_selected_tower() is not None:
+            self._display_specific()
+        elif self.controller.get_selected_tower_factory() is not None:
+            self._display_generic()
 
 
 class TargetButton(Button):

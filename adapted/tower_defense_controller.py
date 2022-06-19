@@ -11,7 +11,6 @@ from adapted.entities.towers import TOWER_MAPPING
 from adapted.grid import Grid
 from adapted.player import Player
 from adapted.tower_defense_game_state import TowerDefenseGameState
-from adapted.view.abstract_view import IView
 
 
 class TowerDefenseController(AbstractTowerDefenseController):
@@ -27,11 +26,6 @@ class TowerDefenseController(AbstractTowerDefenseController):
         self.grid = grid
         self.entities = entities
         self._selected_tower_factory: Optional[ITowerFactory] = None
-        self.view: Optional[IView] = None
-
-    def register_view(self, view: IView) -> None:
-        # TODO: Remove dependency to view
-        self.view = view
 
     def spawn_monster(self, monster_type_id: int) -> None:
         monster_factory = MONSTER_MAPPING[monster_type_id]
@@ -55,7 +49,6 @@ class TowerDefenseController(AbstractTowerDefenseController):
         if tower is None:
             return False
         self.entities.selected_tower_position = tower.get_position()
-        self.view.display_specific()
         return True
 
     def try_build_tower(self, position: Tuple[int, int]) -> bool:
@@ -84,7 +77,6 @@ class TowerDefenseController(AbstractTowerDefenseController):
     def select_tower_factory(self, tower_type_name: str) -> None:
         self._selected_tower_factory = TOWER_MAPPING.get(tower_type_name)
         self.entities.selected_tower_position = None
-        self.view.display_generic()
 
     def get_selected_tower_factory(self) -> Optional[ITowerFactory]:
         return self._selected_tower_factory

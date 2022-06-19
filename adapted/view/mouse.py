@@ -10,6 +10,7 @@ from adapted.view.view import View
 
 class Mouse(GameObject):
     def __init__(self, controller: AbstractTowerDefenseController, view: View):
+        # TODO: Find a new way to handle the mouse events: there is too much coupling in this class
         self.controller = controller
         self.view = view
         self.x = 0
