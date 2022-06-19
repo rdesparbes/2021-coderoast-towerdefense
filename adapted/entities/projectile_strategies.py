@@ -1,9 +1,8 @@
 import math
 from abc import ABC, abstractmethod
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Iterable
 
 from adapted.constants import FPS
-from adapted.entities.entities import Entities
 from adapted.entities.entity import distance
 from adapted.entities.monster import IMonster
 from adapted.entities.projectile import IProjectile
@@ -16,6 +15,10 @@ class IMovementStrategy(ABC):
 
 
 class IHitStrategy(ABC):
+    @abstractmethod
+    def register_monsters(self, monsters: Iterable[IMonster]) -> None:
+        ...
+
     @abstractmethod
     def check_hit(self, projectile: IProjectile) -> Optional[IMonster]:
         ...
@@ -34,9 +37,6 @@ class TrackingMovementStrategy(IMovementStrategy):
 
 
 class ConstantAngleMovementStrategy(IMovementStrategy):
-    def __init__(self, distance_from_origin: float = 0.0):
-        self.distance = distance_from_origin
-
     def move(self, projectile: IProjectile) -> Tuple[float, float]:
         speed = projectile.get_speed()
         angle = projectile.get_orientation()
@@ -45,24 +45,27 @@ class ConstantAngleMovementStrategy(IMovementStrategy):
         x, y = projectile.get_position()
         x += x_change / FPS
         y += y_change / FPS
-        self.distance += speed / FPS
-        if self.distance >= projectile.get_range():
-            projectile.set_inactive()
         return x, y
 
 
 class TrackingHitStrategy(IHitStrategy):
+    def register_monsters(self, monsters: Iterable[IMonster]) -> None:
+        pass
+
     def check_hit(self, projectile: IProjectile) -> Optional[IMonster]:
         target = projectile.get_target()
         return target if projectile.is_in_range(target) else None
 
 
-class NearestHitStrategy(IHitStrategy):
-    def __init__(self, entities: Entities):
-        self.entities = entities
+class NearEnoughHitStrategy(IHitStrategy):
+    def __init__(self):
+        self.monsters = []
+
+    def register_monsters(self, monsters: Iterable[IMonster]) -> None:
+        self.monsters = monsters
 
     def check_hit(self, projectile: IProjectile) -> Optional[IMonster]:
-        for monster in self.entities.monsters:
+        for monster in self.monsters:
             if projectile.is_in_range(monster):
                 return monster
         return None

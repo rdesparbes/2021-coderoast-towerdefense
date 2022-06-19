@@ -27,6 +27,7 @@ class ProjectileStats(Stats):
     hitbox_radius: float = (
         Missing  # Radius of the circle representing the hit boxes of the projectile
     )
+    range_sensitive: bool = Missing  # If set to True, the projectile dies after travelling more than its range
 
 
 @dataclass

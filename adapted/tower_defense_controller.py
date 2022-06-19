@@ -4,13 +4,13 @@ from adapted.abstract_tower_defense_controller import AbstractTowerDefenseContro
 from adapted.abstract_tower_factory import ITowerFactory
 from adapted.entities.entities import Entities
 from adapted.entities.entity import IEntity
-from adapted.grid import Grid
 from adapted.entities.monster import IMonster
 from adapted.entities.monsters import MONSTER_MAPPING
-from adapted.player import Player
 from adapted.entities.tower import ITower
-from adapted.tower_defense_game_state import TowerDefenseGameState
 from adapted.entities.towers import TOWER_MAPPING
+from adapted.grid import Grid
+from adapted.player import Player
+from adapted.tower_defense_game_state import TowerDefenseGameState
 from adapted.view.abstract_view import IView
 
 
@@ -30,6 +30,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
         self.view: Optional[IView] = None
 
     def register_view(self, view: IView) -> None:
+        # TODO: Remove dependency to view
         self.view = view
 
     def spawn_monster(self, monster_type_id: int) -> None:

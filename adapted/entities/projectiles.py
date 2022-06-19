@@ -1,6 +1,5 @@
 from typing import Optional, Tuple
 
-from adapted.entities.entities import Entities
 from adapted.entities.entity import distance, IEntity
 from adapted.entities.monster import IMonster
 from adapted.entities.projectile import IProjectile
@@ -16,7 +15,6 @@ class Projectile(IProjectile):
         y: float,
         angle: float,
         stats: ProjectileStats,
-        entities: Entities,
         target: Optional[IMonster],
         movement_strategy: IMovementStrategy,
         hit_strategy: IHitStrategy,
@@ -26,21 +24,18 @@ class Projectile(IProjectile):
         self.y = y
         self.angle = angle
         self.stats = stats
-        self.entities = entities
         self.target: Optional[IMonster] = target
         self.movement_strategy = movement_strategy
         self.hit_strategy = hit_strategy
         self.is_tracking = target is not None
         self._active = True
+        self._travelled_distance = 0.0
 
     def get_orientation(self) -> float:
         return self.angle
 
     def get_target(self) -> Optional[IMonster]:
         return self.target
-
-    def get_range(self) -> float:
-        return self.stats.range
 
     def get_speed(self) -> float:
         return self.stats.speed
@@ -52,7 +47,13 @@ class Projectile(IProjectile):
         return self.x, self.y
 
     def update(self):
-        self.x, self.y = self.movement_strategy.move(self)
+        new_x, new_y = self.movement_strategy.move(self)
+        self._travelled_distance += (
+            (self.x - new_x) ** 2 + (self.y - new_y) ** 2
+        ) ** 0.5
+        if self.stats.range_sensitive and self._travelled_distance >= self.stats.range:
+            self.set_inactive()
+        self.x, self.y = new_x, new_y
         target = self.hit_strategy.check_hit(self)
         if target is not None:
             self.target = target

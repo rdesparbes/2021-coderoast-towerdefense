@@ -1,4 +1,6 @@
-from typing import Iterable, List, Callable
+from enum import Enum
+from functools import partial
+from typing import Iterable, NamedTuple
 
 from adapted.entities.monster import IMonster
 
@@ -11,25 +13,22 @@ def _by_distance(monster: IMonster) -> float:
     return monster.distance_travelled_
 
 
-def get_monsters_desc_health(monsters: Iterable[IMonster]) -> List[IMonster]:
-    return sorted(monsters, key=_by_health, reverse=True)
+class SortingParam(Enum):
+    HEALTH = partial(_by_health)
+    DISTANCE = partial(_by_distance)
+
+    def __call__(self, *args):
+        self.value(*args)
 
 
-def get_monsters_desc_distance(monsters: Iterable[IMonster]) -> List[IMonster]:
-    return sorted(monsters, key=_by_distance, reverse=True)
+class TargetingStrategy(NamedTuple):
+    key: SortingParam
+    reverse: bool
 
 
-def get_monsters_asc_health(monsters: Iterable[IMonster]) -> List[IMonster]:
-    return sorted(monsters, key=_by_health, reverse=False)
-
-
-def get_monsters_asc_distance(monsters: Iterable[IMonster]) -> List[IMonster]:
-    return sorted(monsters, key=_by_distance, reverse=False)
-
-
-TARGETING_STRATEGIES: List[Callable[[Iterable[IMonster]], List[IMonster]]] = [
-    get_monsters_desc_health,
-    get_monsters_asc_health,
-    get_monsters_desc_distance,
-    get_monsters_asc_distance,
-]
+def query_monsters(
+    monsters: Iterable[IMonster], targeting_strategy: TargetingStrategy
+) -> Iterable[IMonster]:
+    return sorted(
+        monsters, key=targeting_strategy.key.value, reverse=targeting_strategy.reverse
+    )

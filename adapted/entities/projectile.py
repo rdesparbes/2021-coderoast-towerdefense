@@ -15,9 +15,5 @@ class IProjectile(IEntity, ABC):
         ...
 
     @abstractmethod
-    def get_range(self) -> float:
-        ...
-
-    @abstractmethod
     def get_target(self) -> Optional[IMonster]:
         ...

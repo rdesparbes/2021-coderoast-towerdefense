@@ -1,9 +1,10 @@
 import tkinter as tk
-from typing import List
+from typing import List, Tuple
 
 from PIL import ImageTk, Image
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
+from adapted.entities.targeting_strategies import SortingParam, TargetingStrategy
 from adapted.view.button import Button
 
 
@@ -20,12 +21,41 @@ class InfoBoard:
         self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
         self.current_buttons: List[Button] = []
         self.controller = controller
+        self.target_buttons = {}
 
     def press(self, x, y) -> None:
         for current_button in self.current_buttons:
             if current_button.press(x, y):
                 self.display_specific()
                 return
+
+    def _create_target_strategy_button(
+        self,
+        position: Tuple[int, int],
+        targeting_strategy: TargetingStrategy,
+    ) -> "TargetButton":
+        button_size = 9
+        button_x_offset, button_y_offset = 0, 2
+
+        x, y = position
+        button_x, button_y = x + button_x_offset, y + button_y_offset
+        return TargetButton(
+            button_x,
+            button_y,
+            button_x + button_size,
+            button_y + button_size,
+            self.controller,
+            targeting_strategy,
+        )
+
+    def _create_target_strategy_text(self, position, text):
+        text_x_offset, text_y_offset = 11, 0
+
+        x, y = position
+        text_x, text_y = x + text_x_offset, y + text_y_offset
+        self.canvas.create_text(
+            text_x, text_y, text=text, font=("times", 12), fill="white", anchor=tk.NW
+        )
 
     def display_specific(self) -> None:
         self.canvas.delete(tk.ALL)  # clear the screen
@@ -50,46 +80,41 @@ class InfoBoard:
         self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
 
         if selected_tower is not None:
-            self.current_buttons.append(
-                TargetButton(26, 30, 35, 39, self.controller, 0)
-            )
-            self.canvas.create_text(
-                37, 28, text="> Health", font=("times", 12), fill="white", anchor=tk.NW
-            )
+            for position, text, sorting_key, reverse in zip(
+                [(26, 28), (26, 48), (92, 48), (92, 28)],
+                ["> Health", "< Health", "> Distance", "< Distance"],
+                [
+                    SortingParam.HEALTH,
+                    SortingParam.HEALTH,
+                    SortingParam.DISTANCE,
+                    SortingParam.DISTANCE,
+                ],
+                [True, False, True, False],
+            ):
+                targeting_strategy = TargetingStrategy(sorting_key, reverse)
+                button = self._create_target_strategy_button(
+                    position, targeting_strategy
+                )
+                self._create_target_strategy_text(position, text)
+                self.current_buttons.append(button)
+                if targeting_strategy == selected_tower.targeting_strategy:
+                    button.paint(self.canvas)
 
-            self.current_buttons.append(
-                TargetButton(26, 50, 35, 59, self.controller, 1)
-            )
-            self.canvas.create_text(
-                37, 48, text="< Health", font=("times", 12), fill="white", anchor=tk.NW
-            )
+            sticky_button = StickyButton(10, 40, 19, 49, self.controller)
+            if selected_tower.sticky_target:
+                sticky_button.paint(self.canvas)
+            self.current_buttons.append(sticky_button)
 
-            self.current_buttons.append(
-                TargetButton(92, 50, 101, 59, self.controller, 2)
-            )
-            self.canvas.create_text(
-                103,
-                48,
-                text="> Distance",
-                font=("times", 12),
-                fill="white",
-                anchor=tk.NW,
-            )
-
-            self.current_buttons.append(
-                TargetButton(92, 30, 101, 39, self.controller, 3)
-            )
-            self.canvas.create_text(
-                103,
-                28,
-                text="< Distance",
-                font=("times", 12),
-                fill="white",
-                anchor=tk.NW,
-            )
-
-            self.current_buttons.append(StickyButton(10, 40, 19, 49, self.controller))
             self.current_buttons.append(SellButton(5, 145, 78, 168, self.controller))
+            self.canvas.create_text(
+                28,
+                146,
+                text="Sell",
+                font=("times", 22),
+                fill="light green",
+                anchor=tk.NW,
+            )
+
             upgrade_cost = selected_tower.get_upgrade_cost()
             if upgrade_cost is not None:
                 self.current_buttons.append(
@@ -103,19 +128,6 @@ class InfoBoard:
                     fill="light green",
                     anchor=tk.CENTER,
                 )
-
-            self.canvas.create_text(
-                28,
-                146,
-                text="Sell",
-                font=("times", 22),
-                fill="light green",
-                anchor=tk.NW,
-            )
-
-            self.current_buttons[selected_tower.targeting_strategy].paint(self.canvas)
-            if selected_tower.sticky_target:
-                self.current_buttons[4].paint(self.canvas)
 
     def display_generic(self) -> None:
         self.current_buttons = []
@@ -142,16 +154,16 @@ class TargetButton(Button):
         x_max: int,
         y_max: int,
         controller: AbstractTowerDefenseController,
-        targeting_strategy_index: int,
+        targeting_strategy: TargetingStrategy,
     ):
         super().__init__(x_min, y_min, x_max, y_max, controller)
-        self.targeting_strategy_index: int = targeting_strategy_index
+        self.targeting_strategy = targeting_strategy
 
     def pressed(self):
         selected_tower = self.controller.get_selected_tower()
         if selected_tower is None:
             return
-        selected_tower.targeting_strategy = self.targeting_strategy_index
+        selected_tower.targeting_strategy = self.targeting_strategy
 
 
 class StickyButton(Button):

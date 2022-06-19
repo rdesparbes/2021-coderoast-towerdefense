@@ -11,7 +11,7 @@ from adapted.entities.entity import distance
 from adapted.entities.monster import IMonster
 from adapted.entities.projectile_strategies import (
     TrackingMovementStrategy,
-    NearestHitStrategy,
+    NearEnoughHitStrategy,
     ConstantAngleMovementStrategy,
     TrackingHitStrategy,
     IMovementStrategy,
@@ -19,7 +19,11 @@ from adapted.entities.projectile_strategies import (
 )
 from adapted.entities.projectiles import Projectile
 from adapted.entities.stats import TowerStats, ProjectileStats, upgrade_stats
-from adapted.entities.targeting_strategies import TARGETING_STRATEGIES
+from adapted.entities.targeting_strategies import (
+    TargetingStrategy,
+    query_monsters,
+    SortingParam,
+)
 from adapted.entities.tower import ITower
 
 
@@ -28,8 +32,10 @@ class Tower(ITower, ABC):
         self,
         name: str,
         projectile_name: str,
+        model_name: str,
         movement_strategy: IMovementStrategy,
         hit_strategy: IHitStrategy,
+        targeting_strategy: TargetingStrategy,
         x: float,
         y: float,
         entities: Entities,
@@ -38,7 +44,9 @@ class Tower(ITower, ABC):
     ):
         self.name = name
         self.projectile_name = projectile_name
+        self.model_name = model_name
         self.movement_strategy = movement_strategy
+        self.targeting_strategy = targeting_strategy
         self.hit_strategy = hit_strategy
         self.upgrades = [] if upgrades is None else upgrades
         self.stats = stats
@@ -48,7 +56,6 @@ class Tower(ITower, ABC):
         self.entities = entities
         self.ticks = 0
         self.target: Optional[IMonster] = None
-        self.targeting_strategy = 0
         self.sticky_target = False
         self._to_remove = False
         self._projectiles_to_shoot = set()
@@ -63,7 +70,7 @@ class Tower(ITower, ABC):
         return 0.0
 
     def get_model_name(self) -> str:
-        return f"images/towerImages/{self.__class__.__name__}/{self.level}.png"
+        return f"images/towerImages/{self.model_name}/{self.level}.png"
 
     def set_inactive(self) -> None:
         self._to_remove = True
@@ -96,31 +103,30 @@ class Tower(ITower, ABC):
         upgrade_stats(self.stats, upgrade)
         self.level += 1
 
-    def prepare_shot(self):
-        check_list = TARGETING_STRATEGIES[self.targeting_strategy](
-            self.entities.monsters
-        )
+    def _monster_is_close_enough(self, monster: IMonster) -> bool:
+        return distance(self, monster) <= self.stats.projectile_stats.range
+
+    def _select_target(self) -> None:
+        for monster in query_monsters(self.entities.monsters, self.targeting_strategy):
+            if self._monster_is_close_enough(monster):
+                self.target = monster
+
+    def prepare_shot(self) -> None:
+        # TODO: Use the CountDown class
         frame_count_between_shots = FPS / self.stats.shots_per_second
         if self.ticks < frame_count_between_shots:
             self.ticks += 1
         if not self.sticky_target:
-            for monster in check_list:
-                if distance(self, monster) <= self.stats.projectile_stats.range:
-                    self.target = monster
+            self._select_target()
         if self.target:
-            if (
-                self.target.alive
-                and distance(self.target, self) <= self.stats.projectile_stats.range
-            ):
+            if self.target.alive and self._monster_is_close_enough(self.target):
                 if self.ticks >= frame_count_between_shots:
                     self._shoot()
                     self.ticks = 0
             else:
                 self.target = None
         elif self.sticky_target:
-            for monster in check_list:
-                if distance(self, monster) <= self.stats.projectile_stats.range:
-                    self.target = monster
+            self._select_target()
 
     def update(self):
         self.prepare_shot()
@@ -142,10 +148,9 @@ class Tower(ITower, ABC):
                     self.y,
                     angle,
                     self.stats.projectile_stats,
-                    self.entities,
                     self.target,
-                    ConstantAngleMovementStrategy(),
-                    NearestHitStrategy(self.entities),
+                    self.movement_strategy,
+                    self.hit_strategy,
                 )
             )
 
@@ -170,6 +175,7 @@ class TackTower(Tower):
 class TowerFactory(ITowerFactory):
     tower_name: str
     projectile_name: str
+    model_name: str
     movement_strategy: IMovementStrategy
     hit_strategy: IHitStrategy
     tower_type: Type[Tower]
@@ -183,14 +189,17 @@ class TowerFactory(ITowerFactory):
         return self.tower_stats.cost
 
     def get_model_name(self) -> str:
-        return f"images/towerImages/{self.tower_type.__name__}/1.png"
+        return f"images/towerImages/{self.model_name}/1.png"
 
     def build_tower(self, x, y, entities: Entities) -> Tower:
+        self.hit_strategy.register_monsters(entities.monsters)
         return self.tower_type(
             self.tower_name,
             self.projectile_name,
+            self.model_name,
             self.movement_strategy,
             self.hit_strategy,
+            TargetingStrategy(SortingParam.HEALTH, reverse=True),
             x,
             y,
             entities,
@@ -205,8 +214,9 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         TowerFactory(
             "Arrow Shooter",
             "arrow",
-            ConstantAngleMovementStrategy,
-            NearestHitStrategy,
+            "ArrowShooterTower",
+            ConstantAngleMovementStrategy(),
+            NearEnoughHitStrategy(),
             ArrowShooterTower,
             TowerStats(
                 shots_per_second=1,
@@ -219,6 +229,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
                     slow_factor=float("inf"),
                     slow_duration=0.25,
                     hitbox_radius=1.0,
+                    range_sensitive=True,
                 ),
             ),
             [
@@ -234,8 +245,9 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         TowerFactory(
             "Bullet Shooter",
             "bullet",
-            TrackingMovementStrategy,
-            TrackingHitStrategy,
+            "BulletShooterTower",
+            TrackingMovementStrategy(),
+            TrackingHitStrategy(),
             TargetingTower,
             TowerStats(
                 shots_per_second=4,
@@ -252,8 +264,9 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         TowerFactory(
             "Power Tower",
             "powerShot",
-            TrackingMovementStrategy,
-            TrackingHitStrategy,
+            "PowerTower",
+            TrackingMovementStrategy(),
+            TrackingHitStrategy(),
             TargetingTower,
             TowerStats(
                 shots_per_second=10,
@@ -272,8 +285,9 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
         TowerFactory(
             "Tack Tower",
             "arrow",
-            ConstantAngleMovementStrategy,
-            NearestHitStrategy,
+            "TackTower",
+            ConstantAngleMovementStrategy(),
+            NearEnoughHitStrategy(),
             TackTower,
             TowerStats(
                 shots_per_second=1,
@@ -286,6 +300,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
                     slow_factor=float("inf"),
                     slow_duration=0.25,
                     hitbox_radius=1.0,
+                    range_sensitive=True,
                 ),
             ),
         ),
