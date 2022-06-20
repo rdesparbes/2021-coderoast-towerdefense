@@ -60,6 +60,8 @@ class TowerDefenseController(AbstractTowerDefenseController):
         ):
             return False
         block_position = self.grid.get_block_position(position)
+        if self.entities.towers.get(block_position) is not None:
+            return False
         tower = self._selected_tower_factory.build_tower(*block_position, self.entities)
         self.entities.towers[block_position] = tower
         self.player.money -= tower.get_cost()

@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from collections import Set
 
 from adapted.entities.entity import IEntity
 from adapted.entities.targeting_strategies import TargetingStrategy
@@ -29,8 +28,4 @@ class ITower(IEntity, ABC):
     @staticmethod
     @abstractmethod
     def get_name() -> str:
-        ...
-
-    @abstractmethod
-    def get_children(self) -> Set[IEntity]:
         ...
