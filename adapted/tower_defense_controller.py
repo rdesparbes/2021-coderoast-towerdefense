@@ -25,6 +25,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
         self.player = player
         self.grid = grid
         self.entities = entities
+        self._selected_tower_position: Optional[Tuple[int, int]] = None
         self._selected_tower_factory: Optional[ITowerFactory] = None
 
     def spawn_monster(self, monster_type_id: int) -> None:
@@ -39,7 +40,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
         return len(self.entities.monsters)
 
     def get_selected_tower(self) -> Optional[ITower]:
-        return self.entities.selected_tower
+        return self.entities.towers.get(self._selected_tower_position)
 
     def try_select_tower(self, position: Tuple[int, int]) -> bool:
         if self._selected_tower_factory is not None:
@@ -48,7 +49,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
         tower: Optional[ITower] = self.entities.towers.get(block_position)
         if tower is None:
             return False
-        self.entities.selected_tower_position = tower.get_position()
+        self._selected_tower_position = tower.get_position()
         return True
 
     def try_build_tower(self, position: Tuple[int, int]) -> bool:
@@ -65,18 +66,18 @@ class TowerDefenseController(AbstractTowerDefenseController):
         return True
 
     def sell_selected_tower(self) -> None:
-        tower_position = self.entities.selected_tower_position
+        tower_position = self._selected_tower_position
         if tower_position is None:
             return
         del self.entities.towers[tower_position]
-        self.entities.selected_tower_position = None
+        self._selected_tower_position = None
 
     def get_tower_factory_names(self) -> List[str]:
         return list(TOWER_MAPPING)
 
     def select_tower_factory(self, tower_type_name: str) -> None:
         self._selected_tower_factory = TOWER_MAPPING.get(tower_type_name)
-        self.entities.selected_tower_position = None
+        self._selected_tower_position = None
 
     def get_selected_tower_factory(self) -> Optional[ITowerFactory]:
         return self._selected_tower_factory

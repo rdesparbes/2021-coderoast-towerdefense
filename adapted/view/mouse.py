@@ -60,9 +60,9 @@ class Mouse(GameObject):
     def paint(self, canvas: Optional[tk.Canvas] = None):
         if self.hovered_widget is self.view.map_object.canvas:
             world_position = self.view.map_object.pixel_to_position(self.position)
-            x, y = self.controller.grid.get_block_position(world_position)
+            x, y = self.view.map_object.grid.get_block_position(world_position)
             block_col, block_row = self.view.map_object.position_to_pixel((x, y))
-            if self.controller.grid.is_constructible(world_position):
+            if self.view.map_object.grid.is_constructible(world_position):
                 if self.pressed:
                     image = self.pressed_image
                 else:

@@ -59,6 +59,7 @@ class Map(GameObject):
     ):
         block_images = _load_block_images()
         self.block_size = _compute_block_size(block_images)
+        self.grid = grid
         map_size = self.block_size * grid.size
         drawn_map = _paint_background(grid, block_images, map_size)
         self.image: ImageTk.PhotoImage = ImageTk.PhotoImage(image=drawn_map)

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Tuple, Set, Optional, Any
+from typing import Dict, Tuple, Set, Any
 
 from adapted.entities.entity import IEntity
 from adapted.game import GameObject
@@ -34,14 +34,9 @@ def _update_towers(towers: Dict[Any, ITower], projectiles: Set[IEntity]) -> None
 
 @dataclass
 class Entities(GameObject):
-    selected_tower_position: Optional[Tuple[int, int]] = None
     projectiles: Set[IEntity] = field(default_factory=set)
     monsters: Set[IMonster] = field(default_factory=set)
     towers: Dict[Tuple[int, int], ITower] = field(default_factory=dict)
-
-    @property
-    def selected_tower(self) -> Optional[ITower]:
-        return self.towers.get(self.selected_tower_position)
 
     def update(self) -> None:
         _update(self.projectiles)
