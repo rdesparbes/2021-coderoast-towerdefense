@@ -65,6 +65,7 @@ class NearEnoughHitStrategy(IHitStrategy):
         self.monsters = monsters
 
     def check_hit(self, projectile: IProjectile) -> Optional[IMonster]:
+        # TODO: implement a collision engine to remove the dependency to monsters
         for monster in self.monsters:
             if projectile.is_in_range(monster):
                 return monster

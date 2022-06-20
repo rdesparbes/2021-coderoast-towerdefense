@@ -1,8 +1,11 @@
 from typing import List, NamedTuple
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
+from adapted.entities.count_down import CountDown
 from adapted.game import GameObject
 from adapted.tower_defense_game_state import TowerDefenseGameState
+
+TICK_DURATION_SECONDS = 0.05
 
 
 class Wave(NamedTuple):
@@ -17,13 +20,12 @@ class WaveGenerator(GameObject):
         self.current_wave_index = 0
         self.current_monster_index = 0
         # TODO: Use CountDown class to handle ticks
-        self.ticks = 1
+        self.countdown = CountDown()
 
     def load(self, generator_name: str) -> "WaveGenerator":
         self.waves = []
         self.current_wave_index = 0
         self.current_monster_index = 0
-        self.ticks = 1
         with open(f"texts/waveTexts/{generator_name}.txt", "r") as wave_file:
             for line in wave_file.readlines():
                 max_ticks, *monster_ids = list(map(int, line.split()))
@@ -42,9 +44,9 @@ class WaveGenerator(GameObject):
                 self.current_wave_index += 1
                 self.current_monster_index = 0
                 return
-            self.ticks += 1
-            if self.ticks == current_wave.max_ticks:
-                self.ticks = 0
+            self.countdown.update()
+            if self.countdown.ended():
+                self.countdown.start(current_wave.max_ticks * TICK_DURATION_SECONDS)
                 self.controller.spawn_monster(
                     current_wave.monster_ids[self.current_monster_index]
                 )

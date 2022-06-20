@@ -35,11 +35,12 @@ class Grid:
     def size(self) -> int:
         return len(self._block_grid)
 
-    def __iter__(self) -> Iterable[Tuple[Tuple[int, int], IBlock]]:
+    def __iter__(self) -> Iterable[Tuple[GridPosition, IBlock]]:
         for col, block_col in enumerate(self._block_grid):
             for row, block in enumerate(block_col):
                 yield (col, row), block
 
+    # TODO: extract a Path class from this Grid class
     def compute_position(self, distance: float) -> Vector:
         int_part, last_block_distance = divmod(distance, 1)
 
