@@ -9,6 +9,7 @@ from adapted.entities.monsters import MONSTER_MAPPING
 from adapted.entities.tower import ITower
 from adapted.entities.towers import TOWER_MAPPING
 from adapted.grid import Grid
+from adapted.path import extract_path
 from adapted.player import Player
 from adapted.tower_defense_game_state import TowerDefenseGameState
 
@@ -24,6 +25,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
         self.state = state
         self.player = player
         self.grid = grid
+        self.path = extract_path(grid)
         self.entities = entities
         self._selected_tower_position: Optional[Tuple[int, int]] = None
         self._selected_tower_factory: Optional[ITowerFactory] = None
@@ -32,7 +34,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
         monster_factory = MONSTER_MAPPING[monster_type_id]
         monster = monster_factory(
             self.player,
-            self.grid,
+            self.path,
         )
         self.entities.monsters.add(monster)
 

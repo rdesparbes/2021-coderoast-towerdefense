@@ -31,7 +31,6 @@ class TowerDefenseGame(Game):
         return mouse
 
     def initialize(self):
-        self.controller.grid.initialize()
         self.add_object(self.view)
         self.add_object(self._init_mouse())
         self.add_object(WaveGenerator(self.controller).load("WaveGenerator2"))

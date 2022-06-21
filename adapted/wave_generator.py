@@ -19,7 +19,6 @@ class WaveGenerator(GameObject):
         self.waves: List[Wave] = []
         self.current_wave_index = 0
         self.current_monster_index = 0
-        # TODO: Use CountDown class to handle ticks
         self.countdown = CountDown()
 
     def load(self, generator_name: str) -> "WaveGenerator":

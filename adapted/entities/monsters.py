@@ -5,7 +5,7 @@ from adapted.constants import FPS
 from adapted.entities.count_down import CountDown
 from adapted.entities.monster import IMonster
 from adapted.entities.monster_stats import MonsterStats
-from adapted.path import Path
+from adapted.path import Path, has_arrived, compute_position
 from adapted.player import Player
 
 PositionGetter = Callable[[float], Tuple[float, float]]
@@ -69,9 +69,9 @@ class Monster(IMonster):
             self.killed()
 
     def compute_position(self):
-        if self.path.has_arrived(self.distance_travelled_):
+        if has_arrived(self.path, self.distance_travelled_):
             self.got_through()
-        return self.path.compute_position(self.distance_travelled_)
+        return compute_position(self.path, self.distance_travelled_)
 
     def move(self):
         self.distance_travelled_ += self.speed / FPS
