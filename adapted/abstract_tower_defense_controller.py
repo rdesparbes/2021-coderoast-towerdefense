@@ -6,19 +6,17 @@ from adapted.entities.entity import IEntity
 from adapted.entities.monster import IMonster
 from adapted.entities.tower import ITower
 from adapted.player import Player
-from adapted.tower_defense_game_state import TowerDefenseGameState
 
 
 class AbstractTowerDefenseController(ABC):
-    state: TowerDefenseGameState
     player: Player
 
     @abstractmethod
-    def spawn_monster(self, monster_type_id: int) -> None:
+    def can_start_spawning_monsters(self) -> bool:
         ...
 
     @abstractmethod
-    def monsters_left(self) -> int:
+    def start_spawning_monsters(self) -> bool:
         ...
 
     @abstractmethod
@@ -50,7 +48,7 @@ class AbstractTowerDefenseController(ABC):
         ...
 
     @abstractmethod
-    def update_entities(self) -> None:
+    def update(self) -> None:
         ...
 
     @abstractmethod

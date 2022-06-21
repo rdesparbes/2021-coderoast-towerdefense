@@ -4,7 +4,6 @@ from adapted.game import Game
 from adapted.grid import Grid
 from adapted.player import Player
 from adapted.tower_defense_controller import TowerDefenseController
-from adapted.tower_defense_game_state import TowerDefenseGameState
 from adapted.view.mouse import Mouse
 from adapted.view.view import View
 from adapted.wave_generator import WaveGenerator
@@ -14,12 +13,12 @@ class TowerDefenseGame(Game):
     def __init__(self, title: str = "Tower Defense"):
         super().__init__(title, timestep=TIME_STEP)
         grid = Grid.load("LeoMap")
+        wave_generator = WaveGenerator.load("WaveGenerator2")
         self.controller = TowerDefenseController(
-            TowerDefenseGameState.IDLE,
-            Player(),
-            grid,
-            Entities(),
+            Player(), grid, Entities(), wave_generator
         )
+        # TODO: Only use the controller instead of the grid to initialize the Map
+        # TODO: Only use tkinter in the view module
         self.view = View(self.controller, self.frame, grid)
         self.view.initialize()
 
@@ -33,7 +32,6 @@ class TowerDefenseGame(Game):
     def initialize(self):
         self.add_object(self.view)
         self.add_object(self._init_mouse())
-        self.add_object(WaveGenerator(self.controller).load("WaveGenerator2"))
 
 
 def main():

@@ -74,9 +74,6 @@ class Map(GameObject):
         )
         self.canvas.grid(row=0, column=0, rowspan=2, columnspan=1)
 
-    def update(self):
-        self.controller.update_entities()
-
     def position_to_pixel(self, position: Tuple[float, float]) -> Tuple[int, int]:
         return (
             int(position[0] * self.block_size) + self.block_size // 2,

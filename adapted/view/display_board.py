@@ -5,7 +5,6 @@ from adapted.game import GameObject
 from adapted.player import Player
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
 from adapted.view.button import Button
-from adapted.tower_defense_game_state import TowerDefenseGameState
 
 
 class DisplayBoard(GameObject):
@@ -54,21 +53,13 @@ class MoneyBar:
 
 
 class NextWaveButton(Button):
-    @property
-    def is_idle(self) -> bool:
-        return self.controller.state is TowerDefenseGameState.IDLE
-
-    @property
-    def can_spawn(self) -> bool:
-        return self.is_idle and self.controller.monsters_left() == 0
-
     def pressed(self) -> None:
-        if not self.can_spawn:
+        if not self.controller.can_start_spawning_monsters():
             return
-        self.controller.state = TowerDefenseGameState.WAIT_FOR_SPAWN
+        self.controller.start_spawning_monsters()
 
     def paint(self, canvas: tk.Canvas):
-        if self.is_idle and self.controller.monsters_left() == 0:
+        if self.controller.can_start_spawning_monsters():
             color = "blue"
         else:
             color = "red"

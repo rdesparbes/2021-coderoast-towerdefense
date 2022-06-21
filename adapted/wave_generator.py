@@ -1,9 +1,7 @@
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Optional
 
-from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
 from adapted.entities.count_down import CountDown
 from adapted.game import GameObject
-from adapted.tower_defense_game_state import TowerDefenseGameState
 
 TICK_DURATION_SECONDS = 0.05
 
@@ -14,39 +12,44 @@ class Wave(NamedTuple):
 
 
 class WaveGenerator(GameObject):
-    def __init__(self, controller: AbstractTowerDefenseController):
-        self.controller = controller
-        self.waves: List[Wave] = []
+    def __init__(self, waves: List[Wave]):
+        self.waves = waves
         self.current_wave_index = 0
         self.current_monster_index = 0
         self.countdown = CountDown()
+        self.spawning = False
 
-    def load(self, generator_name: str) -> "WaveGenerator":
-        self.waves = []
-        self.current_wave_index = 0
-        self.current_monster_index = 0
+    @classmethod
+    def load(cls, generator_name: str) -> "WaveGenerator":
+        waves = []
         with open(f"texts/waveTexts/{generator_name}.txt", "r") as wave_file:
             for line in wave_file.readlines():
                 max_ticks, *monster_ids = list(map(int, line.split()))
-                self.waves.append(Wave(max_ticks, monster_ids))
-        return self
+                waves.append(Wave(max_ticks, monster_ids))
+        return WaveGenerator(waves)
 
-    def update(self):
-        if self.current_wave_index == len(self.waves):
-            return
-        if self.controller.state == TowerDefenseGameState.WAIT_FOR_SPAWN:
-            self.controller.state = TowerDefenseGameState.SPAWNING
-        elif self.controller.state == TowerDefenseGameState.SPAWNING:
-            current_wave = self.waves[self.current_wave_index]
-            if self.current_monster_index == len(current_wave.monster_ids):
-                self.controller.state = TowerDefenseGameState.IDLE
-                self.current_wave_index += 1
-                self.current_monster_index = 0
-                return
-            self.countdown.update()
-            if self.countdown.ended():
-                self.countdown.start(current_wave.max_ticks * TICK_DURATION_SECONDS)
-                self.controller.spawn_monster(
-                    current_wave.monster_ids[self.current_monster_index]
-                )
-                self.current_monster_index += 1
+    def can_start_spawning(self) -> bool:
+        return not self.spawning and self.current_wave_index < len(self.waves)
+
+    def start_spawning(self) -> bool:
+        if not self.can_start_spawning():
+            return False
+        self.spawning = True
+        return True
+
+    def get_monster_id(self) -> Optional[int]:
+        if not self.spawning or self.current_wave_index == len(self.waves):
+            return None
+        current_wave = self.waves[self.current_wave_index]
+        if self.current_monster_index == len(current_wave.monster_ids):
+            self.spawning = False
+            self.current_wave_index += 1
+            self.current_monster_index = 0
+            return None
+        self.countdown.update()
+        if not self.countdown.ended():
+            return None
+        self.countdown.start(current_wave.max_ticks * TICK_DURATION_SECONDS)
+        monster_id = current_wave.monster_ids[self.current_monster_index]
+        self.current_monster_index += 1
+        return monster_id

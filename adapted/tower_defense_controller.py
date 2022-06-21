@@ -11,35 +11,47 @@ from adapted.entities.towers import TOWER_MAPPING
 from adapted.grid import Grid
 from adapted.path import extract_path
 from adapted.player import Player
-from adapted.tower_defense_game_state import TowerDefenseGameState
+from adapted.wave_generator import WaveGenerator
 
 
 class TowerDefenseController(AbstractTowerDefenseController):
     def __init__(
         self,
-        state: TowerDefenseGameState,
         player: Player,
         grid: Grid,
         entities: Entities,
+        wave_generator: WaveGenerator,
     ):
-        self.state = state
         self.player = player
         self.grid = grid
         self.path = extract_path(grid)
         self.entities = entities
+        self.wave_generator = wave_generator
         self._selected_tower_position: Optional[Tuple[int, int]] = None
         self._selected_tower_factory: Optional[ITowerFactory] = None
 
-    def spawn_monster(self, monster_type_id: int) -> None:
+    def can_start_spawning_monsters(self) -> bool:
+        return (
+            self.wave_generator.can_start_spawning()
+            and len(self.entities.monsters) == 0
+        )
+
+    def start_spawning_monsters(self) -> bool:
+        if not self.can_start_spawning_monsters():
+            return False
+        self.wave_generator.start_spawning()
+        return True
+
+    def _try_spawn_monster(self) -> None:
+        monster_type_id = self.wave_generator.get_monster_id()
+        if monster_type_id is None:
+            return None
         monster_factory = MONSTER_MAPPING[monster_type_id]
         monster = monster_factory(
             self.player,
             self.path,
         )
         self.entities.monsters.add(monster)
-
-    def monsters_left(self) -> int:
-        return len(self.entities.monsters)
 
     def get_selected_tower(self) -> Optional[ITower]:
         return self.entities.towers.get(self._selected_tower_position)
@@ -86,7 +98,8 @@ class TowerDefenseController(AbstractTowerDefenseController):
     def get_selected_tower_factory(self) -> Optional[ITowerFactory]:
         return self._selected_tower_factory
 
-    def update_entities(self) -> None:
+    def update(self) -> None:
+        self._try_spawn_monster()
         self.entities.update()
 
     def iter_towers(self) -> Iterable[ITower]:

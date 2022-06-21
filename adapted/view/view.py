@@ -18,6 +18,7 @@ class View(GameObject):
         frame: tk.Frame,
         grid: tk.Grid,
     ):
+        self.controller = controller
         self.info_board = InfoBoard(controller, frame)
         self.tower_box = TowerBox(controller, frame)
         self.map_object = Map(grid, controller, frame)
@@ -32,6 +33,7 @@ class View(GameObject):
         ]
 
     def update(self) -> None:
+        self.controller.update()
         for game_object in self.game_objects:
             game_object.update()
 
