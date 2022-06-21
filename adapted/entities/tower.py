@@ -5,9 +5,12 @@ from adapted.entities.targeting_strategies import TargetingStrategy
 
 
 class ITower(IEntity, ABC):
-    level: int
     targeting_strategy: TargetingStrategy
     sticky_target: bool
+
+    @abstractmethod
+    def get_level(self) -> int:
+        ...
 
     @abstractmethod
     def get_upgrade_cost(self) -> int:

@@ -123,10 +123,10 @@ class Map(MouseWidget, GameObject):
     def pixel_to_position(self, pixel: Tuple[int, int]) -> Tuple[float, float]:
         return pixel[0] / self.block_size, pixel[1] / self.block_size
 
-    def _paint_entity(self, entity: IEntity):
+    def _paint_entity(self, entity: IEntity, image_path: str):
         x, y = self.position_to_pixel(entity.get_position())
         angle = entity.get_orientation()
-        image = self.image_cache.get_image(entity.get_model_name())
+        image = self.image_cache.get_image(image_path)
         if angle:
             image = image.rotate(math.degrees(angle))
         tk_image = ImageTk.PhotoImage(image)
@@ -151,7 +151,8 @@ class Map(MouseWidget, GameObject):
 
     def _paint_monster_health(self, monster: IMonster):
         x, y = self.position_to_pixel(monster.get_position())
-        image = self.image_cache.get_image(monster.get_model_name())
+        image_path = f"images/monsterImages/{monster.get_model_name()}.png"
+        image = self.image_cache.get_image(image_path)
         scale = image.width // 2
         self.canvas.create_rectangle(
             x - scale,
@@ -172,14 +173,18 @@ class Map(MouseWidget, GameObject):
 
     def _paint_entities(self) -> None:
         for tower in self.controller.iter_towers():
-            self._paint_entity(tower)
+            model_name = tower.get_model_name()
+            image_path = f"images/towerImages/{model_name}/{tower.get_level()}.png"
+            self._paint_entity(tower, image_path)
         for monster in sorted(
             self.controller.iter_monsters(), key=lambda m: m.distance_travelled_
         ):
-            self._paint_entity(monster)
+            image_path = f"images/monsterImages/{monster.get_model_name()}.png"
+            self._paint_entity(monster, image_path)
             self._paint_monster_health(monster)
         for projectile in self.controller.iter_projectiles():
-            self._paint_entity(projectile)
+            image_path = f"images/projectileImages/{projectile.get_model_name()}.png"
+            self._paint_entity(projectile, image_path)
         self._paint_selected_tower_range()
 
     def paint(self, canvas: Optional[tk.Canvas] = None):

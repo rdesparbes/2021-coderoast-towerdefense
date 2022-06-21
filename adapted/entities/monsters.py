@@ -44,7 +44,7 @@ class Monster(IMonster):
         return 0.0
 
     def get_model_name(self) -> str:
-        return f"images/monsterImages/{self.stats.name}.png"
+        return self.stats.name
 
     def get_children(self) -> Set[IMonster]:
         children = self._children

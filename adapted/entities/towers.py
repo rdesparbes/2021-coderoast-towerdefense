@@ -60,6 +60,9 @@ class Tower(ITower, ABC):
         self._to_remove = False
         self._projectiles_to_shoot = set()
 
+    def get_level(self) -> int:
+        return self.level
+
     def get_position(self) -> Tuple[float, float]:
         return self.x, self.y
 
@@ -70,7 +73,7 @@ class Tower(ITower, ABC):
         return 0.0
 
     def get_model_name(self) -> str:
-        return f"images/towerImages/{self.model_name}/{self.level}.png"
+        return self.model_name
 
     def set_inactive(self) -> None:
         self._to_remove = True
@@ -186,7 +189,7 @@ class TowerFactory(ITowerFactory):
         return self.tower_stats.cost
 
     def get_model_name(self) -> str:
-        return f"images/towerImages/{self.model_name}/1.png"
+        return self.model_name
 
     def build_tower(self, x, y, entities: Entities) -> Tower:
         self.hit_strategy.register_monsters(entities.monsters)

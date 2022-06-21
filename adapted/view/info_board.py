@@ -75,9 +75,9 @@ class InfoBoard(MouseWidget, GameObject):
         if selected_tower is None:
             return
 
-        self.tower_image = ImageTk.PhotoImage(
-            self.image_cache.get_image(selected_tower.get_model_name())
-        )
+        model_name = selected_tower.get_model_name()
+        image_path = f"images/towerImages/{model_name}/{selected_tower.get_level()}.png"
+        self.tower_image = ImageTk.PhotoImage(self.image_cache.get_image(image_path))
         self.canvas.create_text(
             80, 75, text=selected_tower.get_name(), font=("times", 20)
         )
@@ -140,9 +140,8 @@ class InfoBoard(MouseWidget, GameObject):
             self.tower_image = None
         else:
             text = f"{tower_factory.get_name()} cost: {tower_factory.get_cost()}"
-            self.tower_image = ImageTk.PhotoImage(
-                Image.open(tower_factory.get_model_name())
-            )
+            image_path = f"images/towerImages/{tower_factory.get_model_name()}/1.png"
+            self.tower_image = ImageTk.PhotoImage(Image.open(image_path))
         self.canvas.create_text(80, 75, text=text)
         self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
 

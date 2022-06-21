@@ -41,7 +41,7 @@ class Projectile(IProjectile):
         return self.stats.speed
 
     def get_model_name(self) -> str:
-        return f"images/projectileImages/{self.name}.png"
+        return self.name
 
     def get_position(self) -> Tuple[float, float]:
         return self.x, self.y
