@@ -6,11 +6,16 @@ from adapted.block import Block
 from adapted.entities.entity import IEntity
 from adapted.entities.monster import IMonster
 from adapted.entities.tower import ITower
-from adapted.player import Player
 
 
 class AbstractTowerDefenseController(ABC):
-    player: Player
+    @abstractmethod
+    def get_player_health(self) -> int:
+        ...
+
+    @abstractmethod
+    def get_player_money(self) -> int:
+        ...
 
     @abstractmethod
     def get_block(

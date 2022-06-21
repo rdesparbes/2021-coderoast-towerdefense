@@ -31,6 +31,12 @@ class TowerDefenseController(AbstractTowerDefenseController):
         self._selected_tower_position: Optional[Tuple[int, int]] = None
         self._selected_tower_factory: Optional[ITowerFactory] = None
 
+    def get_player_health(self) -> int:
+        return self.player.health
+
+    def get_player_money(self) -> int:
+        return self.player.money
+
     def get_block(
         self, world_position: Tuple[float, float]
     ) -> Tuple[Tuple[int, int], Block]:

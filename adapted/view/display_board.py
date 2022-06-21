@@ -1,9 +1,8 @@
 import tkinter as tk
 from typing import Optional
 
-from adapted.game import GameObject
-from adapted.player import Player
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
+from adapted.game import GameObject
 from adapted.view.button import Button
 
 
@@ -15,8 +14,8 @@ class DisplayBoard(GameObject):
             master=master_frame, width=600, height=80, bg="gray", highlightthickness=0
         )
         self.canvas.grid(row=2, column=0)
-        self.health_bar = HealthBar(controller.player)
-        self.money_bar = MoneyBar(controller.player)
+        self.health_bar = HealthBar(controller)
+        self.money_bar = MoneyBar(controller)
         self.next_wave_button = NextWaveButton(450, 25, 550, 50, controller)
 
     def update(self):
@@ -31,25 +30,29 @@ class DisplayBoard(GameObject):
 
 
 class HealthBar:
-    def __init__(self, player: Player):
-        self.player = player
+    def __init__(self, controller: AbstractTowerDefenseController):
+        self.controller = controller
 
     def update(self):
         pass
 
     def paint(self, canvas: tk.Canvas):
-        canvas.create_text(40, 40, text=f"Health: {self.player.health}", fill="black")
+        canvas.create_text(
+            40, 40, text=f"Health: {self.controller.get_player_health()}", fill="black"
+        )
 
 
 class MoneyBar:
-    def __init__(self, player: Player):
-        self.player = player
+    def __init__(self, controller: AbstractTowerDefenseController):
+        self.controller = controller
 
     def update(self):
         pass
 
     def paint(self, canvas: tk.Canvas):
-        canvas.create_text(240, 40, text=f"Money: {self.player.money}", fill="black")
+        canvas.create_text(
+            240, 40, text=f"Money: {self.controller.get_player_money()}", fill="black"
+        )
 
 
 class NextWaveButton(Button):
