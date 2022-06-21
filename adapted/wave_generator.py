@@ -1,7 +1,6 @@
 from typing import List, NamedTuple, Optional
 
 from adapted.entities.count_down import CountDown
-from adapted.game import GameObject
 
 TICK_DURATION_SECONDS = 0.05
 
@@ -11,7 +10,7 @@ class Wave(NamedTuple):
     monster_ids: List[int]
 
 
-class WaveGenerator(GameObject):
+class WaveGenerator:
     def __init__(self, waves: List[Wave]):
         self.waves = waves
         self.current_wave_index = 0

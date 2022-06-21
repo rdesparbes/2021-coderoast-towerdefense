@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Dict, Tuple, Set, Any
 
 from adapted.entities.entity import IEntity
-from adapted.game import GameObject
+from adapted.updatable_object import UpdatableObject
 from adapted.entities.monster import IMonster
 from adapted.entities.tower import ITower
 
@@ -33,7 +33,7 @@ def _update_towers(towers: Dict[Any, ITower], projectiles: Set[IEntity]) -> None
 
 
 @dataclass
-class Entities(GameObject):
+class Entities(UpdatableObject):
     projectiles: Set[IEntity] = field(default_factory=set)
     monsters: Set[IMonster] = field(default_factory=set)
     towers: Dict[Tuple[int, int], ITower] = field(default_factory=dict)

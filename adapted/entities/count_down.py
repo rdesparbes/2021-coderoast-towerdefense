@@ -1,7 +1,8 @@
 from adapted.constants import FPS
+from adapted.updatable_object import UpdatableObject
 
 
-class CountDown:
+class CountDown(UpdatableObject):
     def __init__(self, duration: float = 0.0, fps: float = FPS):
         self._fps = fps
         self._duration: float = duration

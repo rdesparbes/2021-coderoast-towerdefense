@@ -5,12 +5,13 @@ from PIL import ImageTk, Image
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
 from adapted.entities.targeting_strategies import SortingParam, TargetingStrategy
-from adapted.game import GameObject
+from adapted.view.game_object import GameObject
 from adapted.view.button import Button
 from adapted.view.image_cache import ImageCache
+from adapted.view.mousewidget import MouseWidget
 
 
-class InfoBoard(GameObject):
+class InfoBoard(MouseWidget, GameObject):
     def __init__(
         self, controller: AbstractTowerDefenseController, master_frame: tk.Frame
     ):
@@ -25,6 +26,15 @@ class InfoBoard(GameObject):
         self.controller = controller
         self.image_cache = ImageCache()
         self.target_buttons = {}
+
+    def click_at(self, position: Tuple[int, int]):
+        self.press(*position)
+
+    def paint_at(self, position: Tuple[int, int], press: bool):
+        pass
+
+    def has_canvas(self, canvas: tk.Widget) -> bool:
+        return self.canvas is canvas
 
     def press(self, x, y) -> None:
         for current_button in self.current_buttons:
@@ -184,9 +194,4 @@ class SellButton(Button):
 
 class UpgradeButton(Button):
     def pressed(self):
-        tower = self.controller.get_selected_tower()
-        if tower is None:
-            return
-        if self.controller.player.money >= tower.get_upgrade_cost():
-            self.controller.player.money -= tower.get_upgrade_cost()
-            tower.upgrade()
+        self.controller.upgrade_selected_tower()

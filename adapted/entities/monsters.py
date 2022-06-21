@@ -61,7 +61,7 @@ class Monster(IMonster):
     def alive(self):
         return self.health_ > 0
 
-    def update(self):
+    def update(self) -> None:
         if self.alive:
             self.move()
             self.countdown.update()

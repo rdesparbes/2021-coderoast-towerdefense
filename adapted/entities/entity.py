@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Set, Tuple
 
-from adapted.game import GameObject
+from adapted.updatable_object import UpdatableObject
 
 
-class IEntity(GameObject, ABC):
+class IEntity(UpdatableObject, ABC):
     @abstractmethod
     def get_position(self) -> Tuple[float, float]:
         ...

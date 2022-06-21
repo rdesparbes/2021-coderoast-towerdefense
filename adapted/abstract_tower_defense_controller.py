@@ -6,9 +6,10 @@ from adapted.block import Block
 from adapted.entities.entity import IEntity
 from adapted.entities.monster import IMonster
 from adapted.entities.tower import ITower
+from adapted.updatable_object import UpdatableObject
 
 
-class AbstractTowerDefenseController(ABC):
+class AbstractTowerDefenseController(UpdatableObject, ABC):
     @abstractmethod
     def get_player_health(self) -> int:
         ...
@@ -44,11 +45,15 @@ class AbstractTowerDefenseController(ABC):
         ...
 
     @abstractmethod
-    def try_select_tower(self, position: Tuple[int, int]) -> bool:
+    def try_select_tower(self, world_position: Tuple[float, float]) -> bool:
         ...
 
     @abstractmethod
-    def try_build_tower(self, position: Tuple[int, int]) -> bool:
+    def try_build_tower(self, world_position: Tuple[float, float]) -> bool:
+        ...
+
+    @abstractmethod
+    def upgrade_selected_tower(self) -> None:
         ...
 
     @abstractmethod
@@ -65,10 +70,6 @@ class AbstractTowerDefenseController(ABC):
 
     @abstractmethod
     def get_selected_tower_factory(self) -> Optional[ITowerFactory]:
-        ...
-
-    @abstractmethod
-    def update(self) -> None:
         ...
 
     @abstractmethod

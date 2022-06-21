@@ -8,8 +8,9 @@ from adapted.abstract_tower_defense_controller import AbstractTowerDefenseContro
 from adapted.block import Block
 from adapted.entities.entity import IEntity
 from adapted.entities.monster import IMonster
-from adapted.game import GameObject
+from adapted.view.game_object import GameObject
 from adapted.view.image_cache import ImageCache
+from adapted.view.mousewidget import MouseWidget
 
 BlockImages = Dict[Block, Image.Image]
 MAPPING: Dict[Block, str] = {
@@ -55,7 +56,7 @@ def _load_block_images() -> BlockImages:
     }
 
 
-class Map(GameObject):
+class Map(MouseWidget, GameObject):
     def __init__(
         self,
         controller: AbstractTowerDefenseController,
@@ -75,7 +76,43 @@ class Map(GameObject):
             bg="gray",
             highlightthickness=0,
         )
+        self.pressed_image = ImageTk.PhotoImage(
+            Image.open("images/mouseImages/Pressed.png")
+        )
+        self.can_press_image = ImageTk.PhotoImage(
+            Image.open("images/mouseImages/HoveringCanPress.png")
+        )
+        self.cannot_press_image = ImageTk.PhotoImage(
+            Image.open("images/mouseImages/HoveringCanNotPress.png")
+        )
         self.canvas.grid(row=0, column=0, rowspan=2, columnspan=1)
+
+    def click_at(self, position: Tuple[int, int]) -> None:
+        world_position = self.pixel_to_position(position)
+        if self.controller.try_build_tower(world_position):
+            return
+        self.controller.try_select_tower(world_position)
+
+    def paint_at(self, position: Tuple[int, int], press: bool) -> None:
+        world_position = self.pixel_to_position(position)
+        block_position, block = self.controller.get_block(world_position)
+        block_col, block_row = self.position_to_pixel(block_position)
+        if block.is_constructible:
+            if press:
+                image = self.pressed_image
+            else:
+                image = self.can_press_image
+        else:
+            image = self.cannot_press_image
+        self.canvas.create_image(
+            block_col,
+            block_row,
+            image=image,
+            anchor=tk.CENTER,
+        )
+
+    def has_canvas(self, canvas: tk.Widget) -> bool:
+        return self.canvas is canvas
 
     def position_to_pixel(self, position: Tuple[float, float]) -> Tuple[int, int]:
         return (

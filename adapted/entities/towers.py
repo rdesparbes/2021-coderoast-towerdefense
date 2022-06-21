@@ -124,7 +124,7 @@ class Tower(ITower, ABC):
         elif self.sticky_target:
             self._select_target()
 
-    def update(self):
+    def update(self) -> None:
         self.prepare_shot()
         self.countdown.update()
 

@@ -1,12 +1,13 @@
 import tkinter as tk
-from typing import Optional
+from typing import Optional, Tuple
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
-from adapted.game import GameObject
+from adapted.view.game_object import GameObject
 from adapted.view.button import Button
+from adapted.view.mousewidget import MouseWidget
 
 
-class DisplayBoard(GameObject):
+class DisplayBoard(MouseWidget, GameObject):
     def __init__(
         self, controller: AbstractTowerDefenseController, master_frame: tk.Frame
     ):
@@ -18,7 +19,16 @@ class DisplayBoard(GameObject):
         self.money_bar = MoneyBar(controller)
         self.next_wave_button = NextWaveButton(450, 25, 550, 50, controller)
 
-    def update(self):
+    def click_at(self, position: Tuple[int, int]):
+        self.next_wave_button.press(*position)
+
+    def paint_at(self, position: Tuple[int, int], press: bool):
+        pass
+
+    def has_canvas(self, canvas: tk.Widget) -> bool:
+        return self.canvas is canvas
+
+    def update(self) -> None:
         self.health_bar.update()
         self.money_bar.update()
 
@@ -33,7 +43,7 @@ class HealthBar:
     def __init__(self, controller: AbstractTowerDefenseController):
         self.controller = controller
 
-    def update(self):
+    def update(self) -> None:
         pass
 
     def paint(self, canvas: tk.Canvas):
@@ -46,7 +56,7 @@ class MoneyBar:
     def __init__(self, controller: AbstractTowerDefenseController):
         self.controller = controller
 
-    def update(self):
+    def update(self) -> None:
         pass
 
     def paint(self, canvas: tk.Canvas):

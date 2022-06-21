@@ -18,15 +18,15 @@ from adapted.wave_generator import WaveGenerator
 class TowerDefenseController(AbstractTowerDefenseController):
     def __init__(
         self,
-        player: Player,
         grid: Grid,
-        entities: Entities,
         wave_generator: WaveGenerator,
+        player: Optional[Player] = None,
+        entities: Optional[Entities] = None,
     ):
-        self.player = player
         self.grid = grid
-        self.entities = entities
         self.wave_generator = wave_generator
+        self.player = player or Player()
+        self.entities = entities or Entities()
         self._path = extract_path(grid)
         self._selected_tower_position: Optional[Tuple[int, int]] = None
         self._selected_tower_factory: Optional[ITowerFactory] = None
@@ -75,10 +75,10 @@ class TowerDefenseController(AbstractTowerDefenseController):
     def get_selected_tower(self) -> Optional[ITower]:
         return self.entities.towers.get(self._selected_tower_position)
 
-    def try_select_tower(self, position: Tuple[int, int]) -> bool:
+    def try_select_tower(self, world_position: Tuple[float, float]) -> bool:
         if self._selected_tower_factory is not None:
             return False
-        block_position = self.grid.get_block_position(position)
+        block_position = self.grid.get_block_position(world_position)
         tower: Optional[ITower] = self.entities.towers.get(block_position)
         if tower is None:
             return False
@@ -99,6 +99,14 @@ class TowerDefenseController(AbstractTowerDefenseController):
         self.entities.towers[block_position] = tower
         self.player.money -= tower.get_cost()
         return True
+
+    def upgrade_selected_tower(self) -> None:
+        tower = self.get_selected_tower()
+        if tower is None:
+            return
+        if self.get_player_money() >= tower.get_upgrade_cost():
+            self.player.money -= tower.get_upgrade_cost()
+            tower.upgrade()
 
     def sell_selected_tower(self) -> None:
         tower_position = self._selected_tower_position
