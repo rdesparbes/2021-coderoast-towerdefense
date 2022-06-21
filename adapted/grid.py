@@ -1,11 +1,17 @@
 from dataclasses import dataclass
 from typing import List, Optional, Tuple, Iterable
 
-from adapted.block import IBlock
-from adapted.blocks import BLOCK_MAPPING
+from adapted.block import Block
 from adapted.constants import DIRECTIONS
 
 GridVector = Tuple[int, int]
+
+
+BLOCK_MAPPING: List[Block] = [
+    Block(is_constructible=True, is_walkable=False),
+    Block(is_constructible=False, is_walkable=True),
+    Block(is_constructible=False, is_walkable=False),
+]
 
 
 def _add_grid_vectors(vector_a: GridVector, vector_b: GridVector) -> GridVector:
@@ -14,13 +20,13 @@ def _add_grid_vectors(vector_a: GridVector, vector_b: GridVector) -> GridVector:
 
 @dataclass
 class Grid:
-    _block_grid: Optional[List[List[IBlock]]] = None
+    _block_grid: Optional[List[List[Block]]] = None
 
     @property
     def size(self) -> int:
         return len(self._block_grid)
 
-    def __iter__(self) -> Iterable[Tuple[GridVector, IBlock]]:
+    def __iter__(self) -> Iterable[Tuple[GridVector, Block]]:
         for col, block_col in enumerate(self._block_grid):
             for row, block in enumerate(block_col):
                 yield (col, row), block
@@ -36,20 +42,20 @@ class Grid:
         return int(world_position[0]), int(world_position[1])
 
     def is_constructible(self, grid_position: GridVector) -> bool:
-        return self.get_block(grid_position).is_constructible()
+        return self.get_block(grid_position).is_constructible
 
     def is_walkable(self, grid_position: GridVector) -> bool:
-        return self.get_block(grid_position).is_walkable()
+        return self.get_block(grid_position).is_walkable
 
     def find_spawn(self) -> GridVector:
         for x in range(self._grid_size):
-            if self._block_grid[x][0].is_walkable():
+            if self._block_grid[x][0].is_walkable:
                 return x, 0
         for y in range(self._grid_size):
-            if self._block_grid[0][y].is_walkable():
+            if self._block_grid[0][y].is_walkable:
                 return 0, y
 
-    def get_block(self, grid_position: GridVector) -> IBlock:
+    def get_block(self, grid_position: GridVector) -> Block:
         return self._block_grid[grid_position[0]][grid_position[1]]
 
     def get_neighbors(self, grid_position: GridVector) -> List[GridVector]:
@@ -58,7 +64,7 @@ class Grid:
             neighbor_position = _add_grid_vectors(grid_position, direction)
             if (
                 self._is_in_grid(neighbor_position)
-                and self.get_block(neighbor_position).is_walkable()
+                and self.get_block(neighbor_position).is_walkable
             ):
                 neighbors.append(neighbor_position)
         return neighbors
@@ -72,9 +78,8 @@ class Grid:
         return 0 <= x < len(self._block_grid) and 0 <= y < len(self._block_grid[0])
 
     @staticmethod
-    def _build_block(block_number: int) -> IBlock:
-        block_type = BLOCK_MAPPING[block_number]
-        return block_type()
+    def _build_block(block_number: int) -> Block:
+        return BLOCK_MAPPING[block_number]
 
     @classmethod
     def _fill_grid(cls, grid_values: List[int]) -> "Grid":

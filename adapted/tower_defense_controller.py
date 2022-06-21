@@ -2,6 +2,7 @@ from typing import Optional, List, Tuple, Iterable
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
 from adapted.abstract_tower_factory import ITowerFactory
+from adapted.block import Block
 from adapted.entities.entities import Entities
 from adapted.entities.entity import IEntity
 from adapted.entities.monster import IMonster
@@ -24,22 +25,23 @@ class TowerDefenseController(AbstractTowerDefenseController):
     ):
         self.player = player
         self.grid = grid
-        self.path = extract_path(grid)
         self.entities = entities
         self.wave_generator = wave_generator
+        self._path = extract_path(grid)
         self._selected_tower_position: Optional[Tuple[int, int]] = None
         self._selected_tower_factory: Optional[ITowerFactory] = None
 
-    def is_constructible(self, world_position: Tuple[float, float]) -> bool:
-        return self.grid.is_constructible(self.grid.get_block_position(world_position))
-
-    def is_walkable(self, world_position: Tuple[float, float]) -> bool:
-        return self.grid.is_walkable(self.grid.get_block_position(world_position))
-
-    def get_block_position(
+    def get_block(
         self, world_position: Tuple[float, float]
-    ) -> Tuple[int, int]:
-        return self.grid.get_block_position(world_position)
+    ) -> Tuple[Tuple[int, int], Block]:
+        block_position = self.grid.get_block_position(world_position)
+        return block_position, self.grid.get_block(block_position)
+
+    def iter_blocks(self) -> Iterable[Tuple[Tuple[int, int], Block]]:
+        return iter(self.grid)
+
+    def map_size(self) -> int:
+        return self.grid.size
 
     def can_start_spawning_monsters(self) -> bool:
         return (
@@ -60,7 +62,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
         monster_factory = MONSTER_MAPPING[monster_type_id]
         monster = monster_factory(
             self.player,
-            self.path,
+            self._path,
         )
         self.entities.monsters.add(monster)
 
@@ -78,13 +80,13 @@ class TowerDefenseController(AbstractTowerDefenseController):
         return True
 
     def try_build_tower(self, world_position: Tuple[float, float]) -> bool:
+        block_position, block = self.get_block(world_position)
         if (
             self._selected_tower_factory is None
-            or not self.is_constructible(world_position)
+            or not block.is_constructible
             or self.player.money < self._selected_tower_factory.get_cost()
         ):
             return False
-        block_position = self.get_block_position(world_position)
         if self.entities.towers.get(block_position) is not None:
             return False
         tower = self._selected_tower_factory.build_tower(*block_position, self.entities)

@@ -16,12 +16,11 @@ class View(GameObject):
         self,
         controller: AbstractTowerDefenseController,
         frame: tk.Frame,
-        grid: tk.Grid,
     ):
         self.controller = controller
         self.info_board = InfoBoard(controller, frame)
         self.tower_box = TowerBox(controller, frame)
-        self.map_object = Map(grid, controller, frame)
+        self.map_object = Map(controller, frame)
         self.display_board = DisplayBoard(controller, frame)
         self.game_objects: List[GameObject] = []
 

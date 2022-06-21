@@ -17,9 +17,8 @@ class TowerDefenseGame(Game):
         self.controller = TowerDefenseController(
             Player(), grid, Entities(), wave_generator
         )
-        # TODO: Only use the controller instead of the grid to initialize the Map
         # TODO: Only use tkinter in the view module
-        self.view = View(self.controller, self.frame, grid)
+        self.view = View(self.controller, self.frame)
         self.view.initialize()
 
     def _init_mouse(self) -> "Mouse":

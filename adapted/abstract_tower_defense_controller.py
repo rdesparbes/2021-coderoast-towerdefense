@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, List, Tuple, Iterable
 
 from adapted.abstract_tower_factory import ITowerFactory
+from adapted.block import Block
 from adapted.entities.entity import IEntity
 from adapted.entities.monster import IMonster
 from adapted.entities.tower import ITower
@@ -12,17 +13,17 @@ class AbstractTowerDefenseController(ABC):
     player: Player
 
     @abstractmethod
-    def is_constructible(self, world_position: Tuple[float, float]) -> bool:
-        ...
-
-    @abstractmethod
-    def is_walkable(self, world_position: Tuple[float, float]) -> bool:
-        ...
-
-    @abstractmethod
-    def get_block_position(
+    def get_block(
         self, world_position: Tuple[float, float]
-    ) -> Tuple[int, int]:
+    ) -> Tuple[Tuple[int, int], Block]:
+        ...
+
+    @abstractmethod
+    def iter_blocks(self) -> Iterable[Tuple[Tuple[int, int], Block]]:
+        ...
+
+    @abstractmethod
+    def map_size(self) -> int:
         ...
 
     @abstractmethod

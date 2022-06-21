@@ -1,18 +1,22 @@
 import math
 import tkinter as tk
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Iterable
 
 from PIL import ImageTk, Image
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
-from adapted.blocks import BLOCK_MAPPING
+from adapted.block import Block
 from adapted.entities.entity import IEntity
 from adapted.entities.monster import IMonster
 from adapted.game import GameObject
-from adapted.grid import Grid
 from adapted.view.image_cache import ImageCache
 
-BlockImages = Dict[str, Image.Image]
+BlockImages = Dict[Block, Image.Image]
+MAPPING: Dict[Block, str] = {
+    Block(is_constructible=True, is_walkable=False): "NormalBlock",
+    Block(is_constructible=False, is_walkable=True): "PathBlock",
+    Block(is_constructible=False, is_walkable=False): "WaterBlock",
+}
 
 
 def _compute_block_size(block_images: BlockImages) -> int:
@@ -33,35 +37,34 @@ def _compute_block_size(block_images: BlockImages) -> int:
     return block_size
 
 
-def _paint_background(grid: Grid, images: BlockImages, map_size: int) -> Image.Image:
+def _paint_background(
+    blocks: Iterable[Tuple[Tuple[int, int], Block]], images: BlockImages, map_size: int
+) -> Image.Image:
     drawn_map = Image.new("RGBA", (map_size, map_size), (255, 255, 255, 255))
-    for (x, y), block in grid:
-        image = images[block.__class__.__name__]
+    for (x, y), block in blocks:
+        image = images[block]
         offset = (x * image.width, y * image.height)
         drawn_map.paste(image, offset)
     return drawn_map
 
 
 def _load_block_images() -> BlockImages:
-    block_images = {}
-    for block_type in BLOCK_MAPPING:
-        image = Image.open(f"images/blockImages/{block_type.__name__}.png")
-        block_images[block_type.__name__] = image
-    return block_images
+    return {
+        block: Image.open(f"images/blockImages/{block_name}.png")
+        for block, block_name in MAPPING.items()
+    }
 
 
 class Map(GameObject):
     def __init__(
         self,
-        grid: Grid,
         controller: AbstractTowerDefenseController,
         master_frame: tk.Frame,
     ):
         block_images = _load_block_images()
         self.block_size = _compute_block_size(block_images)
-        self.grid = grid
-        map_size = self.block_size * grid.size
-        drawn_map = _paint_background(grid, block_images, map_size)
+        map_size = self.block_size * controller.map_size()
+        drawn_map = _paint_background(controller.iter_blocks(), block_images, map_size)
         self.image: ImageTk.PhotoImage = ImageTk.PhotoImage(image=drawn_map)
         self.image_cache = ImageCache()
         self.controller = controller

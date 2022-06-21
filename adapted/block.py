@@ -1,11 +1,6 @@
-from abc import ABC, abstractmethod
+from typing import NamedTuple
 
 
-class IBlock(ABC):
-    @abstractmethod
-    def is_constructible(self) -> bool:
-        ...
-
-    @abstractmethod
-    def is_walkable(self) -> bool:
-        ...
+class Block(NamedTuple):
+    is_constructible: bool
+    is_walkable: bool

@@ -41,12 +41,12 @@ def has_arrived(path, distance: float) -> bool:
 def _build_graph(grid: Grid) -> Dict[GridPosition, Set[GridPosition]]:
     graph = {}
     for position, block in grid:
-        if not block.is_walkable():
+        if not block.is_walkable:
             continue
         graph[position] = set()
         for neighbor_position in grid.get_neighbors(position):
             neighbor_block = grid.get_block(neighbor_position)
-            if neighbor_block.is_walkable():
+            if neighbor_block.is_walkable:
                 graph[position].add(neighbor_position)
     return graph
 
