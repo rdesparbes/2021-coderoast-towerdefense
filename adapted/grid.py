@@ -32,12 +32,14 @@ class Grid:
         return cls._fill_grid(grid_values)
 
     @staticmethod
-    def get_block_position(position: GridVector) -> Tuple[int, int]:
-        return int(position[0]), int(position[1])
+    def get_block_position(world_position: Tuple[float, float]) -> Tuple[int, int]:
+        return int(world_position[0]), int(world_position[1])
 
-    def is_constructible(self, position: GridVector) -> bool:
-        grid_position = self.get_block_position(position)
+    def is_constructible(self, grid_position: GridVector) -> bool:
         return self.get_block(grid_position).is_constructible()
+
+    def is_walkable(self, grid_position: GridVector) -> bool:
+        return self.get_block(grid_position).is_walkable()
 
     def find_spawn(self) -> GridVector:
         for x in range(self._grid_size):

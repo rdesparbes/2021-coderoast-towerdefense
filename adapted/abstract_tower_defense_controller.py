@@ -12,6 +12,20 @@ class AbstractTowerDefenseController(ABC):
     player: Player
 
     @abstractmethod
+    def is_constructible(self, world_position: Tuple[float, float]) -> bool:
+        ...
+
+    @abstractmethod
+    def is_walkable(self, world_position: Tuple[float, float]) -> bool:
+        ...
+
+    @abstractmethod
+    def get_block_position(
+        self, world_position: Tuple[float, float]
+    ) -> Tuple[int, int]:
+        ...
+
+    @abstractmethod
     def can_start_spawning_monsters(self) -> bool:
         ...
 

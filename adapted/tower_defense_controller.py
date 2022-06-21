@@ -30,6 +30,17 @@ class TowerDefenseController(AbstractTowerDefenseController):
         self._selected_tower_position: Optional[Tuple[int, int]] = None
         self._selected_tower_factory: Optional[ITowerFactory] = None
 
+    def is_constructible(self, world_position: Tuple[float, float]) -> bool:
+        return self.grid.is_constructible(self.grid.get_block_position(world_position))
+
+    def is_walkable(self, world_position: Tuple[float, float]) -> bool:
+        return self.grid.is_walkable(self.grid.get_block_position(world_position))
+
+    def get_block_position(
+        self, world_position: Tuple[float, float]
+    ) -> Tuple[int, int]:
+        return self.grid.get_block_position(world_position)
+
     def can_start_spawning_monsters(self) -> bool:
         return (
             self.wave_generator.can_start_spawning()
@@ -66,14 +77,14 @@ class TowerDefenseController(AbstractTowerDefenseController):
         self._selected_tower_position = tower.get_position()
         return True
 
-    def try_build_tower(self, position: Tuple[int, int]) -> bool:
+    def try_build_tower(self, world_position: Tuple[float, float]) -> bool:
         if (
             self._selected_tower_factory is None
-            or not self.grid.is_constructible(position)
+            or not self.is_constructible(world_position)
             or self.player.money < self._selected_tower_factory.get_cost()
         ):
             return False
-        block_position = self.grid.get_block_position(position)
+        block_position = self.get_block_position(world_position)
         if self.entities.towers.get(block_position) is not None:
             return False
         tower = self._selected_tower_factory.build_tower(*block_position, self.entities)
