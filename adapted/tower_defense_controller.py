@@ -7,6 +7,7 @@ from adapted.entities.entities import Entities
 from adapted.entities.entity import IEntity
 from adapted.entities.monster import IMonster
 from adapted.entities.monsters import MONSTER_MAPPING
+from adapted.entities.targeting_strategies import TargetingStrategy
 from adapted.entities.tower import ITower
 from adapted.entities.towers import TOWER_MAPPING
 from adapted.grid import Grid
@@ -28,8 +29,6 @@ class TowerDefenseController(AbstractTowerDefenseController):
         self.player = player or Player()
         self.entities = entities or Entities()
         self._path = extract_path(grid)
-        self._selected_tower_position: Optional[Tuple[int, int]] = None
-        self._selected_tower_factory: Optional[ITowerFactory] = None
 
     def get_player_health(self) -> int:
         return self.player.health
@@ -42,6 +41,12 @@ class TowerDefenseController(AbstractTowerDefenseController):
     ) -> Tuple[Tuple[int, int], Block]:
         block_position = self.grid.get_block_position(world_position)
         return block_position, self.grid.get_block(block_position)
+
+    def get_tower(self, tower_position: Tuple[int, int]) -> Optional[ITower]:
+        return self.entities.towers.get(tower_position)
+
+    def get_tower_factory(self, tower_type_name: str) -> Optional[ITowerFactory]:
+        return TOWER_MAPPING.get(tower_type_name)
 
     def iter_blocks(self) -> Iterable[Tuple[Tuple[int, int], Block]]:
         return iter(self.grid)
@@ -72,58 +77,33 @@ class TowerDefenseController(AbstractTowerDefenseController):
         )
         self.entities.monsters.add(monster)
 
-    def get_selected_tower(self) -> Optional[ITower]:
-        return self.entities.towers.get(self._selected_tower_position)
-
-    def try_select_tower(self, world_position: Tuple[float, float]) -> bool:
-        if self._selected_tower_factory is not None:
-            return False
-        block_position = self.grid.get_block_position(world_position)
-        tower: Optional[ITower] = self.entities.towers.get(block_position)
-        if tower is None:
-            return False
-        self._selected_tower_position = tower.get_position()
-        return True
-
-    def try_build_tower(self, world_position: Tuple[float, float]) -> bool:
+    def try_build_tower(
+        self, tower_factory: ITowerFactory, world_position: Tuple[float, float]
+    ) -> bool:
         block_position, block = self.get_block(world_position)
         if (
-            self._selected_tower_factory is None
-            or not block.is_constructible
-            or self.player.money < self._selected_tower_factory.get_cost()
+            not block.is_constructible
+            or self.player.money < tower_factory.get_cost()
+            or self.entities.towers.get(block_position) is not None
         ):
             return False
-        if self.entities.towers.get(block_position) is not None:
-            return False
-        tower = self._selected_tower_factory.build_tower(*block_position, self.entities)
+        tower = tower_factory.build_tower(*block_position, self.entities)
         self.entities.towers[block_position] = tower
         self.player.money -= tower.get_cost()
         return True
 
-    def upgrade_selected_tower(self) -> None:
-        tower = self.get_selected_tower()
-        if tower is None:
+    def upgrade_tower(self, tower_position: Tuple[int, int]) -> None:
+        tower = self.entities.towers[tower_position]
+        if self.get_player_money() < tower.get_upgrade_cost():
             return
-        if self.get_player_money() >= tower.get_upgrade_cost():
-            self.player.money -= tower.get_upgrade_cost()
-            tower.upgrade()
+        self.player.money -= tower.get_upgrade_cost()
+        tower.upgrade()
 
-    def sell_selected_tower(self) -> None:
-        tower_position = self._selected_tower_position
-        if tower_position is None:
-            return
-        del self.entities.towers[tower_position]
-        self._selected_tower_position = None
+    def sell_tower(self, tower_position: Tuple[int, int]) -> None:
+        self.entities.towers.pop(tower_position, None)
 
     def get_tower_factory_names(self) -> List[str]:
         return list(TOWER_MAPPING)
-
-    def select_tower_factory(self, tower_type_name: str) -> None:
-        self._selected_tower_factory = TOWER_MAPPING.get(tower_type_name)
-        self._selected_tower_position = None
-
-    def get_selected_tower_factory(self) -> Optional[ITowerFactory]:
-        return self._selected_tower_factory
 
     def update(self) -> None:
         self._try_spawn_monster()
@@ -137,3 +117,8 @@ class TowerDefenseController(AbstractTowerDefenseController):
 
     def iter_projectiles(self) -> Iterable[IEntity]:
         return iter(self.entities.projectiles)
+
+    def get_targeting_strategy(
+        self, tower_position: Tuple[int, int]
+    ) -> TargetingStrategy:
+        return self.get_tower(tower_position).targeting_strategy

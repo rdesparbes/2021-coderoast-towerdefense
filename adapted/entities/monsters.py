@@ -110,6 +110,7 @@ def monster_factory(stats: MonsterStats) -> MonsterInitializer:
     return _factory
 
 
+# TODO: Create a dataclass to make this mapping customizable in main
 MONSTER_MAPPING: List[MonsterInitializer] = [
     monster_factory(
         MonsterStats(

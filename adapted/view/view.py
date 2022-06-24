@@ -3,12 +3,13 @@ from dataclasses import dataclass
 from typing import Optional, List
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
-from adapted.view.game_object import GameObject
 from adapted.view.display_board import DisplayBoard
+from adapted.view.game_object import GameObject
 from adapted.view.info_board import InfoBoard
 from adapted.view.map import Map
-from adapted.view.tower_box import TowerBox
 from adapted.view.mouse import Mouse
+from adapted.view.selection import Selection
+from adapted.view.tower_box import TowerBox
 
 
 @dataclass
@@ -28,9 +29,10 @@ class View(GameObject):
         self.frame = tk.Frame(master=self.root)
         self.frame.grid(row=0, column=0)
         self.controller = controller
-        self.info_board = InfoBoard(controller, self.frame)
-        self.tower_box = TowerBox(controller, self.frame)
-        self.map_object = Map(controller, self.frame)
+        self.selection = Selection()
+        self.info_board = InfoBoard(controller, self.frame, self.selection)
+        self.tower_box = TowerBox(controller, self.frame, self.selection)
+        self.map_object = Map(controller, self.frame, self.selection)
         self.display_board = DisplayBoard(controller, self.frame)
         self.mouse = Mouse(self.controller)
         self.mouse.register_widget(self.map_object)

@@ -2,6 +2,7 @@ import tkinter as tk
 from typing import Optional, Tuple
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
+from adapted.view.action import Action
 from adapted.view.game_object import GameObject
 from adapted.view.button import Button
 from adapted.view.mousewidget import MouseWidget
@@ -17,7 +18,13 @@ class DisplayBoard(MouseWidget, GameObject):
         self.canvas.grid(row=2, column=0)
         self.health_bar = HealthBar(controller)
         self.money_bar = MoneyBar(controller)
-        self.next_wave_button = NextWaveButton(450, 25, 550, 50, controller)
+        self.next_wave_button = NextWaveButton(
+            450,
+            25,
+            550,
+            50,
+            NextWaveAction(controller),
+        )
 
     def click_at(self, position: Tuple[int, int]):
         self.next_wave_button.press(*position)
@@ -65,18 +72,26 @@ class MoneyBar:
         )
 
 
-class NextWaveButton(Button):
-    def pressed(self) -> None:
-        if not self.controller.can_start_spawning_monsters():
+class NextWaveAction(Action):
+    def __init__(self, controller: AbstractTowerDefenseController):
+        self.controller = controller
+
+    def active(self) -> bool:
+        return not self.controller.can_start_spawning_monsters()
+
+    def start(self) -> None:
+        if self.active():
             return
         self.controller.start_spawning_monsters()
 
+
+class NextWaveButton(Button):
     def paint(self, canvas: tk.Canvas):
-        if self.controller.can_start_spawning_monsters():
-            color = "blue"
-        else:
+        if self.action.active():
             color = "red"
+        else:
+            color = "blue"
         canvas.create_rectangle(
             self.x_min, self.y_min, self.x_max, self.y_max, fill=color, outline=color
-        )  # draws a rectangle where the pointer is
+        )
         canvas.create_text(500, 37, text="Next Wave")

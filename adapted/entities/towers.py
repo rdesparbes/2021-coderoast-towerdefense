@@ -208,6 +208,7 @@ class TowerFactory(ITowerFactory):
         )
 
 
+# TODO: Create a dataclass to make this mapping customizable in main
 TOWER_MAPPING: Dict[str, ITowerFactory] = {
     tower_factory.get_name(): tower_factory
     for tower_factory in (

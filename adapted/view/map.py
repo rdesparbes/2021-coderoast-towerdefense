@@ -11,6 +11,7 @@ from adapted.entities.monster import IMonster
 from adapted.view.game_object import GameObject
 from adapted.view.image_cache import ImageCache
 from adapted.view.mousewidget import MouseWidget
+from adapted.view.selection import Selection
 
 BlockImages = Dict[Block, Image.Image]
 MAPPING: Dict[Block, str] = {
@@ -61,6 +62,7 @@ class Map(MouseWidget, GameObject):
         self,
         controller: AbstractTowerDefenseController,
         master_frame: tk.Frame,
+        selection: Selection,
     ):
         block_images = _load_block_images()
         self.block_size = _compute_block_size(block_images)
@@ -86,12 +88,29 @@ class Map(MouseWidget, GameObject):
             Image.open("images/mouseImages/HoveringCanNotPress.png")
         )
         self.canvas.grid(row=0, column=0, rowspan=2, columnspan=1)
+        self.selection = selection
+
+    def _try_build_tower(self, world_position: Tuple[float, float]) -> bool:
+        if self.selection.tower_factory is None:
+            return False
+        return self.controller.try_build_tower(
+            self.selection.tower_factory, world_position
+        )
+
+    def _try_select_tower(self, world_position: Tuple[float, float]) -> None:
+        if self.selection.tower_factory is not None:
+            return
+        block_position, _ = self.controller.get_block(world_position)
+        tower = self.controller.get_tower(block_position)
+        if tower is None:
+            return
+        self.selection.tower_position = tower.get_position()
 
     def click_at(self, position: Tuple[int, int]) -> None:
         world_position = self.pixel_to_position(position)
-        if self.controller.try_build_tower(world_position):
+        if self._try_build_tower(world_position):
             return
-        self.controller.try_select_tower(world_position)
+        self._try_select_tower(world_position)
 
     def paint_at(self, position: Tuple[int, int], press: bool) -> None:
         world_position = self.pixel_to_position(position)
@@ -135,7 +154,9 @@ class Map(MouseWidget, GameObject):
         self.canvas.create_image(x, y, image=tk_image, anchor=tk.CENTER)
 
     def _paint_selected_tower_range(self):
-        tower = self.controller.get_selected_tower()
+        if self.selection.tower_position is None:
+            return
+        tower = self.controller.get_tower(self.selection.tower_position)
         if tower is None:
             return
         x, y = self.position_to_pixel(tower.get_position())

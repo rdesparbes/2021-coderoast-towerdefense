@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
+from adapted.view.action import Action
 
 
 class Button:
@@ -10,27 +10,30 @@ class Button:
         y_min: int,
         x_max: int,
         y_max: int,
-        controller: AbstractTowerDefenseController,
+        action: Action,
     ):
         self.x_min = x_min
         self.y_min = y_min
         self.x_max = x_max
         self.y_max = y_max
-        self.controller = controller
+        self.action = action
 
     def is_within_bounds(self, x: int, y: int) -> bool:
         return self.x_min <= x <= self.x_max and self.y_min <= y <= self.y_max
 
     def press(self, x, y) -> bool:
         if self.is_within_bounds(x, y):
-            self.pressed()
+            self.action.start()
             return True
         return False
 
-    def pressed(self) -> None:
-        pass
-
     def paint(self, canvas: tk.Canvas):
-        canvas.create_rectangle(
-            self.x_min, self.y_min, self.x_max, self.y_max, fill="red", outline="black"
-        )
+        if self.action.active():
+            canvas.create_rectangle(
+                self.x_min,
+                self.y_min,
+                self.x_max,
+                self.y_max,
+                fill="red",
+                outline="black",
+            )
