@@ -8,6 +8,15 @@ class ITower(IEntity, ABC):
     targeting_strategy: TargetingStrategy
     sticky_target: bool
 
+    @staticmethod
+    @abstractmethod
+    def get_name() -> str:
+        ...
+
+    @abstractmethod
+    def get_cost(self) -> int:
+        ...
+
     @abstractmethod
     def get_level(self) -> int:
         ...
@@ -21,14 +30,5 @@ class ITower(IEntity, ABC):
         ...
 
     @abstractmethod
-    def get_cost(self) -> int:
-        ...
-
-    @abstractmethod
     def upgrade(self) -> None:
-        ...
-
-    @staticmethod
-    @abstractmethod
-    def get_name() -> str:
         ...

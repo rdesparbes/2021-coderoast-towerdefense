@@ -14,9 +14,9 @@ class ITowerFactory(ABC):
         ...
 
     @abstractmethod
-    def build_tower(self, x, y, entities: Entities) -> ITower:
+    def get_model_name(self) -> str:
         ...
 
     @abstractmethod
-    def get_model_name(self) -> str:
+    def build_tower(self, x, y, entities: Entities) -> ITower:
         ...
