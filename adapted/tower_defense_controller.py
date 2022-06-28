@@ -12,7 +12,6 @@ from adapted.entities.tower import ITower
 from adapted.entities.towers import TOWER_MAPPING
 from adapted.grid import Grid
 from adapted.path import extract_path
-from adapted.player import Player
 from adapted.wave_generator import WaveGenerator
 
 
@@ -21,20 +20,18 @@ class TowerDefenseController(AbstractTowerDefenseController):
         self,
         grid: Grid,
         wave_generator: WaveGenerator,
-        player: Optional[Player] = None,
         entities: Optional[Entities] = None,
     ):
         self.grid = grid
         self.wave_generator = wave_generator
-        self.player = player or Player()
         self.entities = entities or Entities()
         self._path = extract_path(grid)
 
     def get_player_health(self) -> int:
-        return self.player.health
+        return self.entities.player.health
 
     def get_player_money(self) -> int:
-        return self.player.money
+        return self.entities.player.money
 
     def get_block(
         self, world_position: Tuple[float, float]
@@ -72,7 +69,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
             return None
         monster_factory = MONSTER_MAPPING[monster_type_id]
         monster = monster_factory(
-            self.player,
+            self.entities.player,
             self._path,
         )
         self.entities.monsters.add(monster)
@@ -83,20 +80,20 @@ class TowerDefenseController(AbstractTowerDefenseController):
         block_position, block = self.get_block(world_position)
         if (
             not block.is_constructible
-            or self.player.money < tower_factory.get_cost()
+            or self.entities.player.money < tower_factory.get_cost()
             or self.entities.towers.get(block_position) is not None
         ):
             return False
         tower = tower_factory.build_tower(*block_position, self.entities)
         self.entities.towers[block_position] = tower
-        self.player.money -= tower.get_cost()
+        self.entities.player.money -= tower.get_cost()
         return True
 
     def upgrade_tower(self, tower_position: Tuple[int, int]) -> None:
         tower = self.entities.towers[tower_position]
         if self.get_player_money() < tower.get_upgrade_cost():
             return
-        self.player.money -= tower.get_upgrade_cost()
+        self.entities.player.money -= tower.get_upgrade_cost()
         tower.upgrade()
 
     def sell_tower(self, tower_position: Tuple[int, int]) -> None:
