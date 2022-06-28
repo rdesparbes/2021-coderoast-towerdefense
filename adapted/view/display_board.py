@@ -6,6 +6,7 @@ from adapted.view.action import Action
 from adapted.view.game_object import GameObject
 from adapted.view.button import Button
 from adapted.view.mousewidget import MouseWidget
+from adapted.view.rectangle import Rectangle
 
 
 class DisplayBoard(MouseWidget, GameObject):
@@ -19,10 +20,12 @@ class DisplayBoard(MouseWidget, GameObject):
         self.health_bar = HealthBar(controller)
         self.money_bar = MoneyBar(controller)
         self.next_wave_button = NextWaveButton(
-            450,
-            25,
-            550,
-            50,
+            Rectangle(
+                450,
+                25,
+                550,
+                50,
+            ),
             NextWaveAction(controller),
         )
 
@@ -91,7 +94,5 @@ class NextWaveButton(Button):
             color = "red"
         else:
             color = "blue"
-        canvas.create_rectangle(
-            self.x_min, self.y_min, self.x_max, self.y_max, fill=color, outline=color
-        )
+        canvas.create_rectangle(*self.rectangle, fill=color, outline=color)
         canvas.create_text(500, 37, text="Next Wave")

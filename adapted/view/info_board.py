@@ -10,6 +10,7 @@ from adapted.view.button import Button
 from adapted.view.game_object import GameObject
 from adapted.view.image_cache import ImageCache
 from adapted.view.mousewidget import MouseWidget
+from adapted.view.rectangle import Rectangle
 from adapted.view.selection import Selection
 from adapted.view.tower_actions import (
     SetTargetingStrategyAction,
@@ -53,7 +54,10 @@ class InfoBoard(MouseWidget, GameObject):
             self.controller, tower_position, targeting_strategy
         )
         return Button(
-            button_x, button_y, button_x + button_size, button_y + button_size, action
+            Rectangle(
+                button_x, button_y, button_x + button_size, button_y + button_size
+            ),
+            action,
         )
 
     def _create_target_strategy_text(self, position, text):
@@ -77,18 +81,16 @@ class InfoBoard(MouseWidget, GameObject):
             80, 75, text=selected_tower.get_name(), font=("times", 20)
         )
         self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
-        for position, text, sorting_key, reverse in zip(
+        for position, text, targeting_strategy in zip(
             [(26, 28), (26, 48), (92, 48), (92, 28)],
             ["> Health", "< Health", "> Distance", "< Distance"],
             [
-                SortingParam.HEALTH,
-                SortingParam.HEALTH,
-                SortingParam.DISTANCE,
-                SortingParam.DISTANCE,
+                TargetingStrategy(SortingParam.HEALTH, True),
+                TargetingStrategy(SortingParam.HEALTH, False),
+                TargetingStrategy(SortingParam.DISTANCE, True),
+                TargetingStrategy(SortingParam.DISTANCE, False),
             ],
-            [True, False, True, False],
         ):
-            targeting_strategy = TargetingStrategy(sorting_key, reverse)
             button = self._create_target_strategy_button(
                 position, tower_position, targeting_strategy
             )
@@ -98,14 +100,17 @@ class InfoBoard(MouseWidget, GameObject):
                 button.paint(self.canvas)
 
         sticky_button = Button(
-            10, 40, 19, 49, ToggleStickyTargetAction(self.controller, tower_position)
+            Rectangle(10, 40, 19, 49),
+            ToggleStickyTargetAction(self.controller, tower_position),
         )
         if selected_tower.sticky_target:
             sticky_button.paint(self.canvas)
         self.current_buttons.append(sticky_button)
 
         self.current_buttons.append(
-            Button(5, 145, 78, 168, SellAction(self.controller, tower_position))
+            Button(
+                Rectangle(5, 145, 78, 168), SellAction(self.controller, tower_position)
+            )
         )
         self.canvas.create_text(
             28,
@@ -120,10 +125,12 @@ class InfoBoard(MouseWidget, GameObject):
         if upgrade_cost is not None:
             self.current_buttons.append(
                 Button(
-                    82,
-                    145,
-                    155,
-                    168,
+                    Rectangle(
+                        82,
+                        145,
+                        155,
+                        168,
+                    ),
                     UpgradeAction(self.controller, tower_position),
                 )
             )
