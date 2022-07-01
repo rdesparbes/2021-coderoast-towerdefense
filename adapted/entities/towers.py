@@ -2,20 +2,20 @@ import math
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Dict, Type, Optional, List, Tuple
+from typing import Dict, Type, Optional, List, Tuple, Iterable
 
 from adapted.abstract_tower_factory import ITowerFactory
 from adapted.entities.count_down import CountDown
-from adapted.entities.entities import Entities
 from adapted.entities.entity import distance
 from adapted.entities.monster import IMonster
+from adapted.entities.projectile import IProjectile
 from adapted.entities.projectile_strategies import (
-    TrackingMovementStrategy,
-    NearEnoughHitStrategy,
-    ConstantAngleMovementStrategy,
-    TrackingHitStrategy,
-    IMovementStrategy,
-    IHitStrategy,
+    tracking_movement_strategy,
+    constant_angle_movement_strategy,
+    tracking_hit_strategy,
+    near_enough_hit_strategy,
+    MovementStrategy,
+    HitStrategy,
 )
 from adapted.entities.projectiles import Projectile
 from adapted.entities.stats import TowerStats, ProjectileStats, upgrade_stats
@@ -33,12 +33,11 @@ class Tower(ITower, ABC):
         name: str,
         projectile_name: str,
         model_name: str,
-        movement_strategy: IMovementStrategy,
-        hit_strategy: IHitStrategy,
+        movement_strategy: MovementStrategy,
+        hit_strategy: HitStrategy,
         targeting_strategy: TargetingStrategy,
         x: float,
         y: float,
-        entities: Entities,
         stats: TowerStats,
         upgrades: List[TowerStats] = None,
     ):
@@ -53,11 +52,9 @@ class Tower(ITower, ABC):
         self.level = 1
         self.x = x
         self.y = y
-        self.entities = entities
         self.countdown = CountDown()
         self.target: Optional[IMonster] = None
         self.sticky_target = False
-        self._to_remove = False
         self._projectiles_to_shoot = set()
 
     def get_level(self) -> int:
@@ -74,12 +71,6 @@ class Tower(ITower, ABC):
 
     def get_model_name(self) -> str:
         return self.model_name
-
-    def set_inactive(self) -> None:
-        self._to_remove = True
-
-    def is_inactive(self) -> bool:
-        return self._to_remove
 
     def get_children(self):
         projectiles = self._projectiles_to_shoot
@@ -109,27 +100,28 @@ class Tower(ITower, ABC):
     def _monster_is_close_enough(self, monster: IMonster) -> bool:
         return distance(self, monster) <= self.stats.projectile_stats.range
 
-    def _select_target(self) -> None:
-        for monster in query_monsters(self.entities.monsters, self.targeting_strategy):
-            if self._monster_is_close_enough(monster):
+    def select_target(self, monsters: Iterable[IMonster]):
+        if self._is_valid_target(self.target) and self.sticky_target:
+            return
+        for monster in query_monsters(monsters, self.targeting_strategy):
+            if self._is_valid_target(monster):
                 self.target = monster
+                return
+        self.target = None
 
-    def prepare_shot(self) -> None:
-        if not self.sticky_target:
-            self._select_target()
-        if self.target:
-            if self.target.alive and self._monster_is_close_enough(self.target):
-                if self.countdown.ended():
-                    self._shoot()
-                    self.countdown.start(self.stats.shots_per_second)
-            else:
-                self.target = None
-        elif self.sticky_target:
-            self._select_target()
+    def _is_valid_target(self, monster: Optional[IMonster]) -> bool:
+        return (
+            monster is not None
+            and self._monster_is_close_enough(monster)
+            and monster.alive
+        )
 
-    def update(self) -> None:
-        self.prepare_shot()
+    def shoot(self) -> Iterable[IProjectile]:
         self.countdown.update()
+        if self._is_valid_target(self.target) and self.countdown.ended():
+            self.countdown.start(1 / self.stats.shots_per_second)
+            return self._shoot()
+        return []
 
     def get_name(self) -> str:
         return self.name
@@ -141,17 +133,15 @@ class Tower(ITower, ABC):
     def _shoot(self):
         for projectile_index in range(self.stats.projectile_count):
             angle = self._compute_angle(projectile_index)
-            self._projectiles_to_shoot.add(
-                Projectile(
-                    self.projectile_name,
-                    self.x,
-                    self.y,
-                    angle,
-                    self.stats.projectile_stats,
-                    self.target,
-                    self.movement_strategy,
-                    self.hit_strategy,
-                )
+            yield Projectile(
+                self.projectile_name,
+                self.x,
+                self.y,
+                angle,
+                self.stats.projectile_stats,
+                self.target,
+                self.movement_strategy,
+                self.hit_strategy,
             )
 
 
@@ -176,8 +166,8 @@ class TowerFactory(ITowerFactory):
     tower_name: str
     projectile_name: str
     model_name: str
-    movement_strategy: IMovementStrategy
-    hit_strategy: IHitStrategy
+    movement_strategy: MovementStrategy
+    hit_strategy: HitStrategy
     tower_type: Type[Tower]
     tower_stats: TowerStats
     tower_upgrades: List[TowerStats] = field(default_factory=list)
@@ -191,8 +181,7 @@ class TowerFactory(ITowerFactory):
     def get_model_name(self) -> str:
         return self.model_name
 
-    def build_tower(self, x, y, entities: Entities) -> Tower:
-        self.hit_strategy.register_monsters(entities.monsters)
+    def build_tower(self, x, y) -> Tower:
         return self.tower_type(
             self.tower_name,
             self.projectile_name,
@@ -202,7 +191,6 @@ class TowerFactory(ITowerFactory):
             TargetingStrategy(SortingParam.HEALTH, reverse=True),
             x,
             y,
-            entities,
             deepcopy(self.tower_stats),
             self.tower_upgrades,
         )
@@ -216,8 +204,8 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
             "Arrow Shooter",
             "arrow",
             "ArrowShooterTower",
-            ConstantAngleMovementStrategy(),
-            NearEnoughHitStrategy(),
+            constant_angle_movement_strategy,
+            near_enough_hit_strategy,
             ArrowShooterTower,
             TowerStats(
                 shots_per_second=1,
@@ -247,8 +235,8 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
             "Bullet Shooter",
             "bullet",
             "BulletShooterTower",
-            TrackingMovementStrategy(),
-            TrackingHitStrategy(),
+            tracking_movement_strategy,
+            tracking_hit_strategy,
             TargetingTower,
             TowerStats(
                 shots_per_second=4,
@@ -266,8 +254,8 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
             "Power Tower",
             "powerShot",
             "PowerTower",
-            TrackingMovementStrategy(),
-            TrackingHitStrategy(),
+            tracking_movement_strategy,
+            tracking_hit_strategy,
             TargetingTower,
             TowerStats(
                 shots_per_second=10,
@@ -287,8 +275,8 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
             "Tack Tower",
             "arrow",
             "TackTower",
-            ConstantAngleMovementStrategy(),
-            NearEnoughHitStrategy(),
+            constant_angle_movement_strategy,
+            near_enough_hit_strategy,
             TackTower,
             TowerStats(
                 shots_per_second=1,

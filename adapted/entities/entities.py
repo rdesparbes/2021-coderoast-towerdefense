@@ -1,66 +1,53 @@
 from dataclasses import dataclass, field
-from typing import Dict, Tuple, Set, Any
+from typing import Dict, Tuple, Set
 
-from adapted.entities.entity import IEntity
+from adapted.entities.monster import IMonster
+from adapted.entities.projectile import IProjectile
+from adapted.entities.tower import ITower
+from adapted.path import Path
 from adapted.player import Player
 from adapted.updatable_object import UpdatableObject
-from adapted.entities.monster import IMonster
-from adapted.entities.tower import ITower
-
-
-def _update_towers(towers: Dict[Any, ITower], projectiles: Set[IEntity]) -> None:
-    to_remove = set()
-    to_add = set()
-    for key, tower in towers.items():
-        tower.update()
-        if tower.is_inactive():
-            to_remove.add(key)
-        to_add.update(tower.get_children())
-    for key in to_remove:
-        del towers[key]
-    projectiles.update(to_add)
 
 
 @dataclass
 class Entities(UpdatableObject):
     player: Player = field(default_factory=Player)
-    projectiles: Set[IEntity] = field(default_factory=set)
+    path: Path = field(default_factory=list)
+    projectiles: Set[IProjectile] = field(default_factory=set)
     monsters: Set[IMonster] = field(default_factory=set)
     towers: Dict[Tuple[int, int], ITower] = field(default_factory=dict)
 
     def _update_projectiles(self) -> None:
         to_remove = set()
-        to_add = set()
-        for entity in self.projectiles:
-            entity.update()
-            if entity.is_inactive():
-                to_remove.add(entity)
-            to_add.update(entity.get_children())
+        for projectile in self.projectiles:
+            projectile.update_position()
+            if projectile.is_out_of_range():
+                to_remove.add(projectile)
+                continue
+            for monster in list(projectile.get_hit_monsters(self.monsters)):
+                monster.inflict_damage(projectile.get_damage())
+                effects = projectile.get_effects()
+                monster.apply_effects(effects)
+                to_remove.add(projectile)
+                if not monster.alive:
+                    self.monsters.remove(monster)
+                    self.player.money += monster.get_value()
+                    self.monsters.update(monster.get_children())
         self.projectiles.difference_update(to_remove)
-        self.projectiles.update(to_add)
 
     def _update_monsters(self) -> None:
         to_remove = set()
-        to_add = set()
-        for entity in self.monsters:
-            entity.update()
-            if entity.is_inactive():
-                to_remove.add(entity)
-            to_add.update(entity.get_children())
+        for monster in self.monsters:
+            monster.update_position(self.path)
+            if monster.has_arrived(self.path):
+                to_remove.add(monster)
+                self.player.health -= monster.get_damage()
         self.monsters.difference_update(to_remove)
-        self.monsters.update(to_add)
 
     def _update_towers(self) -> None:
-        to_remove = set()
-        to_add = set()
-        for key, tower in self.towers.items():
-            tower.update()
-            if tower.is_inactive():
-                to_remove.add(key)
-            to_add.update(tower.get_children())
-        for key in to_remove:
-            del self.towers[key]
-        self.projectiles.update(to_add)
+        for tower in self.towers.values():
+            tower.select_target(self.monsters)
+            self.projectiles.update(tower.shoot())
 
     def update(self) -> None:
         self._update_projectiles()

@@ -24,8 +24,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
     ):
         self.grid = grid
         self.wave_generator = wave_generator
-        self.entities = entities or Entities()
-        self._path = extract_path(grid)
+        self.entities = entities or Entities(path=extract_path(grid))
 
     def get_player_health(self) -> int:
         return self.entities.player.health
@@ -68,10 +67,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
         if monster_type_id is None:
             return None
         monster_factory = MONSTER_MAPPING[monster_type_id]
-        monster = monster_factory(
-            self.entities.player,
-            self._path,
-        )
+        monster = monster_factory()
         self.entities.monsters.add(monster)
 
     def try_build_tower(
@@ -84,7 +80,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
             or self.entities.towers.get(block_position) is not None
         ):
             return False
-        tower = tower_factory.build_tower(*block_position, self.entities)
+        tower = tower_factory.build_tower(*block_position)
         self.entities.towers[block_position] = tower
         self.entities.player.money -= tower.get_cost()
         return True

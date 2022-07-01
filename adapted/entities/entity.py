@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Set, Tuple
+from typing import Tuple
 
 from adapted.updatable_object import UpdatableObject
 
@@ -15,18 +15,6 @@ class IEntity(UpdatableObject, ABC):
 
     @abstractmethod
     def get_model_name(self) -> str:
-        ...
-
-    @abstractmethod
-    def get_children(self) -> Set["IEntity"]:
-        ...
-
-    @abstractmethod
-    def set_inactive(self) -> None:
-        ...
-
-    @abstractmethod
-    def is_inactive(self) -> bool:
         ...
 
 

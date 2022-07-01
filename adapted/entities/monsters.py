@@ -1,29 +1,42 @@
 import random
-from typing import List, Set, Tuple, Protocol, Callable
+from typing import List, Tuple, Protocol, Callable, Iterable
 
 from adapted.constants import FPS
 from adapted.entities.count_down import CountDown
+from adapted.entities.effects import Effect
 from adapted.entities.monster import IMonster
 from adapted.entities.monster_stats import MonsterStats
 from adapted.path import Path, has_arrived, compute_position
-from adapted.player import Player
 
 PositionGetter = Callable[[float], Tuple[float, float]]
 
 
 class Monster(IMonster):
-    def __init__(
-        self, stats: MonsterStats, player: Player, path: Path, distance: float = 0.0
-    ):
+    def __init__(self, stats: MonsterStats, distance: float = 0.0):
         self.stats = stats
         self.health_ = stats.max_health
         self.speed = stats.speed
-        self.player = player
-        self.path = path
         self.countdown = CountDown()
-        self.distance_travelled_ = max(distance, 0)
-        self.x, self.y = self.compute_position()
-        self._children = set()
+        self.distance_travelled_ = max(distance, 0.0)
+        self.x = 0
+        self.y = 0
+        self.effects = []
+
+    def get_value(self) -> int:
+        return self.stats.value
+
+    def update_position(self, path: Path) -> None:
+        self.distance_travelled_ += self.speed / FPS
+        self.x, self.y = compute_position(path, self.distance_travelled_)
+        self.countdown.update()
+        if self.countdown.ended():
+            self.speed = self.stats.speed
+
+    def has_arrived(self, path: Path) -> bool:
+        return has_arrived(path, self.distance_travelled_)
+
+    def get_damage(self) -> int:
+        return self.stats.damage
 
     def get_max_health(self) -> int:
         return self.stats.max_health
@@ -31,7 +44,7 @@ class Monster(IMonster):
     def inflict_damage(self, damage: int) -> None:
         self.health_ -= damage
 
-    def slow_down(self, slow_factor: float, duration: float) -> None:
+    def _slow_down(self, slow_factor: float, duration: float) -> None:
         if self.speed != self.stats.speed:
             return
         self.countdown.start(duration)
@@ -46,66 +59,33 @@ class Monster(IMonster):
     def get_model_name(self) -> str:
         return self.stats.name
 
-    def get_children(self) -> Set[IMonster]:
-        children = self._children
-        self._children = set()
-        return children
-
-    def is_inactive(self):
-        return not self.alive
-
-    def set_inactive(self) -> None:
-        self.health_ = 0
-
     @property
     def alive(self):
         return self.health_ > 0
 
-    def update(self) -> None:
-        if self.alive:
-            self.move()
-            self.countdown.update()
-        else:
-            self.killed()
+    def get_children(self) -> Iterable[IMonster]:
 
-    def compute_position(self):
-        if has_arrived(self.path, self.distance_travelled_):
-            self.got_through()
-        return compute_position(self.path, self.distance_travelled_)
-
-    def move(self):
-        self.distance_travelled_ += self.speed / FPS
-        self.x, self.y = self.compute_position()
-        if self.countdown.ended():
-            self.speed = self.stats.speed
-
-    def killed(self):
-        self.player.money += self.stats.value
-        for _ in range(self.stats.respawn_count):
-            factory = MONSTER_MAPPING[self.stats.respawn_monster_index]
-            self._children.add(
-                factory(
-                    self.player,
-                    self.path,
-                    self.distance_travelled_
-                    + self.stats.respawn_spread * (1 - 2 * random.random()),
-                )
+        for respawn_monster_index in self.stats.respawn_indices:
+            factory = MONSTER_MAPPING[respawn_monster_index]
+            yield factory(
+                self.distance_travelled_
+                + self.stats.respawn_spread * (1 - 2 * random.random()),
             )
-        self.set_inactive()
 
-    def got_through(self):
-        self.player.health -= self.stats.damage
-        self.set_inactive()
+    def apply_effects(self, effects: Iterable[Effect]):
+        # TODO: support more than just a slow effect
+        for effect in effects:
+            self._slow_down(effect.slow_factor, effect.duration)
 
 
 class MonsterInitializer(Protocol):
-    def __call__(self, player: Player, path: Path, distance: float = 0.0) -> Monster:
+    def __call__(self, distance: float = 0.0) -> Monster:
         ...
 
 
 def monster_factory(stats: MonsterStats) -> MonsterInitializer:
-    def _factory(player: Player, path: Path, distance: float = 0.0) -> Monster:
-        return Monster(stats, player, path, distance=distance)
+    def _factory(distance: float = 0.0) -> Monster:
+        return Monster(stats, distance=distance)
 
     return _factory
 
@@ -126,8 +106,7 @@ MONSTER_MAPPING: List[MonsterInitializer] = [
             max_health=50,
             value=10,
             speed=5,
-            respawn_count=1,
-            respawn_monster_index=0,
+            respawn_indices=[0],
         )
     ),
     monster_factory(
@@ -136,8 +115,7 @@ MONSTER_MAPPING: List[MonsterInitializer] = [
             max_health=500,
             value=100,
             speed=4,
-            respawn_count=5,
-            respawn_monster_index=1,
+            respawn_indices=[1, 1, 1, 1, 1],
         )
     ),
     monster_factory(
@@ -146,8 +124,7 @@ MONSTER_MAPPING: List[MonsterInitializer] = [
             max_health=200,
             value=30,
             speed=5,
-            respawn_count=2,
-            respawn_monster_index=4,
+            respawn_indices=[4, 4],
         )
     ),
     monster_factory(

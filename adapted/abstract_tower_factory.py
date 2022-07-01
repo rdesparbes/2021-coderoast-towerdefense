@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 
-from adapted.entities.entities import Entities
 from adapted.entities.tower import ITower
 
 
@@ -18,5 +17,5 @@ class ITowerFactory(ABC):
         ...
 
     @abstractmethod
-    def build_tower(self, x, y, entities: Entities) -> ITower:
+    def build_tower(self, x, y) -> ITower:
         ...
