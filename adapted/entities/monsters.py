@@ -20,7 +20,6 @@ class Monster(IMonster):
         self.distance_travelled_ = max(distance, 0.0)
         self.x = 0
         self.y = 0
-        self.effects = []
 
     def get_value(self) -> int:
         return self.stats.value
@@ -64,7 +63,6 @@ class Monster(IMonster):
         return self.health_ > 0
 
     def get_children(self) -> Iterable[IMonster]:
-
         for respawn_monster_index in self.stats.respawn_indices:
             factory = MONSTER_MAPPING[respawn_monster_index]
             yield factory(
