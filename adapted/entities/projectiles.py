@@ -28,8 +28,6 @@ class Projectile(IProjectile):
         self.target: Optional[IMonster] = target
         self.movement_strategy = movement_strategy
         self.hit_strategy = hit_strategy
-        self.is_tracking = target is not None
-        self._active = True
         self._travelled_distance = 0.0
 
     def get_damage(self) -> int:
@@ -63,9 +61,6 @@ class Projectile(IProjectile):
     def get_effects(self) -> Iterable[Effect]:
         if not is_missing(self.stats.slow_factor):
             yield Effect(self.stats.slow_factor, self.stats.slow_duration)
-
-    def set_inactive(self) -> None:
-        self._active = False
 
     def is_out_of_range(self) -> bool:
         return (

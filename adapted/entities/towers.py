@@ -40,6 +40,9 @@ class Tower(ITower, ABC):
         y: float,
         stats: TowerStats,
         upgrades: List[TowerStats] = None,
+        level: int = 1,
+        sticky_target: bool = False,
+        target: Optional[IMonster] = None,
     ):
         self.name = name
         self.projectile_name = projectile_name
@@ -49,13 +52,12 @@ class Tower(ITower, ABC):
         self.hit_strategy = hit_strategy
         self.upgrades = [] if upgrades is None else upgrades
         self.stats = stats
-        self.level = 1
+        self.level = level
         self.x = x
         self.y = y
         self.countdown = CountDown()
-        self.target: Optional[IMonster] = None
-        self.sticky_target = False
-        self._projectiles_to_shoot = set()
+        self.target: Optional[IMonster] = target
+        self.sticky_target = sticky_target
 
     def get_level(self) -> int:
         return self.level
@@ -71,11 +73,6 @@ class Tower(ITower, ABC):
 
     def get_model_name(self) -> str:
         return self.model_name
-
-    def get_children(self):
-        projectiles = self._projectiles_to_shoot
-        self._projectiles_to_shoot = set()
-        return projectiles
 
     def _get_upgrade(self) -> Optional[TowerStats]:
         try:
