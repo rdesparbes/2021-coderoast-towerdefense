@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from collections import Iterable
+from typing import Optional
 
 from adapted.entities.entity import IEntity
 from adapted.entities.monster import IMonster
@@ -21,6 +22,10 @@ class ITower(IEntity, ABC):
         ...
 
     @abstractmethod
+    def get_target(self) -> Optional[IMonster]:
+        ...
+
+    @abstractmethod
     def get_level(self) -> int:
         ...
 
@@ -30,6 +35,10 @@ class ITower(IEntity, ABC):
 
     @abstractmethod
     def get_range(self) -> float:
+        ...
+
+    @abstractmethod
+    def get_projectile_count(self) -> int:
         ...
 
     @abstractmethod

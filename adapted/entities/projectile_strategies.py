@@ -7,7 +7,6 @@ from adapted.entities.monster import IMonster
 from adapted.entities.projectile import IProjectile
 
 MovementStrategy = Callable[[IProjectile], Tuple[float, float]]
-
 HitStrategy = Callable[[IProjectile, Set[IMonster]], Iterable[IMonster]]
 
 

@@ -1,8 +1,7 @@
 import math
-from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Dict, Type, Optional, Tuple, Iterable
+from typing import Dict, Optional, Tuple, Iterable, Callable
 
 from adapted.abstract_tower_factory import ITowerFactory
 from adapted.entities.count_down import CountDown
@@ -31,12 +30,16 @@ from adapted.entities.targeting_strategies import (
 from adapted.entities.tower import ITower
 
 
-class Tower(ITower, ABC):
+OrientationStrategy = Callable[[ITower, int], float]
+
+
+class Tower(ITower):
     def __init__(
         self,
         name: str,
         model_name: str,
         targeting_strategy: TargetingStrategy,
+        orientation_strategy: OrientationStrategy,
         projectile_factory: IProjectileFactory,
         x: float,
         y: float,
@@ -47,6 +50,7 @@ class Tower(ITower, ABC):
         self.name = name
         self.model_name = model_name
         self.targeting_strategy = targeting_strategy
+        self.orientation_strategy = orientation_strategy
         self.projectile_factory = projectile_factory
         self.upgradable_tower_stats = upgradable_tower_stats
         self.x = x
@@ -61,6 +65,9 @@ class Tower(ITower, ABC):
     def get_position(self) -> Tuple[float, float]:
         return self.x, self.y
 
+    def get_target(self) -> Optional[IMonster]:
+        return self.target
+
     def get_range(self) -> float:
         return self.projectile_factory.get_range()
 
@@ -69,6 +76,9 @@ class Tower(ITower, ABC):
 
     def get_model_name(self) -> str:
         return self.model_name
+
+    def get_projectile_count(self) -> int:
+        return self.upgradable_tower_stats.stats.projectile_count
 
     def get_cost(self) -> int:
         return self.upgradable_tower_stats.stats.cost
@@ -109,15 +119,11 @@ class Tower(ITower, ABC):
     def get_name(self) -> str:
         return self.name
 
-    @abstractmethod
-    def _compute_angle(self, projectile_index: int) -> float:
-        ...
-
     def _shoot(self):
         for projectile_index in range(
             self.upgradable_tower_stats.stats.projectile_count
         ):
-            angle = self._compute_angle(projectile_index)
+            angle = self.orientation_strategy(self, projectile_index)
             yield self.projectile_factory.create_projectile(
                 self.x,
                 self.y,
@@ -126,22 +132,18 @@ class Tower(ITower, ABC):
             )
 
 
-class ArrowShooterTower(Tower):
-    def _compute_angle(self, projectile_index: int) -> float:
-        x, y = self.target.get_position()
-        return math.atan2(self.y - y, x - self.x)
+def target_orientation_strategy(tower: ITower, _projectile_index: int) -> float:
+    target_x, target_y = tower.get_target().get_position()
+    x, y = tower.get_position()
+    return math.atan2(y - target_y, target_x - x)
 
 
-class TargetingTower(Tower):
-    def _compute_angle(self, projectile_index: int) -> float:
-        return 0.0
+def null_orientation_strategy(_tower: ITower, _projectile_index: int) -> float:
+    return 0.0
 
 
-class TackTower(Tower):
-    def _compute_angle(self, projectile_index: int) -> float:
-        return math.radians(
-            projectile_index * 360 / self.upgradable_tower_stats.stats.projectile_count
-        )
+def concentric_orientation_strategy(tower: ITower, projectile_index: int) -> float:
+    return math.radians(projectile_index * 360 / tower.get_projectile_count())
 
 
 @dataclass
@@ -150,7 +152,10 @@ class TowerFactory(ITowerFactory):
     model_name: str
     projectile_factory: IProjectileFactory
     upgradable_tower_stats: UpgradableTowerStats
-    tower_type: Type[Tower]
+    orientation_strategy: OrientationStrategy
+    targeting_strategy: TargetingStrategy = TargetingStrategy(
+        SortingParam.HEALTH, reverse=True
+    )
 
     def get_name(self) -> str:
         return self.tower_name
@@ -162,10 +167,11 @@ class TowerFactory(ITowerFactory):
         return self.model_name
 
     def build_tower(self, x, y) -> Tower:
-        return self.tower_type(
+        return Tower(
             self.tower_name,
             self.model_name,
-            TargetingStrategy(SortingParam.HEALTH, reverse=True),
+            self.targeting_strategy,
+            self.orientation_strategy,
             self.projectile_factory,
             x,
             y,
@@ -213,7 +219,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
                     ),
                 ],
             ),
-            ArrowShooterTower,
+            target_orientation_strategy,
         ),
         TowerFactory(
             "Bullet Shooter",
@@ -238,7 +244,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
                     projectile_count=1,
                 ),
             ),
-            TargetingTower,
+            null_orientation_strategy,
         ),
         TowerFactory(
             "Power Tower",
@@ -265,7 +271,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
                     projectile_count=1,
                 ),
             ),
-            TargetingTower,
+            null_orientation_strategy,
         ),
         TowerFactory(
             "Tack Tower",
@@ -293,7 +299,7 @@ TOWER_MAPPING: Dict[str, ITowerFactory] = {
                     projectile_count=8,
                 ),
             ),
-            TackTower,
+            concentric_orientation_strategy,
         ),
     )
 }
