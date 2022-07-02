@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, fields
-from typing import Any
+from typing import Any, List, Optional
 
 
 class Missing:
@@ -35,14 +35,43 @@ class TowerStats(Stats):
     shots_per_second: float = Missing  # Number of shots in one second
     cost: int = Missing  # Cost of the tower
     projectile_count: int = Missing  # Number of projectiles sent in one shot
-    projectile_stats: ProjectileStats = field(default_factory=ProjectileStats)
 
 
 def upgrade_stats(stats: Stats, upgrade: Stats) -> None:
     for stat_field in fields(upgrade):
         field_name: str = stat_field.name
         upgrade_value: Any = getattr(upgrade, field_name)
-        if isinstance(upgrade_value, Stats):
-            upgrade_stats(getattr(stats, field_name), upgrade_value)
-        elif not is_missing(upgrade_value):
+        if not is_missing(upgrade_value):
             setattr(stats, field_name, upgrade_value)
+
+
+@dataclass
+class UpgradableStats:
+    stats: Stats
+    upgrades: List[Stats] = field(default_factory=list)
+    level_: int = 1
+
+    def upgrade(self) -> bool:
+        upgrade_index = self.level_ - 1
+        if upgrade_index >= len(self.upgrades):
+            return False
+        upgrade = self.upgrades[upgrade_index]
+        upgrade_stats(self.stats, upgrade)
+        self.level_ += 1
+        return True
+
+
+class UpgradableTowerStats(UpgradableStats):
+    stats: TowerStats
+    upgrades: List[TowerStats] = field(default_factory=list)
+
+    def get_upgrade_cost(self) -> Optional[int]:
+        try:
+            return self.upgrades[self.level_ - 1].cost
+        except IndexError:
+            return None
+
+
+class UpgradableProjectileStats(UpgradableStats):
+    stats: ProjectileStats
+    upgrades: List[ProjectileStats]

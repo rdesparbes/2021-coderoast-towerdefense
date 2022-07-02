@@ -17,39 +17,41 @@ class Entities(UpdatableObject):
     monsters: Set[IMonster] = field(default_factory=set)
     towers: Dict[Tuple[int, int], ITower] = field(default_factory=dict)
 
-    def _update_projectiles(self) -> None:
+    def _cleanup_projectiles(self) -> None:
         to_remove = set()
         for projectile in self.projectiles:
             projectile.update_position()
             if projectile.is_out_of_range():
                 to_remove.add(projectile)
                 continue
-            for monster in list(projectile.get_hit_monsters(self.monsters)):
+            for monster in projectile.get_hit_monsters(self.monsters):
                 monster.inflict_damage(projectile.get_damage())
                 effects = projectile.get_effects()
                 monster.apply_effects(effects)
                 to_remove.add(projectile)
-                if not monster.alive:
-                    self.monsters.remove(monster)
-                    self.player.money += monster.get_value()
-                    self.monsters.update(monster.get_children())
         self.projectiles.difference_update(to_remove)
 
     def _update_monsters(self) -> None:
         to_remove = set()
+        to_add = set()
         for monster in self.monsters:
+            if not monster.alive:
+                to_remove.add(monster)
+                self.player.money += monster.get_value()
+                to_add.update(monster.get_children())
             monster.update_position(self.path)
             if monster.has_arrived(self.path):
                 to_remove.add(monster)
                 self.player.health -= monster.get_damage()
         self.monsters.difference_update(to_remove)
+        self.monsters.update(to_add)
 
-    def _update_towers(self) -> None:
+    def _generate_projectiles(self) -> None:
         for tower in self.towers.values():
             tower.select_target(self.monsters)
             self.projectiles.update(tower.shoot())
 
     def update(self) -> None:
-        self._update_projectiles()
+        self._cleanup_projectiles()
         self._update_monsters()
-        self._update_towers()
+        self._generate_projectiles()
