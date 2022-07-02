@@ -16,18 +16,18 @@ class Projectile(IProjectile):
         y: float,
         angle: float,
         stats: ProjectileStats,
-        target: Optional[IMonster],
         movement_strategy: MovementStrategy,
         hit_strategy: HitStrategy,
+        target: Optional[IMonster] = None,
     ):
         self.name = name
         self.x = x
         self.y = y
         self.angle = angle
         self.stats = stats
-        self.target: Optional[IMonster] = target
         self.movement_strategy = movement_strategy
         self.hit_strategy = hit_strategy
+        self.target: Optional[IMonster] = target
         self._travelled_distance = 0.0
 
     def get_damage(self) -> int:

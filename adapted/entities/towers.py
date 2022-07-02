@@ -136,9 +136,9 @@ class Tower(ITower, ABC):
                 self.y,
                 angle,
                 self.stats.projectile_stats,
-                self.target,
                 self.movement_strategy,
                 self.hit_strategy,
+                self.target,
             )
 
 
