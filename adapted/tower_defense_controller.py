@@ -1,15 +1,15 @@
-from typing import Optional, List, Tuple, Iterable
+from typing import Optional, List, Tuple, Iterable, Dict
 
 from adapted.abstract_tower_defense_controller import AbstractTowerDefenseController
 from adapted.abstract_tower_factory import ITowerFactory
 from adapted.block import Block
+from adapted.entities.default.monsters import MONSTER_MAPPING
+from adapted.entities.default.towers import TOWER_MAPPING
 from adapted.entities.entities import Entities
 from adapted.entities.entity import IEntity
 from adapted.entities.monster import IMonster
-from adapted.entities.monsters import MONSTER_MAPPING
 from adapted.entities.targeting_strategies import TargetingStrategy
 from adapted.entities.tower import ITower
-from adapted.entities.towers import TOWER_MAPPING
 from adapted.grid import Grid
 from adapted.path import extract_path
 from adapted.wave_generator import WaveGenerator
@@ -21,9 +21,11 @@ class TowerDefenseController(AbstractTowerDefenseController):
         grid: Grid,
         wave_generator: WaveGenerator,
         entities: Optional[Entities] = None,
+        tower_mapping: Optional[Dict[Tuple[int, int], ITowerFactory]] = None,
     ):
         self.grid = grid
         self.wave_generator = wave_generator
+        self.tower_mapping = TOWER_MAPPING if tower_mapping is None else tower_mapping
         self.entities = entities or Entities(
             path=extract_path(grid), monster_factories=MONSTER_MAPPING
         )
@@ -44,7 +46,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
         return self.entities.towers.get(tower_position)
 
     def get_tower_factory(self, tower_type_name: str) -> Optional[ITowerFactory]:
-        return TOWER_MAPPING.get(tower_type_name)
+        return self.tower_mapping.get(tower_type_name)
 
     def iter_blocks(self) -> Iterable[Tuple[Tuple[int, int], Block]]:
         return iter(self.grid)
@@ -68,7 +70,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
         monster_type_id = self.wave_generator.get_monster_id()
         if monster_type_id is None:
             return None
-        monster_factory = MONSTER_MAPPING[monster_type_id]
+        monster_factory = self.entities.monster_factories[monster_type_id]
         monster = monster_factory()
         self.entities.monsters.add(monster)
 
@@ -98,7 +100,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
         self.entities.towers.pop(tower_position, None)
 
     def get_tower_factory_names(self) -> List[str]:
-        return list(TOWER_MAPPING)
+        return list(self.tower_mapping)
 
     def update(self) -> None:
         self._try_spawn_monster()
