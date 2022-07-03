@@ -1,14 +1,12 @@
 import random
-from typing import List, Tuple, Protocol, Callable, Iterable
+from typing import List, Tuple, Iterable
 
 from adapted.constants import FPS
 from adapted.entities.count_down import CountDown
 from adapted.entities.effects import Effect
-from adapted.entities.monster import IMonster
+from adapted.entities.monster import IMonster, MonsterFactory
 from adapted.entities.monster_stats import MonsterStats
 from adapted.path import Path, has_arrived, compute_position
-
-PositionGetter = Callable[[float], Tuple[float, float]]
 
 
 class Monster(IMonster):
@@ -62,9 +60,11 @@ class Monster(IMonster):
     def alive(self):
         return self.health_ > 0
 
-    def get_children(self) -> Iterable[IMonster]:
+    def get_children(
+        self, monster_factories: List[MonsterFactory]
+    ) -> Iterable[IMonster]:
         for respawn_monster_index in self.stats.respawn_indices:
-            factory = MONSTER_MAPPING[respawn_monster_index]
+            factory = monster_factories[respawn_monster_index]
             yield factory(
                 self.distance_travelled_
                 + self.stats.respawn_spread * (1 - 2 * random.random()),
@@ -76,20 +76,14 @@ class Monster(IMonster):
             self._slow_down(effect.slow_factor, effect.duration)
 
 
-class MonsterInitializer(Protocol):
-    def __call__(self, distance: float = 0.0) -> Monster:
-        ...
-
-
-def monster_factory(stats: MonsterStats) -> MonsterInitializer:
+def monster_factory(stats: MonsterStats) -> MonsterFactory:
     def _factory(distance: float = 0.0) -> Monster:
         return Monster(stats, distance=distance)
 
     return _factory
 
 
-# TODO: Create a dataclass to make this mapping customizable in main
-MONSTER_MAPPING: List[MonsterInitializer] = [
+MONSTER_MAPPING: List[MonsterFactory] = [
     monster_factory(
         MonsterStats(
             name="Monster1",
@@ -138,7 +132,7 @@ MONSTER_MAPPING: List[MonsterInitializer] = [
             name="MonsterBig",
             max_health=1000,
             value=10,
-            speed=20 / 6,
+            speed=3.33,
         )
     ),
 ]

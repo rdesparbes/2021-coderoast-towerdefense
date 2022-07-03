@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
-from typing import Dict, Tuple, Set
+from typing import Dict, Tuple, Set, List
 
-from adapted.entities.monster import IMonster
+from adapted.entities.monster import IMonster, MonsterFactory
 from adapted.entities.projectile import IProjectile
 from adapted.entities.tower import ITower
 from adapted.path import Path
@@ -16,6 +16,7 @@ class Entities(UpdatableObject):
     projectiles: Set[IProjectile] = field(default_factory=set)
     monsters: Set[IMonster] = field(default_factory=set)
     towers: Dict[Tuple[int, int], ITower] = field(default_factory=dict)
+    monster_factories: List[MonsterFactory] = field(default_factory=list)
 
     def _cleanup_projectiles(self) -> None:
         to_remove = set()
@@ -38,7 +39,9 @@ class Entities(UpdatableObject):
             if not monster.alive:
                 to_remove.add(monster)
                 self.player.money += monster.get_value()
-                to_add.update(monster.get_children())
+                for child in monster.get_children(self.monster_factories):
+                    child.update_position(self.path)
+                    to_add.add(child)
             monster.update_position(self.path)
             if monster.has_arrived(self.path):
                 to_remove.add(monster)

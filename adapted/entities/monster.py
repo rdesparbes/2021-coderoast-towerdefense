@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from collections import Set, Iterable
+from typing import List, Protocol
 
 from adapted.entities.effects import Effect
 from adapted.entities.entity import IEntity
@@ -28,7 +29,9 @@ class IMonster(IEntity, ABC):
         ...
 
     @abstractmethod
-    def get_children(self) -> Set["IMonster"]:
+    def get_children(
+        self, monster_factories: List["MonsterFactory"]
+    ) -> Set["IMonster"]:
         ...
 
     @abstractmethod
@@ -45,4 +48,9 @@ class IMonster(IEntity, ABC):
 
     @abstractmethod
     def apply_effects(self, effects: Iterable[Effect]) -> None:
+        ...
+
+
+class MonsterFactory(Protocol):
+    def __call__(self, distance: float = 0.0) -> IMonster:
         ...

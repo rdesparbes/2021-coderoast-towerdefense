@@ -24,7 +24,9 @@ class TowerDefenseController(AbstractTowerDefenseController):
     ):
         self.grid = grid
         self.wave_generator = wave_generator
-        self.entities = entities or Entities(path=extract_path(grid))
+        self.entities = entities or Entities(
+            path=extract_path(grid), monster_factories=MONSTER_MAPPING
+        )
 
     def get_player_health(self) -> int:
         return self.entities.player.health
