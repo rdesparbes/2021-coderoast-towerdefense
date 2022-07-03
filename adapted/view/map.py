@@ -21,22 +21,19 @@ MAPPING: Dict[Block, str] = {
 }
 
 
-def _compute_block_size(block_images: BlockImages) -> int:
+def _compute_block_size(block_images: BlockImages) -> Tuple[int, int]:
     if not len(block_images):
         raise ValueError(f"Cannot compute block size if no blocks are provided")
-    block_size = None
+    block_shape = None
     for image in block_images.values():
-        if image.width != image.height:
+        image_shape = image.width, image.height
+        if block_shape is None:
+            block_shape = image_shape
+        elif block_shape != image_shape:
             raise ValueError(
-                f"Only square blocks are supported: found a block of shape {image.size}"
+                f"Heterogeneous block shapes: found {image_shape} and {block_shape}"
             )
-        if block_size is None:
-            block_size = image.width
-        elif block_size != image.width:
-            raise ValueError(
-                f"Heterogeneous block sizes: found {image.width} and {block_size}"
-            )
-    return block_size
+    return block_shape
 
 
 def _paint_background(
@@ -67,12 +64,12 @@ class Map(MouseWidget, GameObject):
         selection: Selection,
     ):
         block_images = _load_block_images()
-        self.block_size = _compute_block_size(block_images)
+        self.block_shape = _compute_block_size(block_images)
         map_shape = controller.map_shape()
         map_width, map_height = map_shape
         image_width, image_height = (
-            map_width * self.block_size,
-            map_height * self.block_size,
+            map_width * self.block_shape[0],
+            map_height * self.block_shape[1],
         )
         drawn_map = _paint_background(
             controller.iter_blocks(), block_images, (image_width, image_height)
@@ -144,12 +141,12 @@ class Map(MouseWidget, GameObject):
 
     def position_to_pixel(self, position: Tuple[float, float]) -> Tuple[int, int]:
         return (
-            int(position[0] * self.block_size) + self.block_size // 2,
-            int(position[1] * self.block_size) + self.block_size // 2,
+            int(position[0] * self.block_shape[0]) + self.block_shape[0] // 2,
+            int(position[1] * self.block_shape[1]) + self.block_shape[1] // 2,
         )
 
     def pixel_to_position(self, pixel: Tuple[int, int]) -> Tuple[float, float]:
-        return pixel[0] / self.block_size, pixel[1] / self.block_size
+        return pixel[0] / self.block_shape[0], pixel[1] / self.block_shape[1]
 
     def _paint_entity(self, entity: IEntity, image_path: str):
         x, y = self.position_to_pixel(entity.get_position())
@@ -170,12 +167,17 @@ class Map(MouseWidget, GameObject):
             return
         x, y = self.position_to_pixel(tower.get_position())
         # In the original version, the radius of the circle is 0.5 units smaller than the actual range
-        radius = tower.get_range() * self.block_size - self.block_size / 2
+        horizontal_radius = (
+            tower.get_range() * self.block_shape[0] - self.block_shape[0] / 2
+        )
+        vertical_radius = (
+            tower.get_range() * self.block_shape[1] - self.block_shape[1] / 2
+        )
         self.canvas.create_oval(
-            x - radius,
-            y - radius,
-            x + radius,
-            y + radius,
+            x - horizontal_radius,
+            y - vertical_radius,
+            x + horizontal_radius,
+            y + vertical_radius,
             outline="white",
         )
 
