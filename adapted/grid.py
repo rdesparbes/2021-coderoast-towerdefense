@@ -1,10 +1,22 @@
-from dataclasses import dataclass
-from typing import List, Optional, Tuple, Iterable
+from dataclasses import dataclass, field
+from typing import List, Tuple, Iterable
 
 from adapted.block import Block
 from adapted.constants import DIRECTIONS
 
 GridVector = Tuple[int, int]
+
+
+class SpawnNotFoundError(Exception):
+    ...
+
+
+class GridNotSquareError(Exception):
+    ...
+
+
+class GridNotRectangularError(Exception):
+    ...
 
 
 BLOCK_MAPPING: List[Block] = [
@@ -20,11 +32,36 @@ def _add_grid_vectors(vector_a: GridVector, vector_b: GridVector) -> GridVector:
 
 @dataclass
 class Grid:
-    _block_grid: Optional[List[List[Block]]] = None
+    _block_grid: List[List[Block]] = field(default_factory=list)
+
+    def __post_init__(self):
+        invalid_rows = {}
+        for row_index, block_row in enumerate(self._block_grid):
+            if len(block_row) != self.height:
+                invalid_rows[row_index] = len(block_row)
+        if len(invalid_rows):
+            raise GridNotRectangularError(
+                f"The following rows do not match the height of the row 0 of height {self.height}:\n"
+                + "\n".join(
+                    f"- Row {row_index} with height {row_height}"
+                    for row_index, row_height in invalid_rows.items()
+                )
+            )
 
     @property
-    def size(self) -> int:
+    def shape(self) -> Tuple[int, int]:
+        return self.width, self.height
+
+    @property
+    def width(self) -> int:
         return len(self._block_grid)
+
+    @property
+    def height(self) -> int:
+        try:
+            return len(self._block_grid[0])
+        except IndexError:
+            return 0
 
     def __iter__(self) -> Iterable[Tuple[GridVector, Block]]:
         for col, block_col in enumerate(self._block_grid):
@@ -48,12 +85,13 @@ class Grid:
         return self.get_block(grid_position).is_walkable
 
     def find_spawn(self) -> GridVector:
-        for x in range(self._grid_size):
+        for x in range(self.width):
             if self._block_grid[x][0].is_walkable:
                 return x, 0
-        for y in range(self._grid_size):
+        for y in range(self.height):
             if self._block_grid[0][y].is_walkable:
                 return 0, y
+        raise SpawnNotFoundError(f"The spawn was not found in the grid: {self}")
 
     def get_block(self, grid_position: GridVector) -> Block:
         return self._block_grid[grid_position[0]][grid_position[1]]
@@ -85,7 +123,7 @@ class Grid:
     def _fill_grid(cls, grid_values: List[int]) -> "Grid":
         grid_size = int(len(grid_values) ** 0.5)
         if grid_size**2 != len(grid_values):
-            raise ValueError(
+            raise GridNotSquareError(
                 f"Invalid number of values to initialize the grid: "
                 f"expected a perfect square, found {len(grid_values)}"
             )

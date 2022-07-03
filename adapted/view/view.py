@@ -20,7 +20,7 @@ class View(GameObject):
         title: str = "Tower Defense",
         timestep: int = 50,
     ):
-        self.root = tk.Tk()  # saying this window will use tkinter
+        self.root = tk.Tk()
         self.root.title(title)
         self.running = False
         self.root.protocol("WM_DELETE_WINDOW", self.end)

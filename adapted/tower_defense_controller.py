@@ -51,8 +51,8 @@ class TowerDefenseController(AbstractTowerDefenseController):
     def iter_blocks(self) -> Iterable[Tuple[Tuple[int, int], Block]]:
         return iter(self.grid)
 
-    def map_size(self) -> int:
-        return self.grid.size
+    def map_shape(self) -> Tuple[int, int]:
+        return self.grid.shape
 
     def can_start_spawning_monsters(self) -> bool:
         return (

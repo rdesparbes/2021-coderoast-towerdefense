@@ -137,7 +137,7 @@ class InfoBoard(MouseWidget, GameObject):
             self.canvas.create_text(
                 120,
                 157,
-                text="Upgrade: " + str(upgrade_cost),
+                text=f"Upgrade: {upgrade_cost}",
                 font=("times", 12),
                 fill="light green",
                 anchor=tk.CENTER,

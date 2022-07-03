@@ -40,9 +40,11 @@ def _compute_block_size(block_images: BlockImages) -> int:
 
 
 def _paint_background(
-    blocks: Iterable[Tuple[Tuple[int, int], Block]], images: BlockImages, map_size: int
+    blocks: Iterable[Tuple[Tuple[int, int], Block]],
+    images: BlockImages,
+    image_shape: Tuple[int, int],
 ) -> Image.Image:
-    drawn_map = Image.new("RGBA", (map_size, map_size), (255, 255, 255, 255))
+    drawn_map = Image.new("RGBA", image_shape, (255, 255, 255, 255))
     for (x, y), block in blocks:
         image = images[block]
         offset = (x * image.width, y * image.height)
@@ -66,15 +68,22 @@ class Map(MouseWidget, GameObject):
     ):
         block_images = _load_block_images()
         self.block_size = _compute_block_size(block_images)
-        map_size = self.block_size * controller.map_size()
-        drawn_map = _paint_background(controller.iter_blocks(), block_images, map_size)
+        map_shape = controller.map_shape()
+        map_width, map_height = map_shape
+        image_width, image_height = (
+            map_width * self.block_size,
+            map_height * self.block_size,
+        )
+        drawn_map = _paint_background(
+            controller.iter_blocks(), block_images, (image_width, image_height)
+        )
         self.image: ImageTk.PhotoImage = ImageTk.PhotoImage(image=drawn_map)
         self.image_cache = ImageCache()
         self.controller = controller
         self.canvas = tk.Canvas(
             master=master_frame,
-            width=map_size,
-            height=map_size,
+            width=image_width,
+            height=image_height,
             bg="gray",
             highlightthickness=0,
         )
@@ -160,7 +169,7 @@ class Map(MouseWidget, GameObject):
         if tower is None:
             return
         x, y = self.position_to_pixel(tower.get_position())
-        # On the original version, the radius of the circle is 0.5 units smaller than the actual range
+        # In the original version, the radius of the circle is 0.5 units smaller than the actual range
         radius = tower.get_range() * self.block_size - self.block_size / 2
         self.canvas.create_oval(
             x - radius,

@@ -30,7 +30,7 @@ class AbstractTowerDefenseController(UpdatableObject, ABC):
         ...
 
     @abstractmethod
-    def map_size(self) -> int:
+    def map_shape(self) -> Tuple[int, int]:
         ...
 
     @abstractmethod
