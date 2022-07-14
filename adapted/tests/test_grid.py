@@ -1,7 +1,7 @@
 import pytest
 
-from adapted.block import Block
-from adapted.grid import (
+from tower_defense.block import Block
+from tower_defense.grid import (
     Grid,
     SpawnNotFoundError,
     GridNotSquareError,
@@ -10,13 +10,16 @@ from adapted.grid import (
 
 
 def test_grid_given_heterogeneous_row_sizes_raises_grid_not_rectangular_error() -> None:
+    b = Block()
+    non_rectangular_block_grid = [[b, b], [b]]
     with pytest.raises(GridNotRectangularError):
-        Grid([[Block(), Block(is_walkable=True)], [Block(is_walkable=True)]])
+        Grid(non_rectangular_block_grid)
 
 
 def test_fill_grid_given_not_perfect_square_list_raises_grid_not_square_error() -> None:
+    block_indices = [0, 0]
     with pytest.raises(GridNotSquareError):
-        Grid._fill_grid([0, 0])
+        Grid._fill_grid(block_indices)
 
 
 def test_get_block_given_empty_grid_raises_index_error() -> None:
