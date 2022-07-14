@@ -9,4 +9,11 @@ setup(
             "TowerDefense=tower_defense.scripts.game:main",
         ],
     },
+    install_requires=["tk", "Pillow"],
+    extras_require={
+        "dev": [
+            "pytest",
+            "black",
+        ]
+    },
 )
