@@ -1,5 +1,5 @@
 import tkinter as tk
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 
 from PIL import ImageTk, Image
 
@@ -155,7 +155,7 @@ class InfoBoard(MouseWidget, GameObject):
     def update(self) -> None:
         pass
 
-    def paint(self, canvas: Optional[tk.Canvas] = None) -> None:
+    def paint(self) -> None:
         self.canvas.delete(tk.ALL)
         self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
         self.current_buttons = []

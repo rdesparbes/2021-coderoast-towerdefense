@@ -37,7 +37,6 @@ def main() -> None:
     wave_generator = WaveGenerator.load(args.scenario)
     controller = TowerDefenseController(grid, wave_generator)
     view = View(controller)
-    view.initialize()
     view.run()
 
 

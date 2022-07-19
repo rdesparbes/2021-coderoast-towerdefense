@@ -1,12 +1,12 @@
 import tkinter as tk
-from typing import Optional, Tuple
+from typing import Tuple
 
 from tower_defense.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
 from tower_defense.view.action import Action
-from tower_defense.view.game_object import GameObject
 from tower_defense.view.button import Button
+from tower_defense.view.game_object import GameObject
 from tower_defense.view.mousewidget import MouseWidget
 from tower_defense.view.rectangle import Rectangle
 
@@ -44,7 +44,7 @@ class DisplayBoard(MouseWidget, GameObject):
         self.health_bar.update()
         self.money_bar.update()
 
-    def paint(self, canvas: Optional[tk.Canvas] = None):
+    def paint(self):
         self.canvas.delete(tk.ALL)  # clear the screen
         self.health_bar.paint(self.canvas)
         self.money_bar.paint(self.canvas)

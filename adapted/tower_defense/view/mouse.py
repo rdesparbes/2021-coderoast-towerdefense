@@ -42,7 +42,7 @@ class Mouse(GameObject):
             if widget.has_canvas(self.hovered_widget):
                 widget.click_at(self.position)
 
-    def paint(self, canvas: Optional[tk.Canvas] = None):
+    def paint(self):
         for widget in self.widgets:
             if widget.has_canvas(self.hovered_widget):
                 widget.paint_at(self.position, self.pressed)

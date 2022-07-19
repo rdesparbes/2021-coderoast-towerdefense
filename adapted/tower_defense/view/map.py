@@ -1,6 +1,6 @@
 import math
 import tkinter as tk
-from typing import Dict, Optional, Tuple, Iterable
+from typing import Dict, Tuple, Iterable
 
 from PIL import ImageTk, Image
 
@@ -220,7 +220,7 @@ class Map(MouseWidget, GameObject):
             self._paint_entity(projectile, image_path)
         self._paint_selected_tower_range()
 
-    def paint(self, canvas: Optional[tk.Canvas] = None):
+    def paint(self):
         self.canvas.delete(tk.ALL)
         # Deleting image references as they are not used anymore
         self.image_cache.clear_references()

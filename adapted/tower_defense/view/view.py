@@ -1,12 +1,11 @@
 import tkinter as tk
-from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional
 
 from tower_defense.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
+from tower_defense.updatable_object import UpdatableObject
 from tower_defense.view.display_board import DisplayBoard
-from tower_defense.view.game_object import GameObject
 from tower_defense.view.info_board import InfoBoard
 from tower_defense.view.map import Map
 from tower_defense.view.mouse import Mouse
@@ -14,8 +13,7 @@ from tower_defense.view.selection import Selection
 from tower_defense.view.tower_box import TowerBox
 
 
-@dataclass
-class View(GameObject):
+class View(UpdatableObject):
     def __init__(
         self,
         controller: AbstractTowerDefenseController,
@@ -43,9 +41,6 @@ class View(GameObject):
         self.root.bind("<Button-1>", self.mouse.clicked)
         self.root.bind("<ButtonRelease-1>", self.mouse.released)
         self.root.bind("<Motion>", self.mouse.moved)
-        self.game_objects: List[GameObject] = []
-
-    def initialize(self):
         self.game_objects = [
             self.map_object,
             self.display_board,
@@ -58,9 +53,9 @@ class View(GameObject):
         for game_object in self.game_objects:
             game_object.update()
 
-    def paint(self, canvas: Optional[tk.Canvas] = None) -> None:
+    def paint(self) -> None:
         for game_object in self.game_objects:
-            game_object.paint(canvas=canvas)
+            game_object.paint()
 
     def run(self):
         self.running = True
@@ -68,14 +63,11 @@ class View(GameObject):
         self.root.mainloop()
 
     def _run(self):
+        if self.running:
+            self.timer_id = self.root.after(self.timestep, self._run)
         self.update()
         self.paint()
 
-        if self.running:
-            self.timer_id = self.root.after(self.timestep, self._run)
-
     def end(self):
         self.running = False
-        if self.timer_id is not None:
-            self.root.after_cancel(self.timer_id)
         self.root.destroy()
