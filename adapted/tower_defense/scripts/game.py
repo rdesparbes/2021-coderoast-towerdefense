@@ -8,8 +8,8 @@ from tower_defense.view.view import View
 from tower_defense.wave_generator import WaveGenerator
 
 
-def get_file_names(folder_path: str, pattern: str = "*.txt") -> List[str]:
-    return [path.name for path in Path(folder_path).glob(pattern)]
+def get_file_stems(folder_path: str, pattern: str = "*.txt") -> List[str]:
+    return [path.stem for path in Path(folder_path).glob(pattern)]
 
 
 def add_arguments(
@@ -29,8 +29,8 @@ def add_arguments(
 
 def main() -> None:
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-    map_names = get_file_names("texts/mapTexts")
-    wave_names = get_file_names("texts/waveTexts")
+    map_names = get_file_stems("texts/mapTexts")
+    wave_names = get_file_stems("texts/waveTexts")
     add_arguments(parser, map_names, wave_names)
     args = parser.parse_args()
     grid = Grid.load(args.map)
