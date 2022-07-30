@@ -5,6 +5,7 @@ from tower_defense.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
 from tower_defense.updatable_object import UpdatableObject
+from tower_defense.view.basic_map_generator import BasicMapGenerator
 from tower_defense.view.display_board import DisplayBoard
 from tower_defense.view.info_board import InfoBoard
 from tower_defense.view.map import Map
@@ -32,7 +33,9 @@ class View(UpdatableObject):
         self.selection = Selection()
         self.info_board = InfoBoard(controller, self.frame, self.selection)
         self.tower_box = TowerBox(controller, self.frame, self.selection)
-        self.map_object = Map(controller, self.frame, self.selection)
+        self.map_object = Map(
+            controller, self.frame, self.selection, BasicMapGenerator(controller)
+        )
         self.display_board = DisplayBoard(controller, self.frame)
         self.mouse = Mouse(self.controller)
         self.mouse.register_widget(self.map_object)

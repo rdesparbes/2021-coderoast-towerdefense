@@ -12,6 +12,7 @@ from tower_defense.entities.entity import IEntity
 from tower_defense.entities.monster import IMonster
 from tower_defense.view.game_object import GameObject
 from tower_defense.view.image_cache import ImageCache
+from tower_defense.view.map_generator import MapGenerator
 from tower_defense.view.mousewidget import MouseWidget
 from tower_defense.view.selection import Selection
 
@@ -64,24 +65,18 @@ class Map(MouseWidget, GameObject):
         controller: AbstractTowerDefenseController,
         master_frame: tk.Frame,
         selection: Selection,
+        map_generator: MapGenerator,
     ):
-        block_images = _load_block_images()
-        self.block_shape = _compute_block_size(block_images)
-        map_width, map_height = controller.map_shape()
-        image_width, image_height = (
-            map_width * self.block_shape[0],
-            map_height * self.block_shape[1],
+        self.block_shape = map_generator.get_block_shape()
+        self.image: ImageTk.PhotoImage = ImageTk.PhotoImage(
+            image=map_generator.get_background()
         )
-        drawn_map = _paint_background(
-            controller.iter_blocks(), block_images, (image_width, image_height)
-        )
-        self.image: ImageTk.PhotoImage = ImageTk.PhotoImage(image=drawn_map)
         self.image_cache = ImageCache()
         self.controller = controller
         self.canvas = tk.Canvas(
             master=master_frame,
-            width=image_width,
-            height=image_height,
+            width=self.image.width(),
+            height=self.image.height(),
             bg="gray",
             highlightthickness=0,
         )
