@@ -14,6 +14,8 @@ setup(
         "dev": [
             "pytest",
             "black",
+            "types-pillow",
+            "types-setuptools",
         ]
     },
 )

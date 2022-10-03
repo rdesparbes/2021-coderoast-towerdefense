@@ -20,13 +20,13 @@ class Mouse(GameObject):
     def register_widget(self, widget: MouseWidget) -> None:
         self.widgets.append(widget)
 
-    def clicked(self, event):
+    def clicked(self, _event: tk.Event) -> None:
         self.pressed = True
 
-    def released(self, event):
+    def released(self, _event: tk.Event) -> None:
         self.pressed = False
 
-    def moved(self, event):
+    def moved(self, event: tk.Event) -> None:
         self.hovered_widget = event.widget
         self.x = event.x
         self.y = event.y
@@ -42,7 +42,7 @@ class Mouse(GameObject):
             if widget.has_canvas(self.hovered_widget):
                 widget.click_at(self.position)
 
-    def paint(self):
+    def paint(self) -> None:
         for widget in self.widgets:
             if widget.has_canvas(self.hovered_widget):
                 widget.paint_at(self.position, self.pressed)

@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from collections import Iterable
-from typing import Optional
+from typing import Optional, Iterable
 
 from tower_defense.entities.entity import IEntity
 from tower_defense.entities.monster import IMonster

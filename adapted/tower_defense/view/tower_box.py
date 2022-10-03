@@ -37,7 +37,7 @@ class TowerBox:
         self.box.bind("<<ListboxSelect>>", self.on_select)
         self.selection = selection
 
-    def on_select(self, event):
+    def on_select(self, _event: tk.Event) -> None:
         self.selection.tower_factory = self.controller.get_tower_factory(
             str(self.box.get(self.box.curselection()))
         )

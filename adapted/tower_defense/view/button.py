@@ -14,7 +14,7 @@ class Button:
         self.rectangle = rectangle
         self.action = action
 
-    def register(self, action: Action):
+    def register(self, action: Action) -> None:
         self.action = action
 
     def press(self, x, y) -> bool:
@@ -23,8 +23,8 @@ class Button:
             return True
         return False
 
-    def paint(self, canvas: tk.Canvas):
-        if self.action.active():
+    def paint(self, canvas: tk.Canvas) -> None:
+        if self.action is not None and self.action.active():
             canvas.create_rectangle(
                 *self.rectangle,
                 fill="red",

@@ -1,13 +1,12 @@
 import math
 import tkinter as tk
-from typing import Dict, Tuple, Iterable
+from typing import Tuple
 
 from PIL import ImageTk, Image
 
 from tower_defense.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
-from tower_defense.block import Block
 from tower_defense.entities.entity import IEntity
 from tower_defense.entities.monster import IMonster
 from tower_defense.view.game_object import GameObject
@@ -15,48 +14,6 @@ from tower_defense.view.image_cache import ImageCache
 from tower_defense.view.map_generator import MapGenerator
 from tower_defense.view.mousewidget import MouseWidget
 from tower_defense.view.selection import Selection
-
-BlockImages = Dict[Block, Image.Image]
-MAPPING: Dict[Block, str] = {
-    Block(is_constructible=True, is_walkable=False): "NormalBlock",
-    Block(is_constructible=False, is_walkable=True): "PathBlock",
-    Block(is_constructible=False, is_walkable=False): "WaterBlock",
-}
-
-
-def _compute_block_size(block_images: BlockImages) -> Tuple[int, int]:
-    if not len(block_images):
-        raise ValueError(f"Cannot compute block size if no blocks are provided")
-    block_shape = None
-    for image in block_images.values():
-        image_shape = image.width, image.height
-        if block_shape is None:
-            block_shape = image_shape
-        elif block_shape != image_shape:
-            raise ValueError(
-                f"Heterogeneous block shapes: found {image_shape} and {block_shape}"
-            )
-    return block_shape
-
-
-def _paint_background(
-    blocks: Iterable[Tuple[Tuple[int, int], Block]],
-    images: BlockImages,
-    image_shape: Tuple[int, int],
-) -> Image.Image:
-    drawn_map = Image.new("RGBA", image_shape, (255, 255, 255, 255))
-    for (x, y), block in blocks:
-        image = images[block]
-        offset = (x * image.width, y * image.height)
-        drawn_map.paste(image, offset)
-    return drawn_map
-
-
-def _load_block_images() -> BlockImages:
-    return {
-        block: Image.open(f"images/blockImages/{block_name}.png")
-        for block, block_name in MAPPING.items()
-    }
 
 
 class Map(MouseWidget, GameObject):

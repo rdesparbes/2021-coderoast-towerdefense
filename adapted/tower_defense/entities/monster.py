@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from collections import Set, Iterable
-from typing import List, Protocol
+from typing import List, Protocol, Set, Iterable
 
 from tower_defense.entities.effects import Effect
 from tower_defense.entities.entity import IEntity
