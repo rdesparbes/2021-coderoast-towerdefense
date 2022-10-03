@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Tuple, Iterable
+from typing import List, Tuple, Iterator
 
 from tower_defense.block import Block
 from tower_defense.constants import DIRECTIONS
@@ -63,7 +63,7 @@ class Grid:
         except IndexError:
             return 0
 
-    def __iter__(self) -> Iterable[Tuple[GridVector, Block]]:
+    def __iter__(self) -> Iterator[Tuple[GridVector, Block]]:
         for col, block_col in enumerate(self._block_grid):
             for row, block in enumerate(block_col):
                 yield (col, row), block

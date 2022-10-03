@@ -44,7 +44,9 @@ def test_find_spawn_given_valid_input_returns_expected_output() -> None:
 
 
 def test_find_spawn_prioritizes_rows_over_columns() -> None:
-    grid = Grid([[Block(), Block(is_walkable=True)], [Block(is_walkable=True), Block]])
+    grid = Grid(
+        [[Block(), Block(is_walkable=True)], [Block(is_walkable=True), Block()]]
+    )
     assert grid.find_spawn() == (1, 0)
 
 

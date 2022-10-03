@@ -1,10 +1,11 @@
-from typing import List, Tuple, Set, Dict
+from typing import List, Tuple, Set, Dict, Optional
 
 from tower_defense.grid import GridVector, Grid
 
 Path = List[GridVector]
 Vector = Tuple[float, float]
 GridPosition = Tuple[int, int]
+Graph = Dict[GridPosition, Set[GridPosition]]
 
 
 def _add_vectors(vector_a: Vector, vector_b: Vector) -> Vector:
@@ -38,8 +39,8 @@ def has_arrived(path, distance: float) -> bool:
     return distance >= len(path) - 1
 
 
-def _build_graph(grid: Grid) -> Dict[GridPosition, Set[GridPosition]]:
-    graph = {}
+def _build_graph(grid: Grid) -> Graph:
+    graph: Graph = {}
     for position, block in grid:
         if not block.is_walkable:
             continue
@@ -51,11 +52,9 @@ def _build_graph(grid: Grid) -> Dict[GridPosition, Set[GridPosition]]:
     return graph
 
 
-def _find_path(
-    graph: Dict[GridPosition, Set[GridPosition]], spawn: Vector
-) -> List[GridPosition]:
+def _find_path(graph: Graph, spawn: GridPosition) -> List[GridPosition]:
     node = spawn
-    previous_node = None
+    previous_node: Optional[GridPosition] = None
     path_list = []
     while True:
         path_list.append(node)

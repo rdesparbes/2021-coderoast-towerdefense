@@ -1,4 +1,4 @@
-from typing import Optional, List, Tuple, Iterable, Dict
+from typing import Optional, List, Tuple, Iterable
 
 from tower_defense.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
@@ -6,7 +6,7 @@ from tower_defense.abstract_tower_defense_controller import (
 from tower_defense.abstract_tower_factory import ITowerFactory
 from tower_defense.block import Block
 from tower_defense.entities.default.monsters import MONSTER_MAPPING
-from tower_defense.entities.default.towers import TOWER_MAPPING
+from tower_defense.entities.default.towers import TOWER_MAPPING, TowerMapping
 from tower_defense.entities.entities import Entities
 from tower_defense.entities.entity import IEntity
 from tower_defense.entities.monster import IMonster
@@ -23,11 +23,13 @@ class TowerDefenseController(AbstractTowerDefenseController):
         grid: Grid,
         wave_generator: WaveGenerator,
         entities: Optional[Entities] = None,
-        tower_mapping: Optional[Dict[Tuple[int, int], ITowerFactory]] = None,
+        tower_mapping: Optional[TowerMapping] = None,
     ):
         self.grid = grid
         self.wave_generator = wave_generator
-        self.tower_mapping = TOWER_MAPPING if tower_mapping is None else tower_mapping
+        self.tower_mapping: TowerMapping = (
+            TOWER_MAPPING if tower_mapping is None else tower_mapping
+        )
         self.entities = entities or Entities(
             path=extract_path(grid), monster_factories=MONSTER_MAPPING
         )

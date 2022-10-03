@@ -1,5 +1,5 @@
 import tkinter as tk
-from typing import Optional
+from typing import Optional, List
 
 from tower_defense.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
@@ -7,6 +7,7 @@ from tower_defense.abstract_tower_defense_controller import (
 from tower_defense.updatable_object import UpdatableObject
 from tower_defense.view.basic_map_generator import BasicMapGenerator
 from tower_defense.view.display_board import DisplayBoard
+from tower_defense.view.game_object import GameObject
 from tower_defense.view.info_board import InfoBoard
 from tower_defense.view.map import Map
 from tower_defense.view.mouse import Mouse
@@ -44,7 +45,7 @@ class View(UpdatableObject):
         self.root.bind("<Button-1>", self.mouse.clicked)
         self.root.bind("<ButtonRelease-1>", self.mouse.released)
         self.root.bind("<Motion>", self.mouse.moved)
-        self.game_objects = [
+        self.game_objects: List[GameObject] = [
             self.map_object,
             self.display_board,
             self.info_board,

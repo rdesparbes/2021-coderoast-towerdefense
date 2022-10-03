@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, fields
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Sequence
 
 
 class Missing:
@@ -48,7 +48,7 @@ def upgrade_stats(stats: Stats, upgrade: Stats) -> None:
 @dataclass
 class UpgradableStats:
     stats: Stats
-    upgrades: List[Stats] = field(default_factory=list)
+    upgrades: Sequence[Stats] = field(default_factory=list)
     level_: int = 1
 
     def upgrade(self) -> bool:
@@ -63,7 +63,7 @@ class UpgradableStats:
 
 class UpgradableTowerStats(UpgradableStats):
     stats: TowerStats
-    upgrades: List[TowerStats] = field(default_factory=list)
+    upgrades: Sequence[TowerStats] = field(default_factory=list)
 
     def get_upgrade_cost(self) -> Optional[int]:
         try:

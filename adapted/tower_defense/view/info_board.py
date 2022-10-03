@@ -1,5 +1,5 @@
 import tkinter as tk
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from PIL import ImageTk, Image
 
@@ -34,11 +34,10 @@ class InfoBoard(MouseWidget, GameObject):
         )
         self.canvas.grid(row=0, column=1)
         self.info_board_image = ImageTk.PhotoImage(Image.open("images/infoBoard.png"))
-        self.tower_image = None
+        self.tower_image: Optional[ImageTk.PhotoImage] = None
         self.current_buttons: List[Button] = []
         self.controller = controller
         self.image_cache = ImageCache()
-        self.target_buttons = {}
         self.selection = selection
 
     def _create_target_strategy_button(

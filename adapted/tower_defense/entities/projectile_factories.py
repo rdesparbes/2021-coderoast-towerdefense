@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from tower_defense.entities.monster import IMonster
 from tower_defense.entities.projectile import IProjectile
@@ -23,7 +22,7 @@ class ProjectileFactory(IProjectileFactory):
         self.upgradable_stats.upgrade()
 
     def create_projectile(
-        self, x: float, y: float, angle: float, target: Optional[IMonster] = None
+        self, x: float, y: float, angle: float, target: IMonster
     ) -> IProjectile:
         return Projectile(
             self.projectile_name,

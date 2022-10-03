@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Iterable, Set
+from typing import Tuple, Iterable, Set
 
 from tower_defense.entities.effects import Effect
 from tower_defense.entities.entity import distance, IEntity
@@ -18,7 +18,7 @@ class Projectile(IProjectile):
         stats: ProjectileStats,
         movement_strategy: MovementStrategy,
         hit_strategy: HitStrategy,
-        target: Optional[IMonster] = None,
+        target: IMonster,
     ):
         self.name = name
         self.x = x
@@ -27,7 +27,7 @@ class Projectile(IProjectile):
         self.stats = stats
         self.movement_strategy = movement_strategy
         self.hit_strategy = hit_strategy
-        self.target: Optional[IMonster] = target
+        self.target: IMonster = target
         self._travelled_distance = 0.0
 
     def get_damage(self) -> int:
@@ -36,7 +36,7 @@ class Projectile(IProjectile):
     def get_orientation(self) -> float:
         return self.angle
 
-    def get_target(self) -> Optional[IMonster]:
+    def get_target(self) -> IMonster:
         return self.target
 
     def get_speed(self) -> float:

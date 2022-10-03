@@ -21,7 +21,11 @@ from tower_defense.entities.towers import (
     concentric_orientation_strategy,
 )
 
-TOWER_MAPPING: Dict[str, ITowerFactory] = {
+
+TowerMapping = Dict[str, ITowerFactory]
+
+
+TOWER_MAPPING: TowerMapping = {
     tower_factory.get_name(): tower_factory
     for tower_factory in (
         TowerFactory(

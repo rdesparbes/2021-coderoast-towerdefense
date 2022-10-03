@@ -103,13 +103,13 @@ class Tower(ITower):
         self.countdown.update()
         if self._is_valid_target(self.target) and self.countdown.ended():
             self.countdown.start(1 / self.upgradable_tower_stats.stats.shots_per_second)
-            return self._shoot()
+            return self._shoot(self.target)
         return []
 
     def get_name(self) -> str:
         return self.name
 
-    def _shoot(self):
+    def _shoot(self, target: IMonster) -> Iterable[IProjectile]:
         for projectile_index in range(
             self.upgradable_tower_stats.stats.projectile_count
         ):
@@ -118,7 +118,7 @@ class Tower(ITower):
                 self.x,
                 self.y,
                 angle,
-                self.target,
+                target,
             )
 
 

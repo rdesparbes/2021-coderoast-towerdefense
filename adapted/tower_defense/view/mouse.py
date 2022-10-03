@@ -36,13 +36,15 @@ class Mouse(GameObject):
         return self.x, self.y
 
     def update(self) -> None:
-        if not self.pressed:
+        if not self.pressed or self.hovered_widget is None:
             return
         for widget in self.widgets:
             if widget.has_canvas(self.hovered_widget):
                 widget.click_at(self.position)
 
     def paint(self) -> None:
+        if self.hovered_widget is None:
+            return
         for widget in self.widgets:
             if widget.has_canvas(self.hovered_widget):
                 widget.paint_at(self.position, self.pressed)

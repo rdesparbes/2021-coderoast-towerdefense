@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Tuple
 
-from PIL import ImageTk
+from PIL import Image
 
 
 class MapGenerator(ABC):
@@ -10,5 +10,5 @@ class MapGenerator(ABC):
         ...
 
     @abstractmethod
-    def get_background(self) -> ImageTk.PhotoImage:
+    def get_background(self) -> Image.Image:
         ...

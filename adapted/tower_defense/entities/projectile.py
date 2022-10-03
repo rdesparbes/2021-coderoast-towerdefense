@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Set, Iterable
+from typing import Set, Iterable
 
 from tower_defense.entities.effects import Effect
 from tower_defense.entities.entity import IEntity
@@ -24,7 +24,7 @@ class IProjectile(IEntity, ABC):
         ...
 
     @abstractmethod
-    def get_target(self) -> Optional[IMonster]:
+    def get_target(self) -> IMonster:
         ...
 
     @abstractmethod

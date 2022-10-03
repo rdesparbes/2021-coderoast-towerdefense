@@ -36,7 +36,7 @@ def tracking_hit_strategy(
     projectile: IProjectile, _monsters: Set[IMonster]
 ) -> Iterable[IMonster]:
     target = projectile.get_target()
-    if target is not None and projectile.is_in_range(target):
+    if projectile.is_in_range(target):
         yield target
 
 

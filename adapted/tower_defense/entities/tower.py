@@ -11,9 +11,8 @@ class ITower(IEntity, ABC):
     targeting_strategy: TargetingStrategy
     sticky_target: bool
 
-    @staticmethod
     @abstractmethod
-    def get_name() -> str:
+    def get_name(self) -> str:
         ...
 
     @abstractmethod
@@ -29,7 +28,7 @@ class ITower(IEntity, ABC):
         ...
 
     @abstractmethod
-    def get_upgrade_cost(self) -> int:
+    def get_upgrade_cost(self) -> Optional[int]:
         ...
 
     @abstractmethod

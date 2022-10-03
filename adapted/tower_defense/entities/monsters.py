@@ -11,50 +11,50 @@ from tower_defense.path import Path, has_arrived, compute_position
 
 class Monster(IMonster):
     def __init__(self, stats: MonsterStats, distance: float = 0.0):
-        self.stats = stats
+        self._stats = stats
         self.health_ = stats.max_health
-        self.speed = stats.speed
-        self.countdown = CountDown()
+        self._speed = stats.speed
+        self._countdown = CountDown()
         self.distance_travelled_ = max(distance, 0.0)
-        self.x = 0
-        self.y = 0
+        self._x: float = 0.0
+        self._y: float = 0.0
 
     def get_value(self) -> int:
-        return self.stats.value
+        return self._stats.value
 
     def update_position(self, path: Path) -> None:
-        self.distance_travelled_ += self.speed / FPS
-        self.x, self.y = compute_position(path, self.distance_travelled_)
-        self.countdown.update()
-        if self.countdown.ended():
-            self.speed = self.stats.speed
+        self.distance_travelled_ += self._speed / FPS
+        self._x, self._y = compute_position(path, self.distance_travelled_)
+        self._countdown.update()
+        if self._countdown.ended():
+            self._speed = self._stats.speed
 
     def has_arrived(self, path: Path) -> bool:
         return has_arrived(path, self.distance_travelled_)
 
     def get_damage(self) -> int:
-        return self.stats.damage
+        return self._stats.damage
 
     def get_max_health(self) -> int:
-        return self.stats.max_health
+        return self._stats.max_health
 
     def inflict_damage(self, damage: int) -> None:
         self.health_ -= damage
 
     def _slow_down(self, slow_factor: float, duration: float) -> None:
-        if self.speed != self.stats.speed:
+        if self._speed != self._stats.speed:
             return
-        self.countdown.start(duration)
-        self.speed /= slow_factor
+        self._countdown.start(duration)
+        self._speed /= slow_factor
 
     def get_position(self) -> Tuple[float, float]:
-        return self.x, self.y
+        return self._x, self._y
 
     def get_orientation(self) -> float:
         return 0.0
 
     def get_model_name(self) -> str:
-        return self.stats.name
+        return self._stats.name
 
     @property
     def alive(self):
@@ -63,11 +63,11 @@ class Monster(IMonster):
     def get_children(
         self, monster_factories: List[MonsterFactory]
     ) -> Iterable[IMonster]:
-        for respawn_monster_index in self.stats.respawn_indices:
+        for respawn_monster_index in self._stats.respawn_indices:
             factory = monster_factories[respawn_monster_index]
             yield factory(
                 self.distance_travelled_
-                + self.stats.respawn_spread * (1 - 2 * random.random()),
+                + self._stats.respawn_spread * (1 - 2 * random.random()),
             )
 
     def apply_effects(self, effects: Iterable[Effect]):

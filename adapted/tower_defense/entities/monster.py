@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Protocol, Set, Iterable
+from typing import List, Protocol, Iterable
 
 from tower_defense.entities.effects import Effect
 from tower_defense.entities.entity import IEntity
@@ -30,7 +30,7 @@ class IMonster(IEntity, ABC):
     @abstractmethod
     def get_children(
         self, monster_factories: List["MonsterFactory"]
-    ) -> Set["IMonster"]:
+    ) -> Iterable["IMonster"]:
         ...
 
     @abstractmethod
