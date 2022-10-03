@@ -1,3 +1,4 @@
+import math
 from abc import ABC, abstractmethod
 from typing import Tuple
 
@@ -17,6 +18,4 @@ class IEntity(ABC):
 
 
 def distance(entity_a: IEntity, entity_b: IEntity) -> float:
-    x_a, y_a = entity_a.get_position()
-    x_b, y_b = entity_b.get_position()
-    return ((x_b - x_a) ** 2 + (y_b - y_a) ** 2) ** 0.5
+    return math.dist(entity_a.get_position(), entity_b.get_position())

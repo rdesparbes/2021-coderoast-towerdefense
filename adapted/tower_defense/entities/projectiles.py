@@ -1,3 +1,4 @@
+import math
 from typing import Tuple, Iterable, Set
 
 from tower_defense.entities.effects import Effect
@@ -49,11 +50,9 @@ class Projectile(IProjectile):
         return self.x, self.y
 
     def update_position(self) -> None:
-        new_x, new_y = self.movement_strategy(self)
-        self._travelled_distance += (
-            (self.x - new_x) ** 2 + (self.y - new_y) ** 2
-        ) ** 0.5
-        self.x, self.y = new_x, new_y
+        new_position = self.movement_strategy(self)
+        self._travelled_distance += math.dist(self.get_position(), new_position)
+        self.x, self.y = new_position
 
     def get_hit_monsters(self, monsters: Set[IMonster]) -> Iterable[IMonster]:
         return self.hit_strategy(self, monsters)
