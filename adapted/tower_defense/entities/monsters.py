@@ -3,7 +3,6 @@ from typing import List, Tuple, Iterable
 
 from tower_defense.constants import FPS
 from tower_defense.entities.count_down import CountDown
-from tower_defense.entities.effects import Effect
 from tower_defense.entities.monster import IMonster, MonsterFactory
 from tower_defense.entities.monster_stats import MonsterStats
 from tower_defense.path import Path, has_arrived, compute_position
@@ -41,7 +40,7 @@ class Monster(IMonster):
     def inflict_damage(self, damage: int) -> None:
         self.health_ -= damage
 
-    def _slow_down(self, slow_factor: float, duration: float) -> None:
+    def slow_down(self, slow_factor: float, duration: float) -> None:
         if self._speed != self._stats.speed:
             return
         self._countdown.start(duration)
@@ -69,11 +68,6 @@ class Monster(IMonster):
                 self.distance_travelled_
                 + self._stats.respawn_spread * (1 - 2 * random.random()),
             )
-
-    def apply_effects(self, effects: Iterable[Effect]):
-        # TODO: support more than just a slow effect
-        for effect in effects:
-            self._slow_down(effect.slow_factor, effect.duration)
 
 
 def monster_factory(stats: MonsterStats) -> MonsterFactory:

@@ -1,6 +1,18 @@
-from typing import NamedTuple
+from abc import ABC
+from dataclasses import dataclass
+
+from tower_defense.entities.monster import IMonster
 
 
-class Effect(NamedTuple):
+class Effect(ABC):
+    def apply(self, monster: IMonster) -> None:
+        ...
+
+
+@dataclass
+class SlowEffect(Effect):
     slow_factor: float
     duration: float
+
+    def apply(self, monster: IMonster) -> None:
+        monster.slow_down(self.slow_factor, self.duration)

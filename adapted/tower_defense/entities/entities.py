@@ -27,8 +27,8 @@ class Entities(UpdatableObject):
                 continue
             for monster in projectile.get_hit_monsters(self.monsters):
                 monster.inflict_damage(projectile.get_damage())
-                effects = projectile.get_effects()
-                monster.apply_effects(effects)
+                for effect in projectile.get_effects():
+                    effect.apply(monster)
                 to_remove.add(projectile)
         self.projectiles.difference_update(to_remove)
 

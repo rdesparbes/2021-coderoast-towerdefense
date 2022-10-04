@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Protocol, Iterable
 
-from tower_defense.entities.effects import Effect
 from tower_defense.entities.entity import IEntity
 from tower_defense.path import Path
 
@@ -46,7 +45,7 @@ class IMonster(IEntity, ABC):
         ...
 
     @abstractmethod
-    def apply_effects(self, effects: Iterable[Effect]) -> None:
+    def slow_down(self, slow_factor: float, duration: float) -> None:
         ...
 
 
