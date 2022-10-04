@@ -6,7 +6,7 @@ from tower_defense.entities.entity import distance, IEntity
 from tower_defense.entities.monster import IMonster
 from tower_defense.entities.projectile import IProjectile
 from tower_defense.entities.projectile_strategies import MovementStrategy, HitStrategy
-from tower_defense.entities.stats import ProjectileStats, is_missing
+from tower_defense.entities.stats import ProjectileStats
 
 
 class Projectile(IProjectile):
@@ -58,8 +58,7 @@ class Projectile(IProjectile):
         return self.hit_strategy(self, monsters)
 
     def get_effects(self) -> Iterable[Effect]:
-        if not is_missing(self.stats.slow_factor):
-            yield Effect(self.stats.slow_factor, self.stats.slow_duration)
+        yield Effect(self.stats.slow_factor, self.stats.slow_duration)
 
     def is_out_of_range(self) -> bool:
         return (

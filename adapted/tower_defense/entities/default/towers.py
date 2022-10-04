@@ -13,6 +13,8 @@ from tower_defense.entities.stats import (
     ProjectileStats,
     UpgradableTowerStats,
     TowerStats,
+    ProjectileUpgradeStats,
+    TowerUpgradeStats,
 )
 from tower_defense.entities.towers import (
     TowerFactory,
@@ -43,7 +45,7 @@ TOWER_MAPPING: TowerMapping = {
                         hitbox_radius=1.0,
                         range_sensitive=True,
                     ),
-                    upgrades=[ProjectileStats(range=11.5, damage=12)],
+                    upgrades=[ProjectileUpgradeStats(range=11.5, damage=12)],
                 ),
                 constant_angle_movement_strategy,
                 near_enough_hit_strategy,
@@ -55,10 +57,10 @@ TOWER_MAPPING: TowerMapping = {
                     projectile_count=1,
                 ),
                 upgrades=[
-                    TowerStats(
+                    TowerUpgradeStats(
                         cost=50,
                     ),
-                    TowerStats(
+                    TowerUpgradeStats(
                         cost=100,
                         shots_per_second=2,
                     ),
@@ -76,7 +78,10 @@ TOWER_MAPPING: TowerMapping = {
                         damage=5,
                         speed=10,
                         range=6.5,
+                        slow_factor=1.0,
+                        slow_duration=0.0,
                         hitbox_radius=0.5,
+                        range_sensitive=False,
                     ),
                 ),
                 tracking_movement_strategy,
@@ -104,6 +109,7 @@ TOWER_MAPPING: TowerMapping = {
                         slow_factor=3.0,
                         slow_duration=0.1,
                         hitbox_radius=0.25,
+                        range_sensitive=False,
                     ),
                 ),
                 tracking_movement_strategy,
