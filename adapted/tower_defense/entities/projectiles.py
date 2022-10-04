@@ -1,7 +1,7 @@
 import math
 from typing import Tuple, Iterable, Set
 
-from tower_defense.entities.effects import Effect, SlowEffect
+from tower_defense.entities.effects import Effect, SlowEffect, DamageEffect
 from tower_defense.entities.entity import distance, IEntity
 from tower_defense.entities.monster import IMonster
 from tower_defense.entities.projectile import IProjectile
@@ -60,6 +60,7 @@ class Projectile(IProjectile):
     def get_effects(self) -> Iterable[Effect]:
         # TODO: store effects as UpgradableStats
         yield SlowEffect(self.stats.slow_factor, self.stats.slow_duration)
+        yield DamageEffect(self.stats.damage)
 
     def is_out_of_range(self) -> bool:
         return (

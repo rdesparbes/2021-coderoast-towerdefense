@@ -12,10 +12,6 @@ class IProjectile(IEntity, ABC):
         ...
 
     @abstractmethod
-    def get_damage(self) -> int:
-        ...
-
-    @abstractmethod
     def is_in_range(self, entity: IEntity) -> bool:
         ...
 
