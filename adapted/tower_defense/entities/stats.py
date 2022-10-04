@@ -18,12 +18,10 @@ class Stats:
 @dataclass
 class ProjectileStats(Stats):
     damage: int = Missing  # Damage inflicted on impact by one projectile
-    speed: float = Missing  # Projectiles' speed
+    speed: float = Missing  # Projectiles' speed, in units per second
     range: float = Missing  # Range of the tower, in units
     slow_factor: float = Missing  # Slowing reduction factor on monsters' speed
-    slow_duration: float = (
-        Missing  # The duration slow_factor is applied when the projectile hits
-    )
+    slow_duration: float = Missing  # The duration slow_factor is applied when the projectile hits, in seconds
     hitbox_radius: float = (
         Missing  # Radius of the circle representing the hit boxes of the projectile
     )

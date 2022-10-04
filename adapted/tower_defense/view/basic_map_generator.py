@@ -1,4 +1,4 @@
-from typing import Tuple, Dict, Iterable
+from typing import Tuple, Dict, Iterable, Iterator
 
 from PIL import Image
 
@@ -16,15 +16,15 @@ MAPPING: Dict[Block, str] = {
 }
 
 
-def _compute_block_size(block_images: BlockImages) -> Tuple[int, int]:
-    if not len(block_images):
+def _compute_block_size(images: Iterator[Image.Image]) -> Tuple[int, int]:
+    try:
+        image: Image.Image = next(images)
+    except StopIteration:
         raise ValueError(f"Cannot compute block size if no blocks are provided")
-    block_shape = None
-    for image in block_images.values():
+    block_shape = image.width, image.height
+    for image in images:
         image_shape = image.width, image.height
-        if block_shape is None:
-            block_shape = image_shape
-        elif block_shape != image_shape:
+        if block_shape != image_shape:
             raise ValueError(
                 f"Heterogeneous block shapes: found {image_shape} and {block_shape}"
             )
@@ -55,7 +55,7 @@ class BasicMapGenerator(MapGenerator):
     def __init__(self, controller: AbstractTowerDefenseController):
         self.controller = controller
         block_images = _load_block_images()
-        self.block_shape = _compute_block_size(block_images)
+        self.block_shape = _compute_block_size(iter(block_images.values()))
         self.block_images = _load_block_images()
 
     def get_block_shape(self) -> Tuple[int, int]:

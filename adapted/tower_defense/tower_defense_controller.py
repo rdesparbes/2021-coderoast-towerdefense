@@ -95,9 +95,10 @@ class TowerDefenseController(AbstractTowerDefenseController):
 
     def upgrade_tower(self, tower_position: Tuple[int, int]) -> None:
         tower = self.entities.towers[tower_position]
-        if self.get_player_money() < tower.get_upgrade_cost():
+        upgrade_cost: Optional[int] = tower.get_upgrade_cost()
+        if upgrade_cost is None or self.get_player_money() < upgrade_cost:
             return
-        self.entities.player.money -= tower.get_upgrade_cost()
+        self.entities.player.money -= upgrade_cost
         tower.upgrade()
 
     def sell_tower(self, tower_position: Tuple[int, int]) -> None:
