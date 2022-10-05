@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Set, Iterable
 
-from tower_defense.entities.effects import Effect
 from tower_defense.entities.entity import IEntity
 from tower_defense.entities.monster import IMonster
 
@@ -28,7 +27,7 @@ class IProjectile(IEntity, ABC):
         ...
 
     @abstractmethod
-    def get_effects(self) -> Iterable[Effect]:
+    def apply_effects(self, monster: IMonster) -> None:
         ...
 
     @abstractmethod

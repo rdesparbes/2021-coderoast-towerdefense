@@ -1,5 +1,5 @@
 import math
-from typing import Tuple, Iterable, Set
+from typing import Tuple, Iterable, Set, List
 
 from tower_defense.entities.effects import Effect, SlowEffect, DamageEffect
 from tower_defense.entities.entity import distance, IEntity
@@ -30,6 +30,10 @@ class Projectile(IProjectile):
         self.hit_strategy = hit_strategy
         self.target: IMonster = target
         self._travelled_distance = 0.0
+        self._effects: List[Effect] = [
+            SlowEffect(self.stats.slow_factor, self.stats.slow_duration),
+            DamageEffect(self.stats.damage),
+        ]
 
     def get_damage(self) -> int:
         return self.stats.damage
@@ -57,10 +61,9 @@ class Projectile(IProjectile):
     def get_hit_monsters(self, monsters: Set[IMonster]) -> Iterable[IMonster]:
         return self.hit_strategy(self, monsters)
 
-    def get_effects(self) -> Iterable[Effect]:
-        # TODO: store effects as UpgradableStats
-        yield SlowEffect(self.stats.slow_factor, self.stats.slow_duration)
-        yield DamageEffect(self.stats.damage)
+    def apply_effects(self, monster: IMonster) -> None:
+        for effect in self._effects:
+            effect.apply(monster)
 
     def is_out_of_range(self) -> bool:
         return (
