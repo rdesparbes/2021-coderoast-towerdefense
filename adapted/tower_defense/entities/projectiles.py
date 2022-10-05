@@ -35,9 +35,6 @@ class Projectile(IProjectile):
             DamageEffect(self.stats.damage),
         ]
 
-    def get_damage(self) -> int:
-        return self.stats.damage
-
     def get_orientation(self) -> float:
         return self.angle
 
