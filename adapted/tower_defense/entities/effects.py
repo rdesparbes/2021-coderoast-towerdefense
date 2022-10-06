@@ -1,5 +1,5 @@
 from abc import ABC
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from tower_defense.entities.monster import IMonster
 from tower_defense.entities.upgradable import Upgradable
@@ -19,6 +19,11 @@ class SlowEffect(Effect):
 
     def apply(self, monster: IMonster) -> None:
         monster.slow_down(self.factor.value, self.duration.value)
+
+
+@dataclass
+class StunEffect(SlowEffect):
+    factor: Upgradable[float] = field(default=Upgradable(float("inf")), init=False)
 
 
 @dataclass

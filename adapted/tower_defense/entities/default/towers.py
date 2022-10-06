@@ -1,7 +1,7 @@
 from typing import Dict
 
 from tower_defense.abstract_tower_factory import ITowerFactory
-from tower_defense.entities.effects import DamageEffect, SlowEffect
+from tower_defense.entities.effects import DamageEffect, SlowEffect, StunEffect
 from tower_defense.entities.projectile_factory import ProjectileFactory
 from tower_defense.entities.projectile_strategies import (
     constant_angle_movement_strategy,
@@ -40,9 +40,7 @@ TOWER_MAPPING: TowerMapping = {
                     range_sensitive=Upgradable(True),
                     effects=[
                         DamageEffect(damage=Upgradable(10, 12)),
-                        SlowEffect(
-                            factor=Upgradable(float("inf")), duration=Upgradable(0.25)
-                        ),
+                        StunEffect(duration=Upgradable(0.25)),
                     ],
                 ),
                 constant_angle_movement_strategy,
@@ -117,9 +115,7 @@ TOWER_MAPPING: TowerMapping = {
                     range_sensitive=Upgradable(True),
                     effects=[
                         DamageEffect(damage=Upgradable(10)),
-                        SlowEffect(
-                            factor=Upgradable(float("inf")), duration=Upgradable(0.25)
-                        ),
+                        StunEffect(duration=Upgradable(0.25)),
                     ],
                 ),
                 constant_angle_movement_strategy,
