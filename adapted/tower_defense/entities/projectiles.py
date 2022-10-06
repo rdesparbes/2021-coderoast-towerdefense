@@ -1,7 +1,6 @@
 import math
-from typing import Tuple, Iterable, Set, List
+from typing import Tuple, Iterable, Set
 
-from tower_defense.entities.effects import Effect, SlowEffect, DamageEffect
 from tower_defense.entities.entity import distance, IEntity
 from tower_defense.entities.monster import IMonster
 from tower_defense.entities.projectile import IProjectile
@@ -30,10 +29,6 @@ class Projectile(IProjectile):
         self.hit_strategy = hit_strategy
         self.target: IMonster = target
         self._travelled_distance = 0.0
-        self._effects: List[Effect] = [
-            SlowEffect(self.stats.slow_factor, self.stats.slow_duration),
-            DamageEffect(self.stats.damage),
-        ]
 
     def get_orientation(self) -> float:
         return self.angle
@@ -42,7 +37,7 @@ class Projectile(IProjectile):
         return self.target
 
     def get_speed(self) -> float:
-        return self.stats.speed
+        return self.stats.speed.value
 
     def get_model_name(self) -> str:
         return self.name
@@ -59,13 +54,14 @@ class Projectile(IProjectile):
         return self.hit_strategy(self, monsters)
 
     def apply_effects(self, monster: IMonster) -> None:
-        for effect in self._effects:
+        for effect in self.stats.effects:
             effect.apply(monster)
 
     def is_out_of_range(self) -> bool:
         return (
-            self.stats.range_sensitive and self._travelled_distance >= self.stats.range
+            self.stats.range_sensitive.value
+            and self._travelled_distance >= self.stats.range.value
         )
 
     def is_in_range(self, entity: IEntity) -> bool:
-        return distance(self, entity) <= self.stats.hitbox_radius
+        return distance(self, entity) <= self.stats.hitbox_radius.value

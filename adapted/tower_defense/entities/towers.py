@@ -8,17 +8,15 @@ from tower_defense.entities.count_down import CountDown
 from tower_defense.entities.entity import distance
 from tower_defense.entities.monster import IMonster
 from tower_defense.entities.projectile import IProjectile
-from tower_defense.entities.projectile_factory import IProjectileFactory
-from tower_defense.entities.stats import (
-    UpgradableTowerStats,
-)
+from tower_defense.entities.projectile_factory import ProjectileFactory
+from tower_defense.entities.stats import TowerStats
 from tower_defense.entities.targeting_strategies import (
     TargetingStrategy,
     query_monsters,
     SortingParam,
 )
 from tower_defense.entities.tower import ITower
-
+from tower_defense.entities.upgradable import UpgradableData
 
 OrientationStrategy = Callable[[ITower, int], float]
 
@@ -30,10 +28,10 @@ class Tower(ITower):
         model_name: str,
         targeting_strategy: TargetingStrategy,
         orientation_strategy: OrientationStrategy,
-        projectile_factory: IProjectileFactory,
+        projectile_factory: ProjectileFactory,
         x: float,
         y: float,
-        upgradable_tower_stats: UpgradableTowerStats,
+        tower_stats: TowerStats,
         sticky_target: bool = False,
         target: Optional[IMonster] = None,
     ):
@@ -42,15 +40,16 @@ class Tower(ITower):
         self.targeting_strategy = targeting_strategy
         self.orientation_strategy = orientation_strategy
         self.projectile_factory = projectile_factory
-        self.upgradable_tower_stats = upgradable_tower_stats
+        self.tower_stats = tower_stats
         self.x = x
         self.y = y
         self.countdown = CountDown()
         self.target: Optional[IMonster] = target
         self.sticky_target = sticky_target
+        self._level: int = 1
 
     def get_level(self) -> int:
-        return self.upgradable_tower_stats.level_
+        return self._level
 
     def get_position(self) -> Tuple[float, float]:
         return self.x, self.y
@@ -68,17 +67,22 @@ class Tower(ITower):
         return self.model_name
 
     def get_projectile_count(self) -> int:
-        return self.upgradable_tower_stats.stats.projectile_count
+        return self.tower_stats.projectile_count.value
 
     def get_cost(self) -> int:
-        return self.upgradable_tower_stats.stats.cost
+        return self.tower_stats.cost.value
 
     def get_upgrade_cost(self) -> Optional[int]:
-        return self.upgradable_tower_stats.get_upgrade_cost()
+        return (
+            self.tower_stats.upgrade_cost.value
+            if self.tower_stats.is_upgradable()
+            else None
+        )
 
     def upgrade(self):
-        self.upgradable_tower_stats.upgrade()
+        self.tower_stats.upgrade()
         self.projectile_factory.upgrade()
+        self._level += 1
 
     def _monster_is_close_enough(self, monster: IMonster) -> bool:
         return distance(self, monster) <= self.projectile_factory.get_range()
@@ -102,7 +106,7 @@ class Tower(ITower):
     def shoot(self) -> Iterable[IProjectile]:
         self.countdown.update()
         if self._is_valid_target(self.target) and self.countdown.ended():
-            self.countdown.start(1 / self.upgradable_tower_stats.stats.shots_per_second)
+            self.countdown.start(1 / self.tower_stats.shots_per_second.value)
             return self._shoot(self.target)
         return []
 
@@ -110,9 +114,7 @@ class Tower(ITower):
         return self.name
 
     def _shoot(self, target: IMonster) -> Iterable[IProjectile]:
-        for projectile_index in range(
-            self.upgradable_tower_stats.stats.projectile_count
-        ):
+        for projectile_index in range(self.tower_stats.projectile_count.value):
             angle = self.orientation_strategy(self, projectile_index)
             yield self.projectile_factory.create_projectile(
                 self.x,
@@ -137,11 +139,11 @@ def concentric_orientation_strategy(tower: ITower, projectile_index: int) -> flo
 
 
 @dataclass
-class TowerFactory(ITowerFactory):
+class TowerFactory(ITowerFactory, UpgradableData):
     tower_name: str
     model_name: str
-    projectile_factory: IProjectileFactory
-    upgradable_tower_stats: UpgradableTowerStats
+    projectile_factory: ProjectileFactory
+    tower_stats: TowerStats
     orientation_strategy: OrientationStrategy
     targeting_strategy: TargetingStrategy = TargetingStrategy(
         SortingParam.HEALTH, reverse=True
@@ -151,7 +153,7 @@ class TowerFactory(ITowerFactory):
         return self.tower_name
 
     def get_cost(self) -> int:
-        return self.upgradable_tower_stats.stats.cost
+        return self.tower_stats.cost.value
 
     def get_model_name(self) -> str:
         return self.model_name
@@ -162,8 +164,8 @@ class TowerFactory(ITowerFactory):
             self.model_name,
             self.targeting_strategy,
             self.orientation_strategy,
-            self.projectile_factory,
+            deepcopy(self.projectile_factory),
             x,
             y,
-            deepcopy(self.upgradable_tower_stats),
+            deepcopy(self.tower_stats),
         )
