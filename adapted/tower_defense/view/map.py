@@ -60,10 +60,9 @@ class Map(MouseWidget, GameObject):
         if self.selection.tower_factory is not None:
             return
         block_position, _ = self.controller.get_block(world_position)
-        tower = self.controller.get_tower(block_position)
-        if tower is None:
+        if self.controller.get_tower(block_position) is None:
             return
-        self.selection.tower_position = tower.get_position()
+        self.selection.tower_position = block_position
 
     def click_at(self, position: Tuple[int, int]) -> None:
         world_position = self.pixel_to_position(position)
