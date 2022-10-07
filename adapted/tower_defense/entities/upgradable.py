@@ -13,21 +13,14 @@ class IUpgradable(ABC):
         ...
 
 
-@dataclass
-class UpgradableData(IUpgradable):
-    @staticmethod
-    def _is_upgradable(value: Any) -> bool:
-        return isinstance(value, IUpgradable) and value.is_upgradable()
+def _is_upgradable(value: Any) -> bool:
+    return isinstance(value, IUpgradable) and value.is_upgradable()
 
+
+class _AbstractUpgradable(IUpgradable):
+    @abstractmethod
     def _upgradable_values(self) -> Iterable[IUpgradable]:
-        for stat_field in fields(self):
-            value: Any = getattr(self, stat_field.name)
-            if self._is_upgradable(value):
-                yield value
-            elif isinstance(value, Iterable):
-                for item in value:
-                    if self._is_upgradable(item):
-                        yield item
+        ...
 
     def is_upgradable(self) -> bool:
         return any(True for _ in self._upgradable_values())
@@ -35,6 +28,20 @@ class UpgradableData(IUpgradable):
     def upgrade(self) -> None:
         for upgradable in self._upgradable_values():
             upgradable.upgrade()
+
+
+@dataclass
+class UpgradableData(_AbstractUpgradable):
+    def _upgradable_values(self) -> Iterable[IUpgradable]:
+        for stat_field in fields(self):
+            value: Any = getattr(self, stat_field.name)
+            if _is_upgradable(value):
+                yield value
+
+
+class UpgradableList(_AbstractUpgradable, list):
+    def _upgradable_values(self) -> Iterable[IUpgradable]:
+        return (value for value in self if _is_upgradable(value))
 
 
 T = TypeVar("T")

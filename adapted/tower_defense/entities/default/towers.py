@@ -13,7 +13,7 @@ from tower_defense.entities.stats import (
     ProjectileStats,
     TowerStats,
 )
-from tower_defense.entities.upgradable import Upgradable
+from tower_defense.entities.upgradable import Upgradable, UpgradableList
 from tower_defense.entities.towers import (
     TowerFactory,
     target_orientation_strategy,
@@ -38,10 +38,12 @@ TOWER_MAPPING: TowerMapping = {
                     range=Upgradable(10.5, 11.5),
                     hitbox_radius=Upgradable(1.0),
                     range_sensitive=Upgradable(True),
-                    effects=[
-                        DamageEffect(damage=Upgradable(10, 12)),
-                        StunEffect(duration=Upgradable(0.25)),
-                    ],
+                    effects=UpgradableList(
+                        [
+                            DamageEffect(damage=Upgradable(10, 12)),
+                            StunEffect(duration=Upgradable(0.25)),
+                        ]
+                    ),
                 ),
                 constant_angle_movement_strategy,
                 near_enough_hit_strategy,
@@ -64,7 +66,7 @@ TOWER_MAPPING: TowerMapping = {
                     range=Upgradable(6.5),
                     hitbox_radius=Upgradable(0.5),
                     range_sensitive=Upgradable(False),
-                    effects=[DamageEffect(damage=Upgradable(5))],
+                    effects=UpgradableList([DamageEffect(damage=Upgradable(5))]),
                 ),
                 tracking_movement_strategy,
                 tracking_hit_strategy,
@@ -87,10 +89,14 @@ TOWER_MAPPING: TowerMapping = {
                     range=Upgradable(8.5),
                     hitbox_radius=Upgradable(0.25),
                     range_sensitive=Upgradable(False),
-                    effects=[
-                        DamageEffect(damage=Upgradable(1)),
-                        SlowEffect(factor=Upgradable(3.0), duration=Upgradable(0.1)),
-                    ],
+                    effects=UpgradableList(
+                        [
+                            DamageEffect(damage=Upgradable(1)),
+                            SlowEffect(
+                                factor=Upgradable(3.0), duration=Upgradable(0.1)
+                            ),
+                        ]
+                    ),
                 ),
                 tracking_movement_strategy,
                 tracking_hit_strategy,
@@ -113,10 +119,12 @@ TOWER_MAPPING: TowerMapping = {
                     range=Upgradable(5.0),
                     hitbox_radius=Upgradable(1.0),
                     range_sensitive=Upgradable(True),
-                    effects=[
-                        DamageEffect(damage=Upgradable(10)),
-                        StunEffect(duration=Upgradable(0.25)),
-                    ],
+                    effects=UpgradableList(
+                        [
+                            DamageEffect(damage=Upgradable(10)),
+                            StunEffect(duration=Upgradable(0.25)),
+                        ]
+                    ),
                 ),
                 constant_angle_movement_strategy,
                 near_enough_hit_strategy,
