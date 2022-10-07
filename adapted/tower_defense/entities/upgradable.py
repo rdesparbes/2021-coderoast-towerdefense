@@ -17,7 +17,7 @@ def _is_upgradable(value: Any) -> bool:
     return isinstance(value, IUpgradable) and value.is_upgradable()
 
 
-class _AbstractUpgradable(IUpgradable):
+class _UpgradableCollection(IUpgradable):
     @abstractmethod
     def _upgradable_values(self) -> Iterable[IUpgradable]:
         ...
@@ -31,7 +31,7 @@ class _AbstractUpgradable(IUpgradable):
 
 
 @dataclass
-class UpgradableData(_AbstractUpgradable):
+class UpgradableData(_UpgradableCollection):
     def _upgradable_values(self) -> Iterable[IUpgradable]:
         for stat_field in fields(self):
             value: Any = getattr(self, stat_field.name)
@@ -39,15 +39,15 @@ class UpgradableData(_AbstractUpgradable):
                 yield value
 
 
-class UpgradableList(_AbstractUpgradable, list):
+T = TypeVar("T")
+
+
+class UpgradableList(_UpgradableCollection, List[T]):
     def _upgradable_values(self) -> Iterable[IUpgradable]:
         return (value for value in self if _is_upgradable(value))
 
 
-T = TypeVar("T")
-
-
-class Upgradable(Generic[T], IUpgradable):
+class Up(Generic[T], IUpgradable):
     def __init__(self, value: T, *values: T):
         self._value: T = value
         self._values: List[T] = list(reversed(values))

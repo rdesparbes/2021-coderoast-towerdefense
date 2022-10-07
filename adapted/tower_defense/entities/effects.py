@@ -2,7 +2,7 @@ from abc import ABC
 from dataclasses import dataclass, field
 
 from tower_defense.entities.monster import IMonster
-from tower_defense.entities.upgradable import Upgradable
+from tower_defense.entities.upgradable import Up, UpgradableData
 
 
 class Effect(ABC):
@@ -11,9 +11,9 @@ class Effect(ABC):
 
 
 @dataclass
-class SlowEffect(Effect):
-    factor: Upgradable[float]  # Slowing reduction factor on monsters' speed
-    duration: Upgradable[
+class SlowEffect(UpgradableData, Effect):
+    factor: Up[float]  # Slowing reduction factor on monsters' speed
+    duration: Up[
         float
     ]  # The duration 'factor' is applied when the projectile hits, in seconds
 
@@ -23,12 +23,12 @@ class SlowEffect(Effect):
 
 @dataclass
 class StunEffect(SlowEffect):
-    factor: Upgradable[float] = field(default=Upgradable(float("inf")), init=False)
+    factor: Up[float] = field(default=Up(float("inf")), init=False)
 
 
 @dataclass
-class DamageEffect(Effect):
-    damage: Upgradable[int]  # Damage inflicted on impact by one projectile
+class DamageEffect(UpgradableData, Effect):
+    damage: Up[int]  # Damage inflicted on impact by one projectile
 
     def apply(self, monster: IMonster) -> None:
         monster.inflict_damage(self.damage.value)

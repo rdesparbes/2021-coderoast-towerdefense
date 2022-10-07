@@ -13,7 +13,7 @@ from tower_defense.entities.stats import (
     ProjectileStats,
     TowerStats,
 )
-from tower_defense.entities.upgradable import Upgradable, UpgradableList
+from tower_defense.entities.upgradable import Up, UpgradableList
 from tower_defense.entities.towers import (
     TowerFactory,
     target_orientation_strategy,
@@ -34,14 +34,14 @@ TOWER_MAPPING: TowerMapping = {
             ProjectileFactory(
                 "arrow",
                 ProjectileStats(
-                    speed=Upgradable(20.0),
-                    range=Upgradable(10.5, 11.5),
-                    hitbox_radius=Upgradable(1.0),
-                    range_sensitive=Upgradable(True),
+                    speed=Up(20.0),
+                    range=Up(10.5, 11.5),
+                    hitbox_radius=Up(1.0),
+                    range_sensitive=Up(True),
                     effects=UpgradableList(
                         [
-                            DamageEffect(damage=Upgradable(10, 12)),
-                            StunEffect(duration=Upgradable(0.25)),
+                            DamageEffect(damage=Up(10, 120)),
+                            StunEffect(duration=Up(0.25)),
                         ]
                     ),
                 ),
@@ -49,10 +49,10 @@ TOWER_MAPPING: TowerMapping = {
                 near_enough_hit_strategy,
             ),
             TowerStats(
-                shots_per_second=Upgradable(1, 1, 3),
-                cost=Upgradable(150),
-                upgrade_cost=Upgradable(50, 100),
-                projectile_count=Upgradable(1),
+                shots_per_second=Up(1, 1, 3),
+                cost=Up(150),
+                upgrade_cost=Up(50, 100),
+                projectile_count=Up(1),
             ),
             target_orientation_strategy,
         ),
@@ -62,20 +62,20 @@ TOWER_MAPPING: TowerMapping = {
             ProjectileFactory(
                 "bullet",
                 ProjectileStats(
-                    speed=Upgradable(10),
-                    range=Upgradable(6.5),
-                    hitbox_radius=Upgradable(0.5),
-                    range_sensitive=Upgradable(False),
-                    effects=UpgradableList([DamageEffect(damage=Upgradable(5))]),
+                    speed=Up(10),
+                    range=Up(6.5),
+                    hitbox_radius=Up(0.5),
+                    range_sensitive=Up(False),
+                    effects=UpgradableList([DamageEffect(damage=Up(5))]),
                 ),
                 tracking_movement_strategy,
                 tracking_hit_strategy,
             ),
             TowerStats(
-                shots_per_second=Upgradable(4),
-                cost=Upgradable(150),
-                upgrade_cost=Upgradable(0),
-                projectile_count=Upgradable(1),
+                shots_per_second=Up(4),
+                cost=Up(150),
+                upgrade_cost=Up(0),
+                projectile_count=Up(1),
             ),
             null_orientation_strategy,
         ),
@@ -85,16 +85,14 @@ TOWER_MAPPING: TowerMapping = {
             ProjectileFactory(
                 "powerShot",
                 ProjectileStats(
-                    speed=Upgradable(20.0),
-                    range=Upgradable(8.5),
-                    hitbox_radius=Upgradable(0.25),
-                    range_sensitive=Upgradable(False),
+                    speed=Up(20.0),
+                    range=Up(8.5),
+                    hitbox_radius=Up(0.25),
+                    range_sensitive=Up(False),
                     effects=UpgradableList(
                         [
-                            DamageEffect(damage=Upgradable(1)),
-                            SlowEffect(
-                                factor=Upgradable(3.0), duration=Upgradable(0.1)
-                            ),
+                            DamageEffect(damage=Up(1)),
+                            SlowEffect(factor=Up(3.0), duration=Up(0.1)),
                         ]
                     ),
                 ),
@@ -102,10 +100,10 @@ TOWER_MAPPING: TowerMapping = {
                 tracking_hit_strategy,
             ),
             TowerStats(
-                shots_per_second=Upgradable(10),
-                cost=Upgradable(150),
-                upgrade_cost=Upgradable(0),
-                projectile_count=Upgradable(1),
+                shots_per_second=Up(10),
+                cost=Up(150),
+                upgrade_cost=Up(0),
+                projectile_count=Up(1),
             ),
             null_orientation_strategy,
         ),
@@ -115,14 +113,14 @@ TOWER_MAPPING: TowerMapping = {
             ProjectileFactory(
                 "arrow",
                 ProjectileStats(
-                    speed=Upgradable(20.0),
-                    range=Upgradable(5.0),
-                    hitbox_radius=Upgradable(1.0),
-                    range_sensitive=Upgradable(True),
+                    speed=Up(20.0),
+                    range=Up(5.0),
+                    hitbox_radius=Up(1.0),
+                    range_sensitive=Up(True),
                     effects=UpgradableList(
                         [
-                            DamageEffect(damage=Upgradable(10)),
-                            StunEffect(duration=Upgradable(0.25)),
+                            DamageEffect(damage=Up(10)),
+                            StunEffect(duration=Up(0.25)),
                         ]
                     ),
                 ),
@@ -130,10 +128,10 @@ TOWER_MAPPING: TowerMapping = {
                 near_enough_hit_strategy,
             ),
             TowerStats(
-                shots_per_second=Upgradable(1),
-                cost=Upgradable(200),
-                upgrade_cost=Upgradable(0),
-                projectile_count=Upgradable(8),
+                shots_per_second=Up(1),
+                cost=Up(200),
+                upgrade_cost=Up(0),
+                projectile_count=Up(8),
             ),
             concentric_orientation_strategy,
         ),
