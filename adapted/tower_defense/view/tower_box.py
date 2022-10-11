@@ -34,10 +34,10 @@ class TowerBox:
         for i in range(ADDITIONAL_EMPTY_SLOTS):
             self.box.insert(tk.END, "<None>")
         self.box.grid(row=1, column=1, rowspan=2)
-        self.box.bind("<<ListboxSelect>>", self.on_select)
+        self.box.bind("<<ListboxSelect>>", self._on_select)
         self.selection = selection
 
-    def on_select(self, _event: tk.Event) -> None:
+    def _on_select(self, _event: tk.Event) -> None:
         self.selection.tower_factory = self.controller.get_tower_factory(
             str(self.box.get(self.box.curselection()))
         )
