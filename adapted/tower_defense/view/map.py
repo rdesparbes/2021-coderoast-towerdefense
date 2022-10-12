@@ -20,8 +20,8 @@ from tower_defense.view.events import (
 )
 from tower_defense.view.game_object import GameObject
 from tower_defense.view.image_cache import ImageCache
-from tower_defense.view.map_generator import MapGenerator
 from tower_defense.view.mousewidget import MouseWidget
+from tower_defense.view.position_converter import PositionConverter
 
 
 class Map(MouseWidget, GameObject):
@@ -29,13 +29,12 @@ class Map(MouseWidget, GameObject):
         self,
         controller: AbstractTowerDefenseController,
         master_frame: tk.Frame,
-        map_generator: MapGenerator,
+        position_converter: PositionConverter,
+        image: ImageTk.PhotoImage,
         event_manager: EventManager,
     ):
-        self.block_shape = map_generator.get_block_shape()
-        self.image: ImageTk.PhotoImage = ImageTk.PhotoImage(
-            image=map_generator.get_background()
-        )
+        self.position_converter = position_converter
+        self.image: ImageTk.PhotoImage = image
         self.image_cache = ImageCache()
         self.controller = controller
         self.canvas = tk.Canvas(
@@ -83,15 +82,15 @@ class Map(MouseWidget, GameObject):
         self.event_manager.notify(TowerSelectedEvent(block_position))
 
     def click_at(self, position: Tuple[int, int]) -> None:
-        world_position = self.pixel_to_position(position)
+        world_position = self.position_converter.pixel_to_position(position)
         if self._try_build_tower(world_position):
             return
         self._try_select_tower(world_position)
 
     def paint_at(self, position: Tuple[int, int], press: bool) -> None:
-        world_position = self.pixel_to_position(position)
+        world_position = self.position_converter.pixel_to_position(position)
         block_position, block = self.controller.get_block(world_position)
-        block_col, block_row = self.position_to_pixel(block_position)
+        block_col, block_row = self.position_converter.position_to_pixel(block_position)
         if block.is_constructible:
             if press:
                 image = self.pressed_image
@@ -109,17 +108,8 @@ class Map(MouseWidget, GameObject):
     def has_canvas(self, canvas: tk.Widget) -> bool:
         return self.canvas is canvas
 
-    def position_to_pixel(self, position: Tuple[float, float]) -> Tuple[int, int]:
-        return (
-            int(position[0] * self.block_shape[0]) + self.block_shape[0] // 2,
-            int(position[1] * self.block_shape[1]) + self.block_shape[1] // 2,
-        )
-
-    def pixel_to_position(self, pixel: Tuple[int, int]) -> Tuple[float, float]:
-        return pixel[0] / self.block_shape[0], pixel[1] / self.block_shape[1]
-
     def _paint_entity(self, entity: IEntity, image_path: str):
-        x, y = self.position_to_pixel(entity.get_position())
+        x, y = self.position_converter.position_to_pixel(entity.get_position())
         angle = entity.get_orientation()
         image = self.image_cache.get_image(image_path)
         if angle:
@@ -135,13 +125,15 @@ class Map(MouseWidget, GameObject):
         tower = self.controller.get_tower(self._tower_position)
         if tower is None:
             return
-        x, y = self.position_to_pixel(tower.get_position())
+        x, y = self.position_converter.position_to_pixel(tower.get_position())
         # In the original version, the radius of the circle is 0.5 units smaller than the actual range
-        horizontal_radius = (
-            tower.get_range() * self.block_shape[0] - self.block_shape[0] / 2
-        )
-        vertical_radius = (
-            tower.get_range() * self.block_shape[1] - self.block_shape[1] / 2
+        error = 0.5
+        tower_range = tower.get_range() - error
+        (
+            horizontal_radius,
+            vertical_radius,
+        ) = self.position_converter.world_vector_to_screen_vector(
+            (tower_range, tower_range)
         )
         self.canvas.create_oval(
             x - horizontal_radius,
@@ -152,7 +144,7 @@ class Map(MouseWidget, GameObject):
         )
 
     def _paint_monster_health(self, monster: IMonster):
-        x, y = self.position_to_pixel(monster.get_position())
+        x, y = self.position_converter.position_to_pixel(monster.get_position())
         image_path = f"images/monsterImages/{monster.get_model_name()}.png"
         image = self.image_cache.get_image(image_path)
         scale = image.width // 2

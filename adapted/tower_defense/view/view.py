@@ -1,11 +1,13 @@
 import tkinter as tk
 from typing import Optional, List
 
+from PIL import ImageTk
+
 from tower_defense.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
 from tower_defense.updatable_object import UpdatableObject
-from tower_defense.view.basic_map_generator import BasicMapGenerator
+from tower_defense.view.map_generator import MapGenerator
 from tower_defense.view.display_board import DisplayBoard
 from tower_defense.view.event_manager import EventManager
 from tower_defense.view.events import (
@@ -18,6 +20,7 @@ from tower_defense.view.game_object import GameObject
 from tower_defense.view.info_board import InfoBoard
 from tower_defense.view.map import Map
 from tower_defense.view.mouse import Mouse
+from tower_defense.view.position_converter import PositionConverter
 from tower_defense.view.tower_box import TowerBox
 
 
@@ -49,8 +52,14 @@ class View(UpdatableObject):
             ),
         )
         self.tower_box = TowerBox(controller, self.frame, event_manager)
+        map_generator = MapGenerator(controller)
+        image = ImageTk.PhotoImage(map_generator.get_background())
         self.map_object = Map(
-            controller, self.frame, BasicMapGenerator(controller), event_manager
+            controller,
+            self.frame,
+            PositionConverter(map_generator.get_block_shape()),
+            image,
+            event_manager,
         )
         event_manager.subscribe(
             self.map_object,
@@ -73,7 +82,6 @@ class View(UpdatableObject):
             self.map_object,
             self.display_board,
             self.info_board,
-            self.mouse,
         ]
 
     def update(self) -> None:
