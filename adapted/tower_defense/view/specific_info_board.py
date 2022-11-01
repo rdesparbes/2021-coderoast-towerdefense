@@ -9,7 +9,9 @@ from tower_defense.abstract_tower_defense_controller import (
 from tower_defense.entities.targeting_strategies import SortingParam, TargetingStrategy
 from tower_defense.view.button import Button
 from tower_defense.view.image_cache import ImageCache
+from tower_defense.view.mouse import Mouse
 from tower_defense.view.rectangle import Rectangle
+from tower_defense.view.selection import Selection
 from tower_defense.view.tower_actions import (
     SetTargetingStrategyAction,
     ToggleStickyTargetAction,
@@ -23,11 +25,15 @@ class SpecificInfoBoard:
         self,
         controller: AbstractTowerDefenseController,
         canvas: tk.Canvas,
+        selection: Selection,
     ):
         self.canvas = canvas
+        self.selection = selection
         self.tower_image: Optional[ImageTk.PhotoImage] = None
         self.current_buttons: List[Button] = []
         self.controller = controller
+        self._mouse = Mouse()
+        self._mouse.bind_listeners(canvas)
         self.image_cache = ImageCache()
 
     def _create_target_strategy_button(
@@ -60,7 +66,17 @@ class SpecificInfoBoard:
             text_x, text_y, text=text, font=("times", 12), fill="white", anchor=tk.NW
         )
 
-    def display_specific(self, tower_position: Tuple[int, int]) -> None:
+    def update(self) -> None:
+        if self._mouse.position is not None and self._mouse.pressed:
+            self._click_at(self._mouse.position)
+
+    def paint(self) -> None:
+        self.current_buttons = []
+        if not self.selection.tower_selected:
+            return
+
+        tower_position = self.selection.get_selected_tower_position()
+
         selected_tower = self.controller.get_tower(tower_position)
         if selected_tower is None:
             return
@@ -134,7 +150,7 @@ class SpecificInfoBoard:
                 anchor=tk.CENTER,
             )
 
-    def click_at(self, position: Tuple[int, int]):
+    def _click_at(self, position: Tuple[int, int]):
         for current_button in self.current_buttons:
             if current_button.press(*position):
                 return

@@ -1,37 +1,30 @@
 import math
 import tkinter as tk
-from typing import Tuple, Optional
+from typing import Tuple
 
 from PIL import ImageTk, Image
 
 from tower_defense.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
-from tower_defense.abstract_tower_factory import ITowerFactory
 from tower_defense.entities.entity import IEntity
 from tower_defense.entities.monster import IMonster
-from tower_defense.view.event_manager import EventManager
-from tower_defense.view.events import (
-    Event,
-    TowerFactorySelectedEvent,
-    TowerFactoryUnselectedEvent,
-    TowerSelectedEvent,
-    TowerUnselectedEvent,
-)
+from tower_defense.entities.tower import ITower
 from tower_defense.view.game_object import GameObject
 from tower_defense.view.image_cache import ImageCache
-from tower_defense.view.mousewidget import MouseWidget
+from tower_defense.view.mouse import Mouse
 from tower_defense.view.position_converter import PositionConverter
+from tower_defense.view.selection import Selection, InvalidSelectedTowerException
 
 
-class Map(MouseWidget, GameObject):
+class Map(GameObject):
     def __init__(
         self,
         controller: AbstractTowerDefenseController,
         master_frame: tk.Frame,
         position_converter: PositionConverter,
         image: ImageTk.PhotoImage,
-        event_manager: EventManager,
+        selection: Selection,
     ):
         self.position_converter = position_converter
         self.image: ImageTk.PhotoImage = image
@@ -54,40 +47,15 @@ class Map(MouseWidget, GameObject):
             Image.open("images/mouseImages/HoveringCanNotPress.png")
         )
         self.canvas.grid(row=0, column=0, rowspan=2, columnspan=1)
-        self.event_manager = event_manager
-        self._tower_factory: Optional[ITowerFactory] = None
-        self._tower_position: Optional[Tuple[int, int]] = None
+        self.selection = selection
+        self._mouse = Mouse()
+        self._mouse.bind_listeners(self.canvas)
 
-    def inform(self, event: Event) -> None:
-        if isinstance(event, TowerFactorySelectedEvent):
-            self._tower_factory = event.tower_factory
-        if isinstance(event, TowerFactoryUnselectedEvent):
-            self._tower_factory = None
-        if isinstance(event, TowerSelectedEvent):
-            self._tower_position = event.tower_position
-        if isinstance(event, TowerUnselectedEvent):
-            self._tower_position = None
-
-    def _try_build_tower(self, world_position: Tuple[float, float]) -> bool:
-        if self._tower_factory is None:
-            return False
-        return self.controller.try_build_tower(self._tower_factory, world_position)
-
-    def _try_select_tower(self, world_position: Tuple[float, float]) -> None:
-        if self._tower_factory is not None:
-            return
-        block_position, _ = self.controller.get_block(world_position)
-        if self.controller.get_tower(block_position) is None:
-            return
-        self.event_manager.notify(TowerSelectedEvent(block_position))
-
-    def click_at(self, position: Tuple[int, int]) -> None:
+    def _click_at(self, position: Tuple[int, int]) -> None:
         world_position = self.position_converter.pixel_to_position(position)
-        if self._try_build_tower(world_position):
-            return
-        self._try_select_tower(world_position)
+        self.selection.interact(world_position)
 
-    def paint_at(self, position: Tuple[int, int], press: bool) -> None:
+    def _paint_at(self, position: Tuple[int, int], press: bool) -> None:
         world_position = self.position_converter.pixel_to_position(position)
         block_position, block = self.controller.get_block(world_position)
         block_col, block_row = self.position_converter.position_to_pixel(block_position)
@@ -105,9 +73,6 @@ class Map(MouseWidget, GameObject):
             anchor=tk.CENTER,
         )
 
-    def has_canvas(self, canvas: tk.Widget) -> bool:
-        return self.canvas is canvas
-
     def _paint_entity(self, entity: IEntity, image_path: str):
         x, y = self.position_converter.position_to_pixel(entity.get_position())
         angle = entity.get_orientation()
@@ -120,10 +85,9 @@ class Map(MouseWidget, GameObject):
         self.canvas.create_image(x, y, image=tk_image, anchor=tk.CENTER)
 
     def _paint_selected_tower_range(self) -> None:
-        if self._tower_position is None:
-            return
-        tower = self.controller.get_tower(self._tower_position)
-        if tower is None:
+        try:
+            tower: ITower = self.selection.get_selected_tower()
+        except InvalidSelectedTowerException:
             return
         x, y = self.position_converter.position_to_pixel(tower.get_position())
         # In the original version, the radius of the circle is 0.5 units smaller than the actual range
@@ -187,3 +151,7 @@ class Map(MouseWidget, GameObject):
         self.image_cache.clear_references()
         self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
         self._paint_entities()
+        if self._mouse.position is not None:
+            self._paint_at(self._mouse.position, self._mouse.pressed)
+            if self._mouse.pressed:
+                self._click_at(self._mouse.position)

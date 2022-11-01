@@ -7,11 +7,10 @@ from tower_defense.abstract_tower_defense_controller import (
 from tower_defense.view.action import Action
 from tower_defense.view.button import Button
 from tower_defense.view.game_object import GameObject
-from tower_defense.view.mousewidget import MouseWidget
 from tower_defense.view.rectangle import Rectangle
 
 
-class DisplayBoard(MouseWidget, GameObject):
+class DisplayBoard(GameObject):
     def __init__(
         self, controller: AbstractTowerDefenseController, master_frame: tk.Frame
     ):
@@ -33,12 +32,6 @@ class DisplayBoard(MouseWidget, GameObject):
 
     def click_at(self, position: Tuple[int, int]):
         self.next_wave_button.press(*position)
-
-    def paint_at(self, position: Tuple[int, int], press: bool):
-        pass
-
-    def has_canvas(self, canvas: tk.Widget) -> bool:
-        return self.canvas is canvas
 
     def update(self) -> None:
         self.health_bar.update()

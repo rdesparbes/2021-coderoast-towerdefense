@@ -3,20 +3,28 @@ from typing import Optional
 
 from PIL import ImageTk
 
-from tower_defense.abstract_tower_factory import ITowerFactory
 from tower_defense.view.image_cache import ImageCache
+from tower_defense.view.selection import Selection
 
 
 class GenericInfoBoard:
     def __init__(
         self,
         canvas: tk.Canvas,
+        selection: Selection,
     ):
         self.canvas: tk.Canvas = canvas
         self.tower_image: Optional[ImageTk.PhotoImage] = None
+        self.selection = selection
         self.image_cache = ImageCache()
 
-    def display_generic(self, tower_factory: ITowerFactory) -> None:
+    def update(self) -> None:
+        pass
+
+    def paint(self) -> None:
+        if not self.selection.tower_factory_selected:
+            return
+        tower_factory = self.selection.get_selected_tower_factory()
         text = f"{tower_factory.get_name()} cost: {tower_factory.get_cost()}"
         image_path = f"images/towerImages/{tower_factory.get_model_name()}/1.png"
         self.tower_image = ImageTk.PhotoImage(self.image_cache.get_image(image_path))

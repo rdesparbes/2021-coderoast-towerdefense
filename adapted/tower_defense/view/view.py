@@ -9,18 +9,11 @@ from tower_defense.abstract_tower_defense_controller import (
 from tower_defense.updatable_object import UpdatableObject
 from tower_defense.view.map_generator import MapGenerator
 from tower_defense.view.display_board import DisplayBoard
-from tower_defense.view.event_manager import EventManager
-from tower_defense.view.events import (
-    TowerFactorySelectedEvent,
-    TowerSelectedEvent,
-    TowerFactoryUnselectedEvent,
-    TowerUnselectedEvent,
-)
 from tower_defense.view.game_object import GameObject
 from tower_defense.view.info_board import InfoBoard
 from tower_defense.view.map import Map
-from tower_defense.view.mouse import Mouse
 from tower_defense.view.position_converter import PositionConverter
+from tower_defense.view.selection import Selection
 from tower_defense.view.tower_box import TowerBox
 
 
@@ -40,18 +33,9 @@ class View(UpdatableObject):
         self.frame = tk.Frame(master=self.root)
         self.frame.grid(row=0, column=0)
         self.controller = controller
-        event_manager = EventManager()
-        self.info_board = InfoBoard(controller, self.frame)
-        event_manager.subscribe(
-            self.info_board,
-            (
-                TowerFactorySelectedEvent,
-                TowerSelectedEvent,
-                TowerFactoryUnselectedEvent,
-                TowerUnselectedEvent,
-            ),
-        )
-        self.tower_box = TowerBox(controller, self.frame, event_manager)
+        selection = Selection(controller)
+        self.info_board = InfoBoard(controller, self.frame, selection)
+        self.tower_box = TowerBox(self.frame, selection)
         map_generator = MapGenerator(controller)
         image = ImageTk.PhotoImage(map_generator.get_background())
         self.map_object = Map(
@@ -59,25 +43,9 @@ class View(UpdatableObject):
             self.frame,
             PositionConverter(map_generator.get_block_shape()),
             image,
-            event_manager,
-        )
-        event_manager.subscribe(
-            self.map_object,
-            (
-                TowerFactorySelectedEvent,
-                TowerSelectedEvent,
-                TowerFactoryUnselectedEvent,
-                TowerUnselectedEvent,
-            ),
+            selection,
         )
         self.display_board = DisplayBoard(controller, self.frame)
-        self.mouse = Mouse(self.controller)
-        self.mouse.register_widget(self.map_object)
-        self.mouse.register_widget(self.display_board)
-        self.mouse.register_widget(self.info_board)
-        self.root.bind("<Button-1>", self.mouse.clicked)
-        self.root.bind("<ButtonRelease-1>", self.mouse.released)
-        self.root.bind("<Motion>", self.mouse.moved)
         self.game_objects: List[GameObject] = [
             self.map_object,
             self.display_board,
