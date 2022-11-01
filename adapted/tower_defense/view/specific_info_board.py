@@ -1,5 +1,5 @@
 import tkinter as tk
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Iterable
 
 from PIL import ImageTk
 
@@ -7,6 +7,7 @@ from tower_defense.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
 from tower_defense.entities.targeting_strategies import SortingParam, TargetingStrategy
+from tower_defense.entities.tower import ITower
 from tower_defense.view.button import Button
 from tower_defense.view.image_cache import ImageCache
 from tower_defense.view.mouse import Mouse
@@ -66,12 +67,81 @@ class SpecificInfoBoard:
             text_x, text_y, text=text, font=("times", 12), fill="white", anchor=tk.NW
         )
 
+    def _create_target_strategy_buttons(
+        self, tower_position: Tuple[int, int]
+    ) -> Iterable[Button]:
+        for position, text, targeting_strategy in zip(
+            [(26, 28), (26, 48), (92, 48), (92, 28)],
+            ["> Health", "< Health", "> Distance", "< Distance"],
+            [
+                TargetingStrategy(SortingParam.HEALTH, reverse=True),
+                TargetingStrategy(SortingParam.HEALTH, reverse=False),
+                TargetingStrategy(SortingParam.DISTANCE, reverse=True),
+                TargetingStrategy(SortingParam.DISTANCE, reverse=False),
+            ],
+        ):
+            self._create_target_strategy_text(position, text)
+            yield self._create_target_strategy_button(
+                position, tower_position, targeting_strategy
+            )
+
+    def _create_sticky_button(
+        self, tower_position: Tuple[int, int]
+    ) -> Iterable[Button]:
+        yield Button(
+            Rectangle(10, 40, 19, 49),
+            ToggleStickyTargetAction(self.controller, tower_position),
+        )
+
+    def _create_sell_button(self, tower_position: Tuple[int, int]) -> Iterable[Button]:
+        self.canvas.create_text(
+            28,
+            146,
+            text="Sell",
+            font=("times", 22),
+            fill="light green",
+            anchor=tk.NW,
+        )
+        yield Button(
+            Rectangle(5, 145, 78, 168), SellAction(self.controller, tower_position)
+        )
+
+    def _create_upgrade_button(
+        self, tower_position: Tuple[int, int], upgrade_cost: Optional[int]
+    ) -> Iterable[Button]:
+        if upgrade_cost is not None:
+            self.canvas.create_text(
+                120,
+                157,
+                text=f"Upgrade: {upgrade_cost}",
+                font=("times", 12),
+                fill="light green",
+                anchor=tk.CENTER,
+            )
+            yield Button(
+                Rectangle(
+                    82,
+                    145,
+                    155,
+                    168,
+                ),
+                UpgradeAction(self.controller, tower_position),
+            )
+
+    def _paint_tower_info(self, selected_tower: ITower) -> None:
+        model_name = selected_tower.get_model_name()
+        image_path = f"images/towerImages/{model_name}/{selected_tower.get_level()}.png"
+        self.tower_image = ImageTk.PhotoImage(self.image_cache.get_image(image_path))
+        self.canvas.create_text(
+            80, 75, text=selected_tower.get_name(), font=("times", 20)
+        )
+        self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
+
     def update(self) -> None:
         if self._mouse.position is not None and self._mouse.pressed:
             self._click_at(self._mouse.position)
 
     def paint(self) -> None:
-        self.current_buttons = []
         if not self.selection.tower_selected:
             return
 
@@ -81,74 +151,19 @@ class SpecificInfoBoard:
         if selected_tower is None:
             return
 
-        model_name = selected_tower.get_model_name()
-        image_path = f"images/towerImages/{model_name}/{selected_tower.get_level()}.png"
-        self.tower_image = ImageTk.PhotoImage(self.image_cache.get_image(image_path))
-        self.canvas.create_text(
-            80, 75, text=selected_tower.get_name(), font=("times", 20)
-        )
-        self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
-        for position, text, targeting_strategy in zip(
-            [(26, 28), (26, 48), (92, 48), (92, 28)],
-            ["> Health", "< Health", "> Distance", "< Distance"],
-            [
-                TargetingStrategy(SortingParam.HEALTH, True),
-                TargetingStrategy(SortingParam.HEALTH, False),
-                TargetingStrategy(SortingParam.DISTANCE, True),
-                TargetingStrategy(SortingParam.DISTANCE, False),
-            ],
-        ):
-            button = self._create_target_strategy_button(
-                position, tower_position, targeting_strategy
-            )
-            self._create_target_strategy_text(position, text)
-            self.current_buttons.append(button)
-            if targeting_strategy == selected_tower.targeting_strategy:
-                button.paint(self.canvas)
+        self._paint_tower_info(selected_tower)
 
-        sticky_button = Button(
-            Rectangle(10, 40, 19, 49),
-            ToggleStickyTargetAction(self.controller, tower_position),
-        )
-        if selected_tower.sticky_target:
-            sticky_button.paint(self.canvas)
-        self.current_buttons.append(sticky_button)
+        self.current_buttons = [
+            *self._create_target_strategy_buttons(tower_position),
+            *self._create_sticky_button(tower_position),
+            *self._create_sell_button(tower_position),
+            *self._create_upgrade_button(
+                tower_position, selected_tower.get_upgrade_cost()
+            ),
+        ]
 
-        self.current_buttons.append(
-            Button(
-                Rectangle(5, 145, 78, 168), SellAction(self.controller, tower_position)
-            )
-        )
-        self.canvas.create_text(
-            28,
-            146,
-            text="Sell",
-            font=("times", 22),
-            fill="light green",
-            anchor=tk.NW,
-        )
-
-        upgrade_cost = selected_tower.get_upgrade_cost()
-        if upgrade_cost is not None:
-            self.current_buttons.append(
-                Button(
-                    Rectangle(
-                        82,
-                        145,
-                        155,
-                        168,
-                    ),
-                    UpgradeAction(self.controller, tower_position),
-                )
-            )
-            self.canvas.create_text(
-                120,
-                157,
-                text=f"Upgrade: {upgrade_cost}",
-                font=("times", 12),
-                fill="light green",
-                anchor=tk.CENTER,
-            )
+        for button in self.current_buttons:
+            button.paint(self.canvas)
 
     def _click_at(self, position: Tuple[int, int]):
         for current_button in self.current_buttons:
