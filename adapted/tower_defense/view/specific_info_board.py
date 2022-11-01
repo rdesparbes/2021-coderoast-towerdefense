@@ -146,10 +146,7 @@ class SpecificInfoBoard:
             return
 
         tower_position = self.selection.get_selected_tower_position()
-
-        selected_tower = self.controller.get_tower(tower_position)
-        if selected_tower is None:
-            return
+        selected_tower = self.selection.get_selected_tower()
 
         self._paint_tower_info(selected_tower)
 

@@ -1,14 +1,10 @@
 import tkinter as tk
-from typing import Tuple
 
 from tower_defense.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
 from tower_defense.view.action import Action
-from tower_defense.view.button import Button
 from tower_defense.view.game_object import GameObject
-from tower_defense.view.mouse import Mouse
-from tower_defense.view.rectangle import Rectangle
 
 
 class DisplayBoard(GameObject):
@@ -21,24 +17,12 @@ class DisplayBoard(GameObject):
         self.canvas.grid(row=2, column=0)
         self.health_bar = HealthBar(controller)
         self.money_bar = MoneyBar(controller)
-        self._mouse = Mouse()
-        self._mouse.bind_listeners(self.canvas)
         self.next_wave_button = NextWaveButton(
-            Rectangle(
-                450,
-                25,
-                550,
-                50,
-            ),
-            NextWaveAction(controller),
+            self.canvas, action=NextWaveAction(controller)
         )
-
-    def _click_at(self, position: Tuple[int, int]):
-        self.next_wave_button.press(*position)
+        self.next_wave_button.canvas.place(x=450, y=25)
 
     def update(self) -> None:
-        if self._mouse.position is not None and self._mouse.pressed:
-            self._click_at(self._mouse.position)
         self.health_bar.update()
         self.money_bar.update()
 
@@ -46,7 +30,7 @@ class DisplayBoard(GameObject):
         self.canvas.delete(tk.ALL)  # clear the screen
         self.health_bar.paint(self.canvas)
         self.money_bar.paint(self.canvas)
-        self.next_wave_button.paint(self.canvas)
+        self.next_wave_button.paint()
 
 
 class HealthBar:
@@ -88,11 +72,20 @@ class NextWaveAction(Action):
         self.controller.start_spawning_monsters()
 
 
-class NextWaveButton(Button):
-    def paint(self, canvas: tk.Canvas):
-        if self.action.running():
-            color = "red"
-        else:
-            color = "blue"
-        canvas.create_rectangle(*self.rectangle, fill=color, outline=color)
-        canvas.create_text(500, 37, text="Next Wave")
+class NextWaveButton:
+    def __init__(self, master: tk.Widget, action: Action, width=100, height=25) -> None:
+        self.canvas = tk.Canvas(
+            master, width=width, height=height, background="blue", highlightthickness=0
+        )
+        self.canvas.create_text(
+            width // 2, height // 2, text="Next Wave", anchor="center"
+        )
+        self.canvas.bind("<Button-1>", self._callback)
+        self.action = action
+
+    def _callback(self, _event: tk.Event) -> None:
+        self.action.start()
+
+    def paint(self):
+        color = "red" if self.action.running() else "blue"
+        self.canvas.configure(background=color)
