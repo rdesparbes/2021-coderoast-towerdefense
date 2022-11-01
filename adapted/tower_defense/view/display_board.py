@@ -7,6 +7,7 @@ from tower_defense.abstract_tower_defense_controller import (
 from tower_defense.view.action import Action
 from tower_defense.view.button import Button
 from tower_defense.view.game_object import GameObject
+from tower_defense.view.mouse import Mouse
 from tower_defense.view.rectangle import Rectangle
 
 
@@ -20,6 +21,8 @@ class DisplayBoard(GameObject):
         self.canvas.grid(row=2, column=0)
         self.health_bar = HealthBar(controller)
         self.money_bar = MoneyBar(controller)
+        self._mouse = Mouse()
+        self._mouse.bind_listeners(self.canvas)
         self.next_wave_button = NextWaveButton(
             Rectangle(
                 450,
@@ -30,10 +33,12 @@ class DisplayBoard(GameObject):
             NextWaveAction(controller),
         )
 
-    def click_at(self, position: Tuple[int, int]):
+    def _click_at(self, position: Tuple[int, int]):
         self.next_wave_button.press(*position)
 
     def update(self) -> None:
+        if self._mouse.position is not None and self._mouse.pressed:
+            self._click_at(self._mouse.position)
         self.health_bar.update()
         self.money_bar.update()
 
@@ -74,18 +79,18 @@ class NextWaveAction(Action):
     def __init__(self, controller: AbstractTowerDefenseController):
         self.controller = controller
 
-    def active(self) -> bool:
+    def running(self) -> bool:
         return not self.controller.can_start_spawning_monsters()
 
     def start(self) -> None:
-        if self.active():
+        if self.running():
             return
         self.controller.start_spawning_monsters()
 
 
 class NextWaveButton(Button):
     def paint(self, canvas: tk.Canvas):
-        if self.action.active():
+        if self.action.running():
             color = "red"
         else:
             color = "blue"

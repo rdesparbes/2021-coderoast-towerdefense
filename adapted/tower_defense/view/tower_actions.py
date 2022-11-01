@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Tuple
+from typing import Tuple, Optional
 
 from tower_defense.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
@@ -12,7 +12,7 @@ class TowerAction(Action, ABC):
     def __init__(
         self,
         controller: AbstractTowerDefenseController,
-        tower_position: Tuple[int, int],
+        tower_position: Optional[Tuple[int, int]] = None,
     ):
         self.controller = controller
         self.tower_position = tower_position
@@ -28,7 +28,7 @@ class SetTargetingStrategyAction(TowerAction):
         super().__init__(controller, tower_position)
         self.targeting_strategy = targeting_strategy
 
-    def active(self) -> bool:
+    def running(self) -> bool:
         selected_tower = self.controller.get_tower(self.tower_position)
         return selected_tower.targeting_strategy == self.targeting_strategy
 
@@ -38,7 +38,7 @@ class SetTargetingStrategyAction(TowerAction):
 
 
 class ToggleStickyTargetAction(TowerAction):
-    def active(self):
+    def running(self):
         selected_tower = self.controller.get_tower(self.tower_position)
         return selected_tower.sticky_target
 
@@ -48,7 +48,7 @@ class ToggleStickyTargetAction(TowerAction):
 
 
 class SellAction(TowerAction):
-    def active(self):
+    def running(self):
         return False
 
     def start(self) -> None:
@@ -56,7 +56,7 @@ class SellAction(TowerAction):
 
 
 class UpgradeAction(TowerAction):
-    def active(self) -> bool:
+    def running(self) -> bool:
         return False
 
     def start(self) -> None:

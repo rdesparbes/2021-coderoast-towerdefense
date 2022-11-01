@@ -20,7 +20,7 @@ class Button:
         return False
 
     def paint(self, canvas: tk.Canvas) -> None:
-        if self.action.active():
+        if self.action.running():
             canvas.create_rectangle(
                 *self.rectangle,
                 fill="red",

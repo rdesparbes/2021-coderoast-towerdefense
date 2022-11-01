@@ -7,5 +7,5 @@ class Action(ABC):
         ...
 
     @abstractmethod
-    def active(self) -> bool:
+    def running(self) -> bool:
         ...
