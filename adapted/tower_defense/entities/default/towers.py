@@ -50,9 +50,9 @@ TOWER_MAPPING: TowerMapping = {
             ),
             TowerStats(
                 shots_per_second=Up(1, 1, 3),
-                cost=Up(150),
-                upgrade_cost=Up(50, 100),
                 projectile_count=Up(1),
+                cost=150,
+                upgrade_cost=Up(50, 100),
             ),
             target_orientation_strategy,
         ),
@@ -73,9 +73,8 @@ TOWER_MAPPING: TowerMapping = {
             ),
             TowerStats(
                 shots_per_second=Up(4),
-                cost=Up(150),
-                upgrade_cost=Up(0),
                 projectile_count=Up(1),
+                cost=150,
             ),
             null_orientation_strategy,
         ),
@@ -101,8 +100,7 @@ TOWER_MAPPING: TowerMapping = {
             ),
             TowerStats(
                 shots_per_second=Up(10),
-                cost=Up(150),
-                upgrade_cost=Up(0),
+                cost=150,
                 projectile_count=Up(1),
             ),
             null_orientation_strategy,
@@ -129,9 +127,8 @@ TOWER_MAPPING: TowerMapping = {
             ),
             TowerStats(
                 shots_per_second=Up(1),
-                cost=Up(200),
-                upgrade_cost=Up(0),
                 projectile_count=Up(8),
+                cost=200,
             ),
             concentric_orientation_strategy,
         ),

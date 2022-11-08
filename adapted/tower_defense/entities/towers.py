@@ -70,12 +70,13 @@ class Tower(ITower):
         return self.tower_stats.projectile_count.value
 
     def get_cost(self) -> int:
-        return self.tower_stats.cost.value
+        return self.tower_stats.cost
 
     def get_upgrade_cost(self) -> Optional[int]:
         return (
             self.tower_stats.upgrade_cost.value
             if self.tower_stats.is_upgradable()
+            or self.projectile_factory.is_upgradable()
             else None
         )
 
@@ -153,7 +154,7 @@ class TowerFactory(ITowerFactory, UpgradableData):
         return self.tower_name
 
     def get_cost(self) -> int:
-        return self.tower_stats.cost.value
+        return self.tower_stats.cost
 
     def get_model_name(self) -> str:
         return self.model_name

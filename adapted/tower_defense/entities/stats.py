@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from tower_defense.entities.effects import Effect
 from tower_defense.entities.upgradable import Up, UpgradableData, UpgradableList
@@ -20,6 +21,8 @@ class ProjectileStats(UpgradableData):
 @dataclass
 class TowerStats(UpgradableData):
     shots_per_second: Up[float]  # Number of shots in one second
-    cost: Up[int]  # Cost of the tower
-    upgrade_cost: Up[int]  # Cost to upgrade the tower to the next level
     projectile_count: Up[int]  # Number of projectiles sent in one shot
+    cost: int  # Cost of the tower
+    upgrade_cost: Optional[
+        Up[int]
+    ] = None  # Cost to upgrade the tower to the next level
