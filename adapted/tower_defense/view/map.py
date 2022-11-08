@@ -9,7 +9,6 @@ from tower_defense.abstract_tower_defense_controller import (
 )
 from tower_defense.entities.entity import IEntity
 from tower_defense.entities.monster import IMonster
-from tower_defense.entities.tower import ITower
 from tower_defense.view.game_object import GameObject
 from tower_defense.view.image_cache import ImageCache
 from tower_defense.view.mouse import Mouse
@@ -86,10 +85,10 @@ class Map(GameObject):
 
     def _paint_selected_tower_range(self) -> None:
         try:
-            tower: ITower = self.selection.get_selected_tower()
+            tower_position, tower = self.selection.get_selected_tower()
         except InvalidSelectedTowerException:
             return
-        x, y = self.position_converter.position_to_pixel(tower.get_position())
+        x, y = self.position_converter.position_to_pixel(tower_position)
         # In the original version, the radius of the circle is 0.5 units smaller than the actual range
         error = 0.5
         tower_range = tower.get_range() - error

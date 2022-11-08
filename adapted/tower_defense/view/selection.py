@@ -40,11 +40,11 @@ class Selection:
         else:
             self._select_tower(world_position)
 
-    def get_selected_tower(self) -> ITower:
-        if self.tower_selected:
+    def get_selected_tower(self) -> Tuple[Tuple[int, int], ITower]:
+        if self._tower_position is not None:
             tower = self._controller.get_tower(self._tower_position)
             if tower is not None:
-                return tower
+                return self._tower_position, tower
         raise InvalidSelectedTowerException()
 
     def get_tower_factory_names(self) -> List[str]:
@@ -53,10 +53,6 @@ class Selection:
     def select_tower_factory(self, name: str) -> None:
         self._tower_factory = self._controller.get_tower_factory(name)
         self._tower_position = None
-
-    @property
-    def tower_selected(self) -> bool:
-        return self._tower_position is not None
 
     @property
     def tower_factory_selected(self) -> bool:

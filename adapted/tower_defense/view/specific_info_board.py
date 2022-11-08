@@ -12,7 +12,7 @@ from tower_defense.view.button import Button
 from tower_defense.view.image_cache import ImageCache
 from tower_defense.view.mouse import Mouse
 from tower_defense.view.rectangle import Rectangle
-from tower_defense.view.selection import Selection
+from tower_defense.view.selection import Selection, InvalidSelectedTowerException
 from tower_defense.view.tower_actions import (
     SetTargetingStrategyAction,
     ToggleStickyTargetAction,
@@ -53,7 +53,10 @@ class SpecificInfoBoard:
         )
         return Button(
             Rectangle(
-                button_x, button_y, button_x + button_size, button_y + button_size
+                x_min=button_x,
+                y_min=button_y,
+                x_max=button_x + button_size,
+                y_max=button_y + button_size,
             ),
             action,
         )
@@ -89,7 +92,7 @@ class SpecificInfoBoard:
         self, tower_position: Tuple[int, int]
     ) -> Iterable[Button]:
         yield Button(
-            Rectangle(10, 40, 19, 49),
+            Rectangle(x_min=10, y_min=40, x_max=19, y_max=49),
             ToggleStickyTargetAction(self.controller, tower_position),
         )
 
@@ -103,7 +106,8 @@ class SpecificInfoBoard:
             anchor=tk.NW,
         )
         yield Button(
-            Rectangle(5, 145, 78, 168), SellAction(self.controller, tower_position)
+            Rectangle(x_min=5, y_min=145, x_max=78, y_max=168),
+            SellAction(self.controller, tower_position),
         )
 
     def _create_upgrade_button(
@@ -120,10 +124,10 @@ class SpecificInfoBoard:
             )
             yield Button(
                 Rectangle(
-                    82,
-                    145,
-                    155,
-                    168,
+                    x_min=82,
+                    y_min=145,
+                    x_max=155,
+                    y_max=168,
                 ),
                 UpgradeAction(self.controller, tower_position),
             )
@@ -142,14 +146,12 @@ class SpecificInfoBoard:
             self._click_at(self._mouse.position)
 
     def paint(self) -> None:
-        if not self.selection.tower_selected:
+        try:
+            tower_position, selected_tower = self.selection.get_selected_tower()
+        except InvalidSelectedTowerException:
             return
 
-        tower_position = self.selection.get_selected_tower_position()
-        selected_tower = self.selection.get_selected_tower()
-
         self._paint_tower_info(selected_tower)
-
         self.current_buttons = [
             *self._create_target_strategy_buttons(tower_position),
             *self._create_sticky_button(tower_position),
