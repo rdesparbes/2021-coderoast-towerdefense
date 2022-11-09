@@ -11,7 +11,8 @@ from tower_defense.entities.entities import Entities
 from tower_defense.entities.entity import IEntity
 from tower_defense.entities.monster import IMonster
 from tower_defense.entities.targeting_strategies import TargetingStrategy
-from tower_defense.entities.tower import ITower
+from tower_defense.entities.tower_entity import TowerEntity
+from tower_defense.tower import ITower
 from tower_defense.grid import Grid
 from tower_defense.path import extract_path
 from tower_defense.wave_generator import WaveGenerator
@@ -48,6 +49,9 @@ class TowerDefenseController(AbstractTowerDefenseController):
 
     def get_tower(self, tower_position: Tuple[int, int]) -> Optional[ITower]:
         return self.entities.towers.get(tower_position)
+
+    def get_tower_factory_names(self) -> List[str]:
+        return list(self.tower_mapping)
 
     def get_tower_factory(self, tower_type_name: str) -> Optional[ITowerFactory]:
         return self.tower_mapping.get(tower_type_name)
@@ -88,13 +92,13 @@ class TowerDefenseController(AbstractTowerDefenseController):
             or self.entities.towers.get(block_position) is not None
         ):
             return False
-        tower = tower_factory.build_tower(*block_position)
+        tower: TowerEntity = tower_factory.build_tower(*block_position)
         self.entities.towers[block_position] = tower
         self.entities.player.money -= tower.get_cost()
         return True
 
     def upgrade_tower(self, tower_position: Tuple[int, int]) -> None:
-        tower = self.entities.towers[tower_position]
+        tower: TowerEntity = self.entities.towers[tower_position]
         upgrade_cost: Optional[int] = tower.get_upgrade_cost()
         if upgrade_cost is None or self.get_player_money() < upgrade_cost:
             return
@@ -103,9 +107,6 @@ class TowerDefenseController(AbstractTowerDefenseController):
 
     def sell_tower(self, tower_position: Tuple[int, int]) -> None:
         self.entities.towers.pop(tower_position, None)
-
-    def get_tower_factory_names(self) -> List[str]:
-        return list(self.tower_mapping)
 
     def update(self) -> None:
         self._try_spawn_monster()

@@ -15,13 +15,14 @@ from tower_defense.entities.targeting_strategies import (
     query_monsters,
     SortingParam,
 )
-from tower_defense.entities.tower import ITower
-from tower_defense.entities.upgradable import UpgradableData
+from tower_defense.entities.shooter import Shooter
+from tower_defense.entities.upgradable import UpgradableData, IUpgradable
+from tower_defense.tower import ITower
 
-OrientationStrategy = Callable[[ITower, int], float]
+OrientationStrategy = Callable[[Shooter, int], float]
 
 
-class Tower(ITower):
+class Tower(Shooter, ITower, IUpgradable):
     def __init__(
         self,
         name: str,
@@ -73,11 +74,11 @@ class Tower(ITower):
         return self.tower_stats.cost
 
     def get_upgrade_cost(self) -> Optional[int]:
+        return self.tower_stats.upgrade_cost.value if self.is_upgradable() else None
+
+    def is_upgradable(self) -> bool:
         return (
-            self.tower_stats.upgrade_cost.value
-            if self.tower_stats.is_upgradable()
-            or self.projectile_factory.is_upgradable()
-            else None
+            self.tower_stats.is_upgradable() or self.projectile_factory.is_upgradable()
         )
 
     def upgrade(self):
@@ -125,17 +126,17 @@ class Tower(ITower):
             )
 
 
-def target_orientation_strategy(tower: ITower, _projectile_index: int) -> float:
+def target_orientation_strategy(tower: Shooter, _projectile_index: int) -> float:
     target_x, target_y = tower.get_target().get_position()
     x, y = tower.get_position()
     return math.atan2(y - target_y, target_x - x)
 
 
-def null_orientation_strategy(_tower: ITower, _projectile_index: int) -> float:
+def null_orientation_strategy(_tower: Shooter, _projectile_index: int) -> float:
     return 0.0
 
 
-def concentric_orientation_strategy(tower: ITower, projectile_index: int) -> float:
+def concentric_orientation_strategy(tower: Shooter, projectile_index: int) -> float:
     return math.radians(projectile_index * 360 / tower.get_projectile_count())
 
 
@@ -159,7 +160,7 @@ class TowerFactory(ITowerFactory, UpgradableData):
     def get_model_name(self) -> str:
         return self.model_name
 
-    def build_tower(self, x, y) -> Tower:
+    def build_tower(self, x: float, y: float) -> Tower:
         return Tower(
             self.tower_name,
             self.model_name,

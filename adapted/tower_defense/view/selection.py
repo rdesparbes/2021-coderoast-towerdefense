@@ -4,7 +4,7 @@ from tower_defense.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
 from tower_defense.abstract_tower_factory import ITowerFactory
-from tower_defense.entities.tower import ITower
+from tower_defense.tower import ITower
 
 
 class InvalidSelectedTowerException(Exception):

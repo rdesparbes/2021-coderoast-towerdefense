@@ -6,7 +6,7 @@ from tower_defense.block import Block
 from tower_defense.entities.entity import IEntity
 from tower_defense.entities.monster import IMonster
 from tower_defense.entities.targeting_strategies import TargetingStrategy
-from tower_defense.entities.tower import ITower
+from tower_defense.tower import ITower
 from tower_defense.updatable_object import UpdatableObject
 
 
