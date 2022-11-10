@@ -70,9 +70,6 @@ class Tower(Shooter, ITower, IUpgradable):
     def get_projectile_count(self) -> int:
         return self.tower_stats.projectile_count.value
 
-    def get_cost(self) -> int:
-        return self.tower_stats.cost
-
     def get_upgrade_cost(self) -> Optional[int]:
         return self.tower_stats.upgrade_cost.value if self.is_upgradable() else None
 
@@ -144,6 +141,7 @@ def concentric_orientation_strategy(tower: Shooter, projectile_index: int) -> fl
 class TowerFactory(ITowerFactory, UpgradableData):
     tower_name: str
     model_name: str
+    tower_cost: int
     projectile_factory: ProjectileFactory
     tower_stats: TowerStats
     orientation_strategy: OrientationStrategy
@@ -155,7 +153,7 @@ class TowerFactory(ITowerFactory, UpgradableData):
         return self.tower_name
 
     def get_cost(self) -> int:
-        return self.tower_stats.cost
+        return self.tower_cost
 
     def get_model_name(self) -> str:
         return self.model_name

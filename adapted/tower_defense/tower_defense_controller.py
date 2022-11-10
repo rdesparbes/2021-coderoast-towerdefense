@@ -94,7 +94,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
             return False
         tower: TowerEntity = tower_factory.build_tower(*block_position)
         self.entities.towers[block_position] = tower
-        self.entities.player.money -= tower.get_cost()
+        self.entities.player.money -= tower_factory.get_cost()
         return True
 
     def upgrade_tower(self, tower_position: Tuple[int, int]) -> None:

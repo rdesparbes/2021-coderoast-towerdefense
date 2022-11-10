@@ -31,6 +31,7 @@ TOWER_MAPPING: TowerMapping = {
         TowerFactory(
             "Arrow Shooter",
             "ArrowShooterTower",
+            150,
             ProjectileFactory(
                 "arrow",
                 ProjectileStats(
@@ -51,7 +52,6 @@ TOWER_MAPPING: TowerMapping = {
             TowerStats(
                 shots_per_second=Up(1, 1, 3),
                 projectile_count=Up(1),
-                cost=150,
                 upgrade_cost=Up(50, 100),
             ),
             target_orientation_strategy,
@@ -59,6 +59,7 @@ TOWER_MAPPING: TowerMapping = {
         TowerFactory(
             "Bullet Shooter",
             "BulletShooterTower",
+            150,
             ProjectileFactory(
                 "bullet",
                 ProjectileStats(
@@ -74,13 +75,13 @@ TOWER_MAPPING: TowerMapping = {
             TowerStats(
                 shots_per_second=Up(4),
                 projectile_count=Up(1),
-                cost=150,
             ),
             null_orientation_strategy,
         ),
         TowerFactory(
             "Power Tower",
             "PowerTower",
+            150,
             ProjectileFactory(
                 "powerShot",
                 ProjectileStats(
@@ -100,7 +101,6 @@ TOWER_MAPPING: TowerMapping = {
             ),
             TowerStats(
                 shots_per_second=Up(10),
-                cost=150,
                 projectile_count=Up(1),
             ),
             null_orientation_strategy,
@@ -108,6 +108,7 @@ TOWER_MAPPING: TowerMapping = {
         TowerFactory(
             "Tack Tower",
             "TackTower",
+            200,
             ProjectileFactory(
                 "arrow",
                 ProjectileStats(
@@ -128,7 +129,6 @@ TOWER_MAPPING: TowerMapping = {
             TowerStats(
                 shots_per_second=Up(1),
                 projectile_count=Up(8),
-                cost=200,
             ),
             concentric_orientation_strategy,
         ),

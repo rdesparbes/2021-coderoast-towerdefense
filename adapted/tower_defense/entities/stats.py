@@ -22,7 +22,6 @@ class ProjectileStats(UpgradableData):
 class TowerStats(UpgradableData):
     shots_per_second: Up[float]  # Number of shots in one second
     projectile_count: Up[int]  # Number of projectiles sent in one shot
-    cost: int  # Cost of the tower
     upgrade_cost: Optional[
         Up[int]
     ] = None  # Cost to upgrade the tower to the next level

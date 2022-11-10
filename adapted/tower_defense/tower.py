@@ -14,10 +14,6 @@ class ITower(IEntity, ABC):
         ...
 
     @abstractmethod
-    def get_cost(self) -> int:
-        ...
-
-    @abstractmethod
     def get_level(self) -> int:
         ...
 
