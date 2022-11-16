@@ -4,7 +4,7 @@ from typing import Tuple
 from tower_defense.interfaces.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
-from tower_defense.entities.targeting_strategies import TargetingStrategy
+from tower_defense.interfaces.targeting_strategies import TargetingStrategy
 from tower_defense.tower import ITower
 from tower_defense.view.action import Action
 

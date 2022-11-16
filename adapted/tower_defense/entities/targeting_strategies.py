@@ -1,8 +1,10 @@
-from enum import Enum
-from functools import partial
-from typing import Iterable, NamedTuple
+from typing import Iterable, Dict, Callable
 
 from tower_defense.entities.monster import IMonster
+from tower_defense.interfaces.targeting_strategies import (
+    TargetingStrategy,
+    SortingParam,
+)
 
 
 def _by_health(monster: IMonster) -> int:
@@ -13,17 +15,10 @@ def _by_distance(monster: IMonster) -> float:
     return monster.distance_travelled_
 
 
-class SortingParam(Enum):
-    HEALTH = partial(_by_health)
-    DISTANCE = partial(_by_distance)
-
-    def __call__(self, *args):
-        self.value(*args)
-
-
-class TargetingStrategy(NamedTuple):
-    key: SortingParam
-    reverse: bool
+SORTING_FUNCTIONS: Dict[SortingParam, Callable[[IMonster], float]] = {
+    SortingParam.HEALTH: _by_health,
+    SortingParam.DISTANCE: _by_distance,
+}
 
 
 def query_monsters(

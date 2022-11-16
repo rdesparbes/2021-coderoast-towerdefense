@@ -6,7 +6,10 @@ from PIL import ImageTk
 from tower_defense.interfaces.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
-from tower_defense.entities.targeting_strategies import SortingParam, TargetingStrategy
+from tower_defense.interfaces.targeting_strategies import (
+    SortingParam,
+    TargetingStrategy,
+)
 from tower_defense.tower import ITower
 from tower_defense.view.button import Button
 from tower_defense.view.image_cache import ImageCache
