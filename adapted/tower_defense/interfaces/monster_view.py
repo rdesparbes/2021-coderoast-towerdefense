@@ -3,9 +3,9 @@ from abc import ABC, abstractmethod
 from tower_defense.interfaces.entity import IEntity
 
 
-class IMonster(IEntity, ABC):
+class IMonsterView(IEntity, ABC):
     health_: int
-    distance_travelled_: float  # TODO: move to another location
+    distance_travelled_: float
 
     @abstractmethod
     def get_max_health(self) -> int:

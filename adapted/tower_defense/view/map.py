@@ -8,7 +8,7 @@ from tower_defense.interfaces.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
 from tower_defense.interfaces.entity import IEntity
-from tower_defense.interfaces.monster import IMonster
+from tower_defense.interfaces.monster_view import IMonsterView
 from tower_defense.view.game_object import GameObject
 from tower_defense.view.image_cache import ImageCache
 from tower_defense.view.mouse import Mouse
@@ -106,7 +106,7 @@ class Map(GameObject):
             outline="white",
         )
 
-    def _paint_monster_health(self, monster: IMonster):
+    def _paint_monster_health(self, monster: IMonsterView):
         x, y = self.position_converter.position_to_pixel(monster.get_position())
         image_path = f"images/monsterImages/{monster.get_model_name()}.png"
         image = self.image_cache.get_image(image_path)
