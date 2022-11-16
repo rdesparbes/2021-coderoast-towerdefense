@@ -1,19 +1,18 @@
 from typing import Optional, List, Tuple, Iterable
 
-from tower_defense.interfaces.tower_defense_controller import (
-    ITowerDefenseController,
-)
-from tower_defense.entities.tower_factory import ITowerFactory
 from tower_defense.block import Block
 from tower_defense.entities.default.monsters import MONSTER_MAPPING
 from tower_defense.entities.default.towers import TOWER_MAPPING, TowerMapping
 from tower_defense.entities.entities import Entities
-from tower_defense.interfaces.entity import IEntity
 from tower_defense.entities.monster import IMonster
-from tower_defense.entities.targeting_strategies import TargetingStrategy
 from tower_defense.entities.tower_entity import ITowerEntity
-from tower_defense.interfaces.tower import ITower
+from tower_defense.entities.tower_factory import ITowerFactory
 from tower_defense.grid import Grid
+from tower_defense.interfaces.entity import IEntity
+from tower_defense.interfaces.tower import ITower
+from tower_defense.interfaces.tower_defense_controller import (
+    ITowerDefenseController,
+)
 from tower_defense.path import extract_path
 from tower_defense.wave_generator import WaveGenerator
 
@@ -121,8 +120,3 @@ class TowerDefenseController(ITowerDefenseController):
 
     def iter_projectiles(self) -> Iterable[IEntity]:
         return iter(self.entities.projectiles)
-
-    def get_targeting_strategy(
-        self, tower_position: Tuple[int, int]
-    ) -> TargetingStrategy:
-        return self.get_tower(tower_position).targeting_strategy

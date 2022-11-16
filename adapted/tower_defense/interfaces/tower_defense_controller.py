@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Iterable, Optional
 
-from tower_defense.interfaces.tower_view import ITowerView
 from tower_defense.block import Block
 from tower_defense.interfaces.entity import IEntity
 from tower_defense.interfaces.monster_view import IMonsterView
-from tower_defense.interfaces.targeting_strategies import TargetingStrategy
 from tower_defense.interfaces.tower import ITower
+from tower_defense.interfaces.tower_view import ITowerView
 from tower_defense.updatable_object import UpdatableObject
 
 
@@ -46,12 +45,6 @@ class ITowerDefenseController(UpdatableObject, ABC):
         ...
 
     @abstractmethod
-    def try_build_tower(
-        self, tower_factory_name, world_position: Tuple[float, float]
-    ) -> bool:
-        ...
-
-    @abstractmethod
     def upgrade_tower(self, tower_position: Tuple[int, int]) -> None:
         ...
 
@@ -68,6 +61,12 @@ class ITowerDefenseController(UpdatableObject, ABC):
         ...
 
     @abstractmethod
+    def try_build_tower(
+        self, tower_view_name: str, world_position: Tuple[float, float]
+    ) -> bool:
+        ...
+
+    @abstractmethod
     def iter_monsters(self) -> Iterable[IMonsterView]:
         ...
 
@@ -77,10 +76,4 @@ class ITowerDefenseController(UpdatableObject, ABC):
 
     @abstractmethod
     def iter_towers(self) -> Iterable[ITower]:
-        ...
-
-    @abstractmethod
-    def get_targeting_strategy(
-        self, tower_position: Tuple[int, int]
-    ) -> TargetingStrategy:
         ...
