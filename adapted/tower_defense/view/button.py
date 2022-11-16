@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from tower_defense.view.action import Action
+from tower_defense.view.action import IAction
 from tower_defense.view.rectangle import Rectangle
 
 
@@ -8,7 +8,7 @@ class Button:
     def __init__(
         self,
         rectangle: Rectangle,
-        action: Action,
+        action: IAction,
     ):
         self.rectangle = rectangle
         self.action = action

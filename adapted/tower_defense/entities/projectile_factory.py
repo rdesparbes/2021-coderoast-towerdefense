@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import dataclass
 
 from tower_defense.entities.monster import IMonster
@@ -26,7 +27,7 @@ class ProjectileFactory(UpgradableData):
             x,
             y,
             angle,
-            self.projectile_stats,
+            deepcopy(self.projectile_stats),
             self.movement_strategy,
             self.hit_strategy,
             target,

@@ -9,6 +9,7 @@ from tower_defense.interfaces.tower_defense_controller import (
 )
 from tower_defense.interfaces.entity import IEntity
 from tower_defense.interfaces.monster_view import IMonsterView
+from tower_defense.interfaces.tower import ITower
 from tower_defense.view.game_object import GameObject
 from tower_defense.view.image_cache import ImageCache
 from tower_defense.view.mouse import Mouse
@@ -130,6 +131,7 @@ class Map(GameObject):
 
     def _paint_entities(self) -> None:
         for tower in self.controller.iter_towers():
+            tower: ITower
             level: int = tower.get_level()
             image_path: str = f"images/towerImages/{tower.get_model_name()}/{level}.png"
             self._paint_entity(tower, image_path)

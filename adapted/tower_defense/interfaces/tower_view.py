@@ -1,14 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
 
 from tower_defense.interfaces.displayable import IDisplayable
 
 
-class IEntity(IDisplayable, ABC):
+class ITowerView(IDisplayable, ABC):
     @abstractmethod
-    def get_position(self) -> Tuple[float, float]:
+    def get_name(self) -> str:
         ...
 
     @abstractmethod
-    def get_orientation(self) -> float:
+    def get_cost(self) -> int:
         ...

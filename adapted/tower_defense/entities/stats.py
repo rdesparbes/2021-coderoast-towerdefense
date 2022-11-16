@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from tower_defense.entities.effects import Effect
+from tower_defense.entities.effects import IEffect
 from tower_defense.entities.upgradable import Up, UpgradableData, UpgradableList
 
 
@@ -15,7 +15,7 @@ class ProjectileStats(UpgradableData):
     range_sensitive: Up[
         bool
     ]  # If set to True, the projectile dies after travelling more than its range
-    effects: UpgradableList[Effect]
+    effects: UpgradableList[IEffect]
 
 
 @dataclass

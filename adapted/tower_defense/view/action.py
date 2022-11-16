@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class Action(ABC):
+class IAction(ABC):
     @abstractmethod
     def start(self) -> None:
         ...

@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import List, Protocol, Iterable
 
-from tower_defense.interfaces.entity import IEntity
+from tower_defense.interfaces.monster_view import IMonsterView
 from tower_defense.path import Path
 
 
-class IMonster(IEntity, ABC):
+class IMonster(IMonsterView, ABC):
     health_: int
     distance_travelled_: float
 

@@ -22,11 +22,11 @@ class GenericInfoBoard:
         pass
 
     def paint(self) -> None:
-        if not self.selection.tower_factory_selected:
+        if not self.selection.tower_view_selected:
             return
-        tower_factory = self.selection.get_selected_tower_factory()
-        text = f"{tower_factory.get_name()} cost: {tower_factory.get_cost()}"
-        image_path = f"images/towerImages/{tower_factory.get_model_name()}/1.png"
+        tower_view = self.selection.get_selected_tower_view()
+        text = f"{tower_view.get_name()} cost: {tower_view.get_cost()}"
+        image_path = f"images/towerImages/{tower_view.get_model_name()}/1.png"
         self.tower_image = ImageTk.PhotoImage(self.image_cache.get_image(image_path))
         self.canvas.create_text(80, 75, text=text)
         self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)

@@ -1,10 +1,15 @@
 from dataclasses import dataclass, field
-from typing import List, Tuple, Iterator
+from typing import List, Tuple, Iterator, Set
 
 from tower_defense.block import Block
-from tower_defense.constants import DIRECTIONS
 
 GridVector = Tuple[int, int]
+DIRECTIONS: Set[GridVector] = {
+    (0, -1),  # NORTH
+    (1, 0),  # EAST
+    (0, 1),  # SOUTH
+    (-1, 0),  # WEST
+}
 
 
 class SpawnNotFoundError(Exception):

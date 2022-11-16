@@ -3,7 +3,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Optional, Tuple, Iterable, Callable
 
-from tower_defense.interfaces.tower_factory import ITowerFactory
+from tower_defense.entities.tower_factory import ITowerFactory
 from tower_defense.entities.count_down import CountDown
 from tower_defense.entities.distance import distance
 from tower_defense.entities.monster import IMonster
@@ -17,7 +17,7 @@ from tower_defense.entities.targeting_strategies import (
 )
 from tower_defense.entities.shooter import IShooter
 from tower_defense.entities.upgradable import UpgradableData, IUpgradable
-from tower_defense.tower import ITower
+from tower_defense.interfaces.tower import ITower
 
 OrientationStrategy = Callable[[IShooter, int], float]
 
@@ -70,7 +70,7 @@ class Tower(IShooter, ITower, IUpgradable):
     def get_projectile_count(self) -> int:
         return self.tower_stats.projectile_count.value
 
-    def get_upgrade_cost(self) -> Optional[int]:
+    def get_cost(self) -> Optional[int]:
         return self.tower_stats.upgrade_cost.value if self.is_upgradable() else None
 
     def is_upgradable(self) -> bool:

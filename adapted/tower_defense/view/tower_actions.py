@@ -5,11 +5,11 @@ from tower_defense.interfaces.tower_defense_controller import (
     ITowerDefenseController,
 )
 from tower_defense.interfaces.targeting_strategies import TargetingStrategy
-from tower_defense.tower import ITower
-from tower_defense.view.action import Action
+from tower_defense.interfaces.tower import ITower
+from tower_defense.view.action import IAction
 
 
-class TowerAction(Action, ABC):
+class TowerAction(IAction, ABC):
     def __init__(
         self,
         controller: ITowerDefenseController,

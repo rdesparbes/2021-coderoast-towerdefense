@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Iterable, Optional
 
-from tower_defense.interfaces.tower_factory import ITowerFactory
+from tower_defense.interfaces.tower_view import ITowerView
 from tower_defense.block import Block
 from tower_defense.interfaces.entity import IEntity
 from tower_defense.interfaces.monster_view import IMonsterView
 from tower_defense.interfaces.targeting_strategies import TargetingStrategy
-from tower_defense.tower import ITower
+from tower_defense.interfaces.tower import ITower
 from tower_defense.updatable_object import UpdatableObject
 
 
@@ -47,7 +47,7 @@ class ITowerDefenseController(UpdatableObject, ABC):
 
     @abstractmethod
     def try_build_tower(
-        self, tower_factory: ITowerFactory, world_position: Tuple[float, float]
+        self, tower_factory_name, world_position: Tuple[float, float]
     ) -> bool:
         ...
 
@@ -60,11 +60,11 @@ class ITowerDefenseController(UpdatableObject, ABC):
         ...
 
     @abstractmethod
-    def get_tower_factory(self, tower_type_name: str) -> Optional[ITowerFactory]:
+    def get_tower_view(self, tower_view_name: str) -> Optional[ITowerView]:
         ...
 
     @abstractmethod
-    def get_tower_factory_names(self) -> List[str]:
+    def get_tower_view_names(self) -> List[str]:
         ...
 
     @abstractmethod

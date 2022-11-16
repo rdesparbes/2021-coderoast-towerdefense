@@ -10,7 +10,7 @@ from tower_defense.interfaces.targeting_strategies import (
     SortingParam,
     TargetingStrategy,
 )
-from tower_defense.tower import ITower
+from tower_defense.interfaces.tower import ITower
 from tower_defense.view.button import Button
 from tower_defense.view.image_cache import ImageCache
 from tower_defense.view.mouse import Mouse
@@ -159,9 +159,7 @@ class SpecificInfoBoard:
             *self._create_target_strategy_buttons(tower_position),
             *self._create_sticky_button(tower_position),
             *self._create_sell_button(tower_position),
-            *self._create_upgrade_button(
-                tower_position, selected_tower.get_upgrade_cost()
-            ),
+            *self._create_upgrade_button(tower_position, selected_tower.get_cost()),
         ]
 
         for button in self.current_buttons:

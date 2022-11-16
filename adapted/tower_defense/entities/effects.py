@@ -1,17 +1,18 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 from tower_defense.entities.monster import IMonster
 from tower_defense.entities.upgradable import Up, UpgradableData
 
 
-class Effect(ABC):
+class IEffect(ABC):
+    @abstractmethod
     def apply(self, monster: IMonster) -> None:
         ...
 
 
 @dataclass
-class SlowEffect(UpgradableData, Effect):
+class SlowEffect(UpgradableData, IEffect):
     factor: Up[float]  # Slowing reduction factor on monsters' speed
     duration: Up[
         float
@@ -27,7 +28,7 @@ class StunEffect(SlowEffect):
 
 
 @dataclass
-class DamageEffect(UpgradableData, Effect):
+class DamageEffect(UpgradableData, IEffect):
     damage: Up[int]  # Damage inflicted on impact by one projectile
 
     def apply(self, monster: IMonster) -> None:

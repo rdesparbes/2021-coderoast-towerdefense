@@ -3,7 +3,7 @@ import tkinter as tk
 from tower_defense.interfaces.tower_defense_controller import (
     ITowerDefenseController,
 )
-from tower_defense.view.action import Action
+from tower_defense.view.action import IAction
 from tower_defense.view.game_object import GameObject
 
 
@@ -57,7 +57,7 @@ class MoneyBar:
         )
 
 
-class NextWaveAction(Action):
+class NextWaveAction(IAction):
     def __init__(self, controller: ITowerDefenseController):
         self.controller = controller
 
@@ -71,7 +71,9 @@ class NextWaveAction(Action):
 
 
 class NextWaveButton:
-    def __init__(self, master: tk.Widget, action: Action, width=100, height=25) -> None:
+    def __init__(
+        self, master: tk.Widget, action: IAction, width=100, height=25
+    ) -> None:
         self.canvas = tk.Canvas(
             master, width=width, height=height, background="blue", highlightthickness=0
         )
