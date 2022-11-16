@@ -3,7 +3,7 @@ from typing import Dict, Tuple, Set, List
 
 from tower_defense.entities.monster import IMonster, MonsterFactory
 from tower_defense.entities.projectile import IProjectile
-from tower_defense.entities.tower_entity import TowerEntity
+from tower_defense.entities.tower_entity import ITowerEntity
 from tower_defense.path import Path
 from tower_defense.player import Player
 from tower_defense.updatable_object import UpdatableObject
@@ -15,7 +15,7 @@ class Entities(UpdatableObject):
     path: Path = field(default_factory=list)
     projectiles: Set[IProjectile] = field(default_factory=set)
     monsters: Set[IMonster] = field(default_factory=set)
-    towers: Dict[Tuple[int, int], TowerEntity] = field(default_factory=dict)
+    towers: Dict[Tuple[int, int], ITowerEntity] = field(default_factory=dict)
     monster_factories: List[MonsterFactory] = field(default_factory=list)
 
     def _cleanup_projectiles(self) -> None:

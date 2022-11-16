@@ -3,8 +3,8 @@ from typing import Optional, List
 
 from PIL import ImageTk
 
-from tower_defense.interfaces.abstract_tower_defense_controller import (
-    AbstractTowerDefenseController,
+from tower_defense.interfaces.tower_defense_controller import (
+    ITowerDefenseController,
 )
 from tower_defense.updatable_object import UpdatableObject
 from tower_defense.view.map_generator import MapGenerator
@@ -20,7 +20,7 @@ from tower_defense.view.tower_box import TowerBox
 class View(UpdatableObject):
     def __init__(
         self,
-        controller: AbstractTowerDefenseController,
+        controller: ITowerDefenseController,
         title: str = "Tower Defense",
         timestep: int = 50,
     ):

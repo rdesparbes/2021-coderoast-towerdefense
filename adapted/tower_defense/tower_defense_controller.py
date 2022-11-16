@@ -1,9 +1,9 @@
 from typing import Optional, List, Tuple, Iterable
 
-from tower_defense.interfaces.abstract_tower_defense_controller import (
-    AbstractTowerDefenseController,
+from tower_defense.interfaces.tower_defense_controller import (
+    ITowerDefenseController,
 )
-from tower_defense.interfaces.abstract_tower_factory import ITowerFactory
+from tower_defense.interfaces.tower_factory import ITowerFactory
 from tower_defense.block import Block
 from tower_defense.entities.default.monsters import MONSTER_MAPPING
 from tower_defense.entities.default.towers import TOWER_MAPPING, TowerMapping
@@ -11,14 +11,14 @@ from tower_defense.entities.entities import Entities
 from tower_defense.interfaces.entity import IEntity
 from tower_defense.entities.monster import IMonster
 from tower_defense.entities.targeting_strategies import TargetingStrategy
-from tower_defense.entities.tower_entity import TowerEntity
+from tower_defense.entities.tower_entity import ITowerEntity
 from tower_defense.tower import ITower
 from tower_defense.grid import Grid
 from tower_defense.path import extract_path
 from tower_defense.wave_generator import WaveGenerator
 
 
-class TowerDefenseController(AbstractTowerDefenseController):
+class TowerDefenseController(ITowerDefenseController):
     def __init__(
         self,
         grid: Grid,
@@ -92,13 +92,13 @@ class TowerDefenseController(AbstractTowerDefenseController):
             or self.entities.towers.get(block_position) is not None
         ):
             return False
-        tower: TowerEntity = tower_factory.build_tower(*block_position)
+        tower: ITowerEntity = tower_factory.build_tower(*block_position)
         self.entities.towers[block_position] = tower
         self.entities.player.money -= tower_factory.get_cost()
         return True
 
     def upgrade_tower(self, tower_position: Tuple[int, int]) -> None:
-        tower: TowerEntity = self.entities.towers[tower_position]
+        tower: ITowerEntity = self.entities.towers[tower_position]
         upgrade_cost: Optional[int] = tower.get_upgrade_cost()
         if upgrade_cost is None or self.get_player_money() < upgrade_cost:
             return

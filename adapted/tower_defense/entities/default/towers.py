@@ -1,6 +1,6 @@
 from typing import Dict
 
-from tower_defense.interfaces.abstract_tower_factory import ITowerFactory
+from tower_defense.interfaces.tower_factory import ITowerFactory
 from tower_defense.entities.effects import DamageEffect, SlowEffect, StunEffect
 from tower_defense.entities.projectile_factory import ProjectileFactory
 from tower_defense.entities.projectile_strategies import (

@@ -1,9 +1,9 @@
 from typing import Tuple, Optional, List
 
-from tower_defense.interfaces.abstract_tower_defense_controller import (
-    AbstractTowerDefenseController,
+from tower_defense.interfaces.tower_defense_controller import (
+    ITowerDefenseController,
 )
-from tower_defense.interfaces.abstract_tower_factory import ITowerFactory
+from tower_defense.interfaces.tower_factory import ITowerFactory
 from tower_defense.tower import ITower
 
 
@@ -14,7 +14,7 @@ class InvalidSelectedTowerException(Exception):
 class Selection:
     def __init__(
         self,
-        controller: AbstractTowerDefenseController,
+        controller: ITowerDefenseController,
         tower_position: Optional[Tuple[int, int]] = None,
         tower_factory: Optional[ITowerFactory] = None,
     ) -> None:

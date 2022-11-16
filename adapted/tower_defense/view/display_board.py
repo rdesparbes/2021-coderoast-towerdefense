@@ -1,16 +1,14 @@
 import tkinter as tk
 
-from tower_defense.interfaces.abstract_tower_defense_controller import (
-    AbstractTowerDefenseController,
+from tower_defense.interfaces.tower_defense_controller import (
+    ITowerDefenseController,
 )
 from tower_defense.view.action import Action
 from tower_defense.view.game_object import GameObject
 
 
 class DisplayBoard(GameObject):
-    def __init__(
-        self, controller: AbstractTowerDefenseController, master_frame: tk.Frame
-    ):
+    def __init__(self, controller: ITowerDefenseController, master_frame: tk.Frame):
         self.canvas = tk.Canvas(
             master=master_frame, width=600, height=80, bg="gray", highlightthickness=0
         )
@@ -34,7 +32,7 @@ class DisplayBoard(GameObject):
 
 
 class HealthBar:
-    def __init__(self, controller: AbstractTowerDefenseController):
+    def __init__(self, controller: ITowerDefenseController):
         self.controller = controller
 
     def update(self) -> None:
@@ -47,7 +45,7 @@ class HealthBar:
 
 
 class MoneyBar:
-    def __init__(self, controller: AbstractTowerDefenseController):
+    def __init__(self, controller: ITowerDefenseController):
         self.controller = controller
 
     def update(self) -> None:
@@ -60,7 +58,7 @@ class MoneyBar:
 
 
 class NextWaveAction(Action):
-    def __init__(self, controller: AbstractTowerDefenseController):
+    def __init__(self, controller: ITowerDefenseController):
         self.controller = controller
 
     def running(self) -> bool:

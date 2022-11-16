@@ -3,8 +3,8 @@ from typing import List, Tuple, Optional, Iterable
 
 from PIL import ImageTk
 
-from tower_defense.interfaces.abstract_tower_defense_controller import (
-    AbstractTowerDefenseController,
+from tower_defense.interfaces.tower_defense_controller import (
+    ITowerDefenseController,
 )
 from tower_defense.interfaces.targeting_strategies import (
     SortingParam,
@@ -27,7 +27,7 @@ from tower_defense.view.tower_actions import (
 class SpecificInfoBoard:
     def __init__(
         self,
-        controller: AbstractTowerDefenseController,
+        controller: ITowerDefenseController,
         canvas: tk.Canvas,
         selection: Selection,
     ):

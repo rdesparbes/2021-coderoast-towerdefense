@@ -2,8 +2,8 @@ from typing import Tuple, Dict, Iterable, Iterator
 
 from PIL import Image
 
-from tower_defense.interfaces.abstract_tower_defense_controller import (
-    AbstractTowerDefenseController,
+from tower_defense.interfaces.tower_defense_controller import (
+    ITowerDefenseController,
 )
 from tower_defense.block import Block
 
@@ -51,7 +51,7 @@ def _load_block_images() -> BlockImages:
 
 
 class MapGenerator:
-    def __init__(self, controller: AbstractTowerDefenseController):
+    def __init__(self, controller: ITowerDefenseController):
         self.controller = controller
         block_images = _load_block_images()
         self.block_shape = _compute_block_size(iter(block_images.values()))

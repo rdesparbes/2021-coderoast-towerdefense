@@ -4,8 +4,8 @@ from typing import Tuple
 
 from PIL import ImageTk, Image
 
-from tower_defense.interfaces.abstract_tower_defense_controller import (
-    AbstractTowerDefenseController,
+from tower_defense.interfaces.tower_defense_controller import (
+    ITowerDefenseController,
 )
 from tower_defense.interfaces.entity import IEntity
 from tower_defense.interfaces.monster_view import IMonsterView
@@ -19,7 +19,7 @@ from tower_defense.view.selection import Selection, InvalidSelectedTowerExceptio
 class Map(GameObject):
     def __init__(
         self,
-        controller: AbstractTowerDefenseController,
+        controller: ITowerDefenseController,
         master_frame: tk.Frame,
         position_converter: PositionConverter,
         image: ImageTk.PhotoImage,

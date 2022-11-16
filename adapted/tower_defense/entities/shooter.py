@@ -6,7 +6,7 @@ from tower_defense.entities.monster import IMonster
 from tower_defense.entities.projectile import IProjectile
 
 
-class Shooter(IEntity, ABC):
+class IShooter(IEntity, ABC):
     @abstractmethod
     def get_target(self) -> Optional[IMonster]:
         ...
