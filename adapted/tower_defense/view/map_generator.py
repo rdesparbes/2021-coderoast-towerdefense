@@ -2,7 +2,7 @@ from typing import Tuple, Dict, Iterable, Iterator
 
 from PIL import Image
 
-from tower_defense.abstract_tower_defense_controller import (
+from tower_defense.interfaces.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
 from tower_defense.block import Block

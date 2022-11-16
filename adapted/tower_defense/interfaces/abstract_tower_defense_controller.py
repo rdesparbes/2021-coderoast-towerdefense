@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Iterable, Optional
 
-from tower_defense.abstract_tower_factory import ITowerFactory
+from tower_defense.interfaces.abstract_tower_factory import ITowerFactory
 from tower_defense.block import Block
-from tower_defense.entities.entity import IEntity
+from tower_defense.interfaces.entity import IEntity
 from tower_defense.entities.monster import IMonster
 from tower_defense.entities.targeting_strategies import TargetingStrategy
 from tower_defense.tower import ITower

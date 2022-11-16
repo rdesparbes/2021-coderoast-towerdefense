@@ -1,17 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import List, Protocol, Iterable
 
-from tower_defense.entities.entity import IEntity
+from tower_defense.interfaces.entity import IEntity
 from tower_defense.path import Path
 
 
 class IMonster(IEntity, ABC):
     health_: int
     distance_travelled_: float
-
-    @abstractmethod
-    def get_max_health(self) -> int:
-        ...
 
     @abstractmethod
     def get_value(self) -> int:

@@ -3,7 +3,7 @@ from typing import Optional, List
 
 from PIL import ImageTk
 
-from tower_defense.abstract_tower_defense_controller import (
+from tower_defense.interfaces.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
 from tower_defense.updatable_object import UpdatableObject

@@ -3,7 +3,7 @@ from typing import List, Tuple, Optional, Iterable
 
 from PIL import ImageTk
 
-from tower_defense.abstract_tower_defense_controller import (
+from tower_defense.interfaces.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
 from tower_defense.entities.targeting_strategies import SortingParam, TargetingStrategy

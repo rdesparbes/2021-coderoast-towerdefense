@@ -1,7 +1,7 @@
 import math
 from typing import Tuple, Iterable, Set
 
-from tower_defense.entities.entity import distance, IEntity
+from tower_defense.interfaces.entity import distance, IEntity
 from tower_defense.entities.monster import IMonster
 from tower_defense.entities.projectile import IProjectile
 from tower_defense.entities.projectile_strategies import MovementStrategy, HitStrategy

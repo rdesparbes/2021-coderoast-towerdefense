@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from tower_defense.entities.entity import IEntity
+from tower_defense.interfaces.entity import IEntity
 from tower_defense.entities.targeting_strategies import TargetingStrategy
 
 

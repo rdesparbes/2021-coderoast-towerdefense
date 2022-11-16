@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Tuple
 
-from tower_defense.abstract_tower_defense_controller import (
+from tower_defense.interfaces.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
 from tower_defense.entities.targeting_strategies import TargetingStrategy

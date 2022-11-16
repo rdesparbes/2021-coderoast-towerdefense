@@ -2,7 +2,7 @@ import math
 from typing import Tuple, Set, Iterable, Callable
 
 from tower_defense.constants import FPS
-from tower_defense.entities.entity import distance
+from tower_defense.interfaces.entity import distance
 from tower_defense.entities.monster import IMonster
 from tower_defense.entities.projectile import IProjectile
 

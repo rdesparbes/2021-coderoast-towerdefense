@@ -3,9 +3,9 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Optional, Tuple, Iterable, Callable
 
-from tower_defense.abstract_tower_factory import ITowerFactory
+from tower_defense.interfaces.abstract_tower_factory import ITowerFactory
 from tower_defense.entities.count_down import CountDown
-from tower_defense.entities.entity import distance
+from tower_defense.interfaces.entity import distance
 from tower_defense.entities.monster import IMonster
 from tower_defense.entities.projectile import IProjectile
 from tower_defense.entities.projectile_factory import ProjectileFactory

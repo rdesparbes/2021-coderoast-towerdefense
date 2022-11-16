@@ -4,11 +4,11 @@ from typing import Tuple
 
 from PIL import ImageTk, Image
 
-from tower_defense.abstract_tower_defense_controller import (
+from tower_defense.interfaces.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
-from tower_defense.entities.entity import IEntity
-from tower_defense.entities.monster import IMonster
+from tower_defense.interfaces.entity import IEntity
+from tower_defense.interfaces.monster import IMonster
 from tower_defense.view.game_object import GameObject
 from tower_defense.view.image_cache import ImageCache
 from tower_defense.view.mouse import Mouse
@@ -130,17 +130,17 @@ class Map(GameObject):
 
     def _paint_entities(self) -> None:
         for tower in self.controller.iter_towers():
-            model_name = tower.get_model_name()
-            image_path = f"images/towerImages/{model_name}/{tower.get_level()}.png"
+            level: int = tower.get_level()
+            image_path: str = f"images/towerImages/{tower.get_model_name()}/{level}.png"
             self._paint_entity(tower, image_path)
-        for monster in sorted(
-            self.controller.iter_monsters(), key=lambda m: m.distance_travelled_
-        ):
-            image_path = f"images/monsterImages/{monster.get_model_name()}.png"
+        for monster in self.controller.iter_monsters():
+            image_path: str = f"images/monsterImages/{monster.get_model_name()}.png"
             self._paint_entity(monster, image_path)
             self._paint_monster_health(monster)
         for projectile in self.controller.iter_projectiles():
-            image_path = f"images/projectileImages/{projectile.get_model_name()}.png"
+            image_path: str = (
+                f"images/projectileImages/{projectile.get_model_name()}.png"
+            )
             self._paint_entity(projectile, image_path)
         self._paint_selected_tower_range()
 

@@ -1,14 +1,14 @@
 from typing import Optional, List, Tuple, Iterable
 
-from tower_defense.abstract_tower_defense_controller import (
+from tower_defense.interfaces.abstract_tower_defense_controller import (
     AbstractTowerDefenseController,
 )
-from tower_defense.abstract_tower_factory import ITowerFactory
+from tower_defense.interfaces.abstract_tower_factory import ITowerFactory
 from tower_defense.block import Block
 from tower_defense.entities.default.monsters import MONSTER_MAPPING
 from tower_defense.entities.default.towers import TOWER_MAPPING, TowerMapping
 from tower_defense.entities.entities import Entities
-from tower_defense.entities.entity import IEntity
+from tower_defense.interfaces.entity import IEntity
 from tower_defense.entities.monster import IMonster
 from tower_defense.entities.targeting_strategies import TargetingStrategy
 from tower_defense.entities.tower_entity import TowerEntity
@@ -116,7 +116,7 @@ class TowerDefenseController(AbstractTowerDefenseController):
         return iter(self.entities.towers.values())
 
     def iter_monsters(self) -> Iterable[IMonster]:
-        return iter(self.entities.monsters)
+        return sorted(self.entities.monsters, key=lambda m: m.distance_travelled_)
 
     def iter_projectiles(self) -> Iterable[IEntity]:
         return iter(self.entities.projectiles)
