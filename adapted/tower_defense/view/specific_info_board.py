@@ -3,14 +3,12 @@ from typing import List, Tuple, Optional, Iterable
 
 from PIL import ImageTk
 
-from tower_defense.interfaces.tower_defense_controller import (
-    ITowerDefenseController,
-)
 from tower_defense.interfaces.targeting_strategies import (
     SortingParam,
     TargetingStrategy,
 )
 from tower_defense.interfaces.tower import ITower
+from tower_defense.interfaces.tower_manager import ITowerManager
 from tower_defense.view.button import Button
 from tower_defense.view.image_cache import ImageCache
 from tower_defense.view.mouse import Mouse
@@ -27,7 +25,7 @@ from tower_defense.view.tower_actions import (
 class SpecificInfoBoard:
     def __init__(
         self,
-        controller: ITowerDefenseController,
+        controller: ITowerManager,
         canvas: tk.Canvas,
         selection: Selection,
     ):

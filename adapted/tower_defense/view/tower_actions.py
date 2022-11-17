@@ -1,18 +1,16 @@
 from abc import ABC
 from typing import Tuple
 
-from tower_defense.interfaces.tower_defense_controller import (
-    ITowerDefenseController,
-)
 from tower_defense.interfaces.targeting_strategies import TargetingStrategy
 from tower_defense.interfaces.tower import ITower
+from tower_defense.interfaces.tower_manager import ITowerManager
 from tower_defense.view.action import IAction
 
 
 class TowerAction(IAction, ABC):
     def __init__(
         self,
-        controller: ITowerDefenseController,
+        controller: ITowerManager,
         tower_position: Tuple[int, int],
     ):
         self._controller = controller
@@ -29,7 +27,7 @@ class TowerAction(IAction, ABC):
 class SetTargetingStrategyAction(TowerAction):
     def __init__(
         self,
-        controller: ITowerDefenseController,
+        controller: ITowerManager,
         tower_position: Tuple[int, int],
         targeting_strategy: TargetingStrategy,
     ):

@@ -1,5 +1,7 @@
 import tkinter as tk
 
+from tower_defense.interfaces.monster_spawner import IMonsterSpawner
+from tower_defense.interfaces.player import IPlayer
 from tower_defense.interfaces.tower_defense_controller import (
     ITowerDefenseController,
 )
@@ -32,7 +34,7 @@ class DisplayBoard(GameObject):
 
 
 class HealthBar:
-    def __init__(self, controller: ITowerDefenseController):
+    def __init__(self, controller: IPlayer):
         self.controller = controller
 
     def update(self) -> None:
@@ -45,7 +47,7 @@ class HealthBar:
 
 
 class MoneyBar:
-    def __init__(self, controller: ITowerDefenseController):
+    def __init__(self, controller: IPlayer):
         self.controller = controller
 
     def update(self) -> None:
@@ -58,7 +60,7 @@ class MoneyBar:
 
 
 class NextWaveAction(IAction):
-    def __init__(self, controller: ITowerDefenseController):
+    def __init__(self, controller: IMonsterSpawner):
         self.controller = controller
 
     def running(self) -> bool:
