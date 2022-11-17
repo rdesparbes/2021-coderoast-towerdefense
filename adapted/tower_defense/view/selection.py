@@ -23,7 +23,8 @@ class Selection:
         self._tower_view_name = tower_view_name
 
     def _build_tower(self, world_position: Tuple[float, float]) -> None:
-        self._controller.try_build_tower(self._tower_view_name, world_position)
+        if self._tower_view_name is not None:
+            self._controller.try_build_tower(self._tower_view_name, world_position)
 
     def _select_tower(self, world_position: Tuple[float, float]) -> None:
         if self._tower_view_name is not None:

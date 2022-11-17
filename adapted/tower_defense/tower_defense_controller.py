@@ -4,7 +4,7 @@ from tower_defense.block import Block
 from tower_defense.entities.default.monsters import MONSTER_MAPPING
 from tower_defense.entities.default.towers import TOWER_MAPPING, TowerMapping
 from tower_defense.entities.entities import Entities
-from tower_defense.entities.monster import IMonster
+from tower_defense.entities.monster import IMonster, MonsterFactory
 from tower_defense.entities.tower_entity import ITowerEntity
 from tower_defense.entities.tower_factory import ITowerFactory
 from tower_defense.grid import Grid
@@ -30,7 +30,7 @@ class TowerDefenseController(ITowerDefenseController):
         self.tower_mapping: TowerMapping = (
             TOWER_MAPPING if tower_mapping is None else tower_mapping
         )
-        self.entities = entities or Entities(
+        self.entities: Entities = entities or Entities(
             path=extract_path(grid), monster_factories=MONSTER_MAPPING
         )
 
@@ -52,8 +52,8 @@ class TowerDefenseController(ITowerDefenseController):
     def get_tower_view_names(self) -> List[str]:
         return list(self.tower_mapping)
 
-    def get_tower_view(self, tower_view_name: str) -> Optional[ITowerFactory]:
-        return self.tower_mapping.get(tower_view_name)
+    def get_tower_view(self, tower_view_name: str) -> ITowerFactory:
+        return self.tower_mapping[tower_view_name]
 
     def iter_blocks(self) -> Iterable[Tuple[Tuple[int, int], Block]]:
         return iter(self.grid)
@@ -74,11 +74,13 @@ class TowerDefenseController(ITowerDefenseController):
         return True
 
     def _try_spawn_monster(self) -> None:
-        monster_type_id = self.wave_generator.get_monster_id()
+        monster_type_id: Optional[int] = self.wave_generator.get_monster_id()
         if monster_type_id is None:
             return None
-        monster_factory = self.entities.monster_factories[monster_type_id]
-        monster = monster_factory()
+        monster_factory: MonsterFactory = self.entities.monster_factories[
+            monster_type_id
+        ]
+        monster: IMonster = monster_factory()
         self.entities.monsters.add(monster)
 
     def try_build_tower(
@@ -99,7 +101,7 @@ class TowerDefenseController(ITowerDefenseController):
 
     def upgrade_tower(self, tower_position: Tuple[int, int]) -> None:
         tower: ITowerEntity = self.entities.towers[tower_position]
-        upgrade_cost: Optional[int] = tower.get_cost()
+        upgrade_cost: Optional[int] = tower.get_upgrade_cost()
         if upgrade_cost is None or self.get_player_money() < upgrade_cost:
             return
         self.entities.player.money -= upgrade_cost

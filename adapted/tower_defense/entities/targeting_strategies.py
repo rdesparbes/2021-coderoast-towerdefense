@@ -25,5 +25,7 @@ def query_monsters(
     monsters: Iterable[IMonster], targeting_strategy: TargetingStrategy
 ) -> Iterable[IMonster]:
     return sorted(
-        monsters, key=targeting_strategy.key.value, reverse=targeting_strategy.reverse
+        monsters,
+        key=SORTING_FUNCTIONS[targeting_strategy.key],
+        reverse=targeting_strategy.reverse,
     )

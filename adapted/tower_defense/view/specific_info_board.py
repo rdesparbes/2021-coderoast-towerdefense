@@ -157,7 +157,9 @@ class SpecificInfoBoard:
             *self._create_target_strategy_buttons(tower_position),
             *self._create_sticky_button(tower_position),
             *self._create_sell_button(tower_position),
-            *self._create_upgrade_button(tower_position, selected_tower.get_cost()),
+            *self._create_upgrade_button(
+                tower_position, selected_tower.get_upgrade_cost()
+            ),
         ]
 
         for button in self.current_buttons:

@@ -1,13 +1,17 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 
 from tower_defense.interfaces.targeting_strategies import TargetingStrategy
 from tower_defense.interfaces.entity import IEntity
-from tower_defense.interfaces.tower_view import ITowerView
 
 
-class ITower(IEntity, ITowerView, ABC):
+class ITower(IEntity, ABC):
     targeting_strategy: TargetingStrategy
     sticky_target: bool
+
+    @abstractmethod
+    def get_name(self) -> str:
+        ...
 
     @abstractmethod
     def get_level(self) -> int:
@@ -15,4 +19,8 @@ class ITower(IEntity, ITowerView, ABC):
 
     @abstractmethod
     def get_range(self) -> float:
+        ...
+
+    @abstractmethod
+    def get_upgrade_cost(self) -> Optional[int]:
         ...

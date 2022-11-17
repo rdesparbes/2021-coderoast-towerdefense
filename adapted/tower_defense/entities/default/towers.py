@@ -16,11 +16,12 @@ from tower_defense.entities.stats import (
 from tower_defense.entities.upgradable import Up, UpgradableList
 from tower_defense.entities.towers import (
     TowerFactory,
+)
+from tower_defense.entities.orientation_strategies import (
     target_orientation_strategy,
     null_orientation_strategy,
     concentric_orientation_strategy,
 )
-
 
 TowerMapping = Dict[str, ITowerFactory]
 

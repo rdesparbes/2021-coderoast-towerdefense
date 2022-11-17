@@ -1,8 +1,9 @@
-import math
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Optional, Tuple, Iterable, Callable
+from typing import Optional, Tuple, Iterable
 
+from tower_defense.entities.orientation_strategies import OrientationStrategy
+from tower_defense.entities.tower_entity import ITowerEntity
 from tower_defense.entities.tower_factory import ITowerFactory
 from tower_defense.entities.count_down import CountDown
 from tower_defense.entities.distance import distance
@@ -15,14 +16,10 @@ from tower_defense.entities.targeting_strategies import (
     query_monsters,
     SortingParam,
 )
-from tower_defense.entities.shooter import IShooter
-from tower_defense.entities.upgradable import UpgradableData, IUpgradable
-from tower_defense.interfaces.tower import ITower
-
-OrientationStrategy = Callable[[IShooter, int], float]
+from tower_defense.entities.upgradable import UpgradableData
 
 
-class Tower(IShooter, ITower, IUpgradable):
+class Tower(ITowerEntity):
     def __init__(
         self,
         name: str,
@@ -70,7 +67,7 @@ class Tower(IShooter, ITower, IUpgradable):
     def get_projectile_count(self) -> int:
         return self.tower_stats.projectile_count.value
 
-    def get_cost(self) -> Optional[int]:
+    def get_upgrade_cost(self) -> Optional[int]:
         return self.tower_stats.upgrade_cost.value if self.is_upgradable() else None
 
     def is_upgradable(self) -> bool:
@@ -123,20 +120,6 @@ class Tower(IShooter, ITower, IUpgradable):
             )
 
 
-def target_orientation_strategy(tower: IShooter, _projectile_index: int) -> float:
-    target_x, target_y = tower.get_target().get_position()
-    x, y = tower.get_position()
-    return math.atan2(y - target_y, target_x - x)
-
-
-def null_orientation_strategy(_tower: IShooter, _projectile_index: int) -> float:
-    return 0.0
-
-
-def concentric_orientation_strategy(tower: IShooter, projectile_index: int) -> float:
-    return math.radians(projectile_index * 360 / tower.get_projectile_count())
-
-
 @dataclass
 class TowerFactory(ITowerFactory, UpgradableData):
     tower_name: str
@@ -158,7 +141,7 @@ class TowerFactory(ITowerFactory, UpgradableData):
     def get_model_name(self) -> str:
         return self.model_name
 
-    def build_tower(self, x: float, y: float) -> Tower:
+    def build_tower(self, x: float, y: float) -> ITowerEntity:
         return Tower(
             self.tower_name,
             self.model_name,
