@@ -1,9 +1,10 @@
 from dataclasses import dataclass, field
-from typing import Dict, Tuple, Set, List
+from typing import Dict, Tuple, Set, List, Optional
 
 from tower_defense.entities.monster import IMonster, MonsterFactory
 from tower_defense.entities.projectile import IProjectile
 from tower_defense.entities.tower_entity import ITowerEntity
+from tower_defense.entities.tower_factory import ITowerFactory
 from tower_defense.path import Path
 from tower_defense.player import Player
 from tower_defense.updatable_object import UpdatableObject
@@ -51,6 +52,32 @@ class Entities(UpdatableObject):
         for tower in self.towers.values():
             tower.select_target(self.monsters)
             self.projectiles.update(tower.shoot())
+
+    def spawn_monster(self, monster_type_id: int) -> None:
+        monster_factory: MonsterFactory = self.monster_factories[monster_type_id]
+        monster: IMonster = monster_factory()
+        self.monsters.add(monster)
+
+    def try_build_tower(
+        self, tower_factory: ITowerFactory, position: Tuple[int, int]
+    ) -> bool:
+        if (
+            self.player.money < tower_factory.get_cost()
+            or self.towers.get(position) is not None
+        ):
+            return False
+        tower: ITowerEntity = tower_factory.build_tower(*position)
+        self.towers[position] = tower
+        self.player.money -= tower_factory.get_cost()
+        return True
+
+    def upgrade_tower(self, tower_position: Tuple[int, int]) -> None:
+        tower: ITowerEntity = self.towers[tower_position]
+        upgrade_cost: Optional[int] = tower.get_upgrade_cost()
+        if upgrade_cost is None or self.player.money < upgrade_cost:
+            return
+        self.player.money -= upgrade_cost
+        tower.upgrade()
 
     def update(self) -> None:
         self._cleanup_projectiles()

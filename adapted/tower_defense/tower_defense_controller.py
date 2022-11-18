@@ -4,8 +4,7 @@ from tower_defense.block import Block
 from tower_defense.entities.default.monsters import MONSTER_MAPPING
 from tower_defense.entities.default.towers import TOWER_MAPPING, TowerMapping
 from tower_defense.entities.entities import Entities
-from tower_defense.entities.monster import IMonster, MonsterFactory
-from tower_defense.entities.tower_entity import ITowerEntity
+from tower_defense.entities.monster import IMonster
 from tower_defense.entities.tower_factory import ITowerFactory
 from tower_defense.grid import Grid
 from tower_defense.interfaces.entity import IEntity
@@ -77,35 +76,21 @@ class TowerDefenseController(ITowerDefenseController):
         monster_type_id: Optional[int] = self.wave_generator.get_monster_id()
         if monster_type_id is None:
             return None
-        monster_factory: MonsterFactory = self.entities.monster_factories[
-            monster_type_id
-        ]
-        monster: IMonster = monster_factory()
-        self.entities.monsters.add(monster)
+        self.entities.spawn_monster(monster_type_id)
 
     def try_build_tower(
         self, tower_view_name: str, world_position: Tuple[float, float]
     ) -> bool:
         tower_factory: ITowerFactory = self.get_tower_view(tower_view_name)
         block_position, block = self.get_block(world_position)
-        if (
-            not block.is_constructible
-            or self.entities.player.money < tower_factory.get_cost()
-            or self.entities.towers.get(block_position) is not None
-        ):
-            return False
-        tower: ITowerEntity = tower_factory.build_tower(*block_position)
-        self.entities.towers[block_position] = tower
-        self.entities.player.money -= tower_factory.get_cost()
-        return True
+        return (
+            self.entities.try_build_tower(tower_factory, block_position)
+            if block.is_constructible
+            else False
+        )
 
     def upgrade_tower(self, tower_position: Tuple[int, int]) -> None:
-        tower: ITowerEntity = self.entities.towers[tower_position]
-        upgrade_cost: Optional[int] = tower.get_upgrade_cost()
-        if upgrade_cost is None or self.get_player_money() < upgrade_cost:
-            return
-        self.entities.player.money -= upgrade_cost
-        tower.upgrade()
+        self.entities.upgrade_tower(tower_position)
 
     def sell_tower(self, tower_position: Tuple[int, int]) -> None:
         self.entities.towers.pop(tower_position, None)
