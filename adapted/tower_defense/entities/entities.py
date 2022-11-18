@@ -12,12 +12,12 @@ from tower_defense.updatable_object import UpdatableObject
 
 @dataclass
 class Entities(UpdatableObject):
+    _path: Path = field(default_factory=list)
+    _monster_factories: List[MonsterFactory] = field(default_factory=list)
     player: Player = field(default_factory=Player)
-    path: Path = field(default_factory=list)
     projectiles: Set[IProjectile] = field(default_factory=set)
     monsters: Set[IMonster] = field(default_factory=set)
     towers: Dict[Tuple[int, int], ITowerEntity] = field(default_factory=dict)
-    monster_factories: List[MonsterFactory] = field(default_factory=list)
 
     def _cleanup_projectiles(self) -> None:
         to_remove = set()
@@ -38,11 +38,11 @@ class Entities(UpdatableObject):
             if not monster.alive:
                 to_remove.add(monster)
                 self.player.money += monster.get_value()
-                for child in monster.get_children(self.monster_factories):
-                    child.update_position(self.path)
+                for child in monster.get_children(self._monster_factories):
+                    child.update_position(self._path)
                     to_add.add(child)
-            monster.update_position(self.path)
-            if monster.has_arrived(self.path):
+            monster.update_position(self._path)
+            if monster.has_arrived(self._path):
                 to_remove.add(monster)
                 self.player.health -= monster.get_damage()
         self.monsters.difference_update(to_remove)
@@ -54,7 +54,7 @@ class Entities(UpdatableObject):
             self.projectiles.update(tower.shoot())
 
     def spawn_monster(self, monster_type_id: int) -> None:
-        monster_factory: MonsterFactory = self.monster_factories[monster_type_id]
+        monster_factory: MonsterFactory = self._monster_factories[monster_type_id]
         monster: IMonster = monster_factory()
         self.monsters.add(monster)
 

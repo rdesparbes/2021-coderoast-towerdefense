@@ -2,7 +2,11 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from typing import List, Iterable
 
 from pathlib import Path
+
+from tower_defense.entities.default.monsters import MONSTER_MAPPING
+from tower_defense.entities.entities import Entities
 from tower_defense.grid import Grid
+from tower_defense.path import extract_path
 from tower_defense.tower_defense_controller import TowerDefenseController
 from tower_defense.view.view import View
 from tower_defense.wave_generator import WaveGenerator
@@ -35,7 +39,8 @@ def main() -> None:
     args = parser.parse_args()
     grid = Grid.load(args.map)
     wave_generator = WaveGenerator.load(args.scenario)
-    controller = TowerDefenseController(grid, wave_generator)
+    entities = Entities(_path=extract_path(grid), _monster_factories=MONSTER_MAPPING)
+    controller = TowerDefenseController(grid, wave_generator, entities)
     view = View(controller)
     view.run()
 

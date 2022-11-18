@@ -1,7 +1,6 @@
 from typing import Optional, List, Tuple, Iterable
 
 from tower_defense.block import Block
-from tower_defense.entities.default.monsters import MONSTER_MAPPING
 from tower_defense.entities.default.towers import TOWER_MAPPING, TowerMapping
 from tower_defense.entities.entities import Entities
 from tower_defense.entities.monster import IMonster
@@ -12,7 +11,6 @@ from tower_defense.interfaces.tower import ITower
 from tower_defense.interfaces.tower_defense_controller import (
     ITowerDefenseController,
 )
-from tower_defense.path import extract_path
 from tower_defense.wave_generator import WaveGenerator
 
 
@@ -21,7 +19,7 @@ class TowerDefenseController(ITowerDefenseController):
         self,
         grid: Grid,
         wave_generator: WaveGenerator,
-        entities: Optional[Entities] = None,
+        entities: Entities,
         tower_mapping: Optional[TowerMapping] = None,
     ):
         self.grid = grid
@@ -29,9 +27,7 @@ class TowerDefenseController(ITowerDefenseController):
         self.tower_mapping: TowerMapping = (
             TOWER_MAPPING if tower_mapping is None else tower_mapping
         )
-        self.entities: Entities = entities or Entities(
-            path=extract_path(grid), monster_factories=MONSTER_MAPPING
-        )
+        self.entities: Entities = entities
 
     def get_player_health(self) -> int:
         return self.entities.player.health
