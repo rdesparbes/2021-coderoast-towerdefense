@@ -3,6 +3,7 @@ from typing import Optional
 
 from PIL import ImageTk
 
+from tower_defense.interfaces.tower_view import ITowerView
 from tower_defense.view.image_cache import ImageCache
 from tower_defense.view.selection import Selection
 
@@ -22,9 +23,10 @@ class GenericInfoBoard:
         pass
 
     def paint(self) -> None:
-        if not self.selection.tower_view_selected:
+        try:
+            tower_view: ITowerView = self.selection.get_selected_tower_view()
+        except ValueError:
             return
-        tower_view = self.selection.get_selected_tower_view()
         text = f"{tower_view.get_name()} cost: {tower_view.get_cost()}"
         image_path = f"images/towerImages/{tower_view.get_model_name()}/1.png"
         self.tower_image = ImageTk.PhotoImage(self.image_cache.get_image(image_path))

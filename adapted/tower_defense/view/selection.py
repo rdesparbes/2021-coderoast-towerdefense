@@ -36,7 +36,7 @@ class Selection:
         self._tower_view_name = None
 
     def interact(self, world_position: Tuple[float, float]) -> None:
-        if self.tower_view_selected:
+        if self._tower_view_name is not None:
             self._build_tower(world_position)
         else:
             self._select_tower(world_position)
@@ -52,12 +52,13 @@ class Selection:
         return list(self._controller.get_tower_view_names())
 
     def select_tower_view(self, name: str) -> None:
-        self._tower_view_name = name
+        new_name: Optional[str] = name
+        try:
+            self._controller.get_tower_view(name)
+        except KeyError:
+            new_name = None
+        self._tower_view_name = new_name
         self._tower_position = None
-
-    @property
-    def tower_view_selected(self) -> bool:
-        return self._tower_view_name is not None
 
     def get_selected_tower_position(self) -> Tuple[int, int]:
         if self._tower_position is None:
@@ -65,6 +66,6 @@ class Selection:
         return self._tower_position
 
     def get_selected_tower_view(self) -> ITowerView:
-        if self._tower_view_name is None:
-            raise ValueError("No tower view selected")
-        return self._controller.get_tower_view(self._tower_view_name)
+        if self._tower_view_name is not None:
+            return self._controller.get_tower_view(self._tower_view_name)
+        raise ValueError("No valid tower view selected")
