@@ -3,15 +3,16 @@ from typing import Optional, List
 
 from PIL import ImageTk
 
+from tower_defense.constants import TIME_STEP
 from tower_defense.interfaces.tower_defense_controller import (
     ITowerDefenseController,
 )
 from tower_defense.updatable_object import UpdatableObject
-from tower_defense.view.map_generator import MapGenerator
 from tower_defense.view.display_board import DisplayBoard
 from tower_defense.view.game_object import GameObject
 from tower_defense.view.info_board import InfoBoard
 from tower_defense.view.map import Map
+from tower_defense.view.map_generator import MapGenerator
 from tower_defense.view.position_converter import PositionConverter
 from tower_defense.view.selection import Selection
 from tower_defense.view.tower_box import TowerBox
@@ -21,8 +22,8 @@ class View(UpdatableObject):
     def __init__(
         self,
         controller: ITowerDefenseController,
-        title: str = "Tower Defense",
-        timestep: int = 50,
+        title: str = "Tower Defense Ultra Mode",
+        timestep: int = TIME_STEP,
     ):
         self.root = tk.Tk()
         self.root.title(title)
