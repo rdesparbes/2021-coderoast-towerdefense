@@ -38,20 +38,15 @@ class SpecificInfoBoard:
         self._mouse.bind_listeners(canvas)
         self.image_cache = ImageCache()
 
+    @staticmethod
     def _create_target_strategy_button(
-        self,
         position: Tuple[int, int],
-        tower_position: Tuple[int, int],
-        targeting_strategy: TargetingStrategy,
     ) -> Button:
         button_size = 9
         button_x_offset, button_y_offset = 0, 2
 
         x, y = position
         button_x, button_y = x + button_x_offset, y + button_y_offset
-        action = SetTargetingStrategyAction(
-            self.controller, tower_position, targeting_strategy
-        )
         return Button(
             Rectangle(
                 x_min=button_x,
@@ -59,10 +54,11 @@ class SpecificInfoBoard:
                 x_max=button_x + button_size,
                 y_max=button_y + button_size,
             ),
-            action,
         )
 
-    def _create_target_strategy_text(self, position, text):
+    def _create_target_strategy_text(
+        self, position: Tuple[int, int], text: str
+    ) -> None:
         text_x_offset, text_y_offset = 11, 0
 
         x, y = position
@@ -85,16 +81,19 @@ class SpecificInfoBoard:
             ],
         ):
             self._create_target_strategy_text(position, text)
-            yield self._create_target_strategy_button(
-                position, tower_position, targeting_strategy
+            action = SetTargetingStrategyAction(
+                self.controller, tower_position, targeting_strategy
             )
+            button = self._create_target_strategy_button(position)
+            button.actions.append(action)
+            yield button
 
     def _create_sticky_button(
         self, tower_position: Tuple[int, int]
     ) -> Iterable[Button]:
         yield Button(
             Rectangle(x_min=10, y_min=40, x_max=19, y_max=49),
-            ToggleStickyTargetAction(self.controller, tower_position),
+            [ToggleStickyTargetAction(self.controller, tower_position)],
         )
 
     def _create_sell_button(self, tower_position: Tuple[int, int]) -> Iterable[Button]:
@@ -108,7 +107,7 @@ class SpecificInfoBoard:
         )
         yield Button(
             Rectangle(x_min=5, y_min=145, x_max=78, y_max=168),
-            SellAction(self.controller, tower_position),
+            [SellAction(self.controller, tower_position)],
         )
 
     def _create_upgrade_button(
@@ -130,7 +129,7 @@ class SpecificInfoBoard:
                     x_max=155,
                     y_max=168,
                 ),
-                UpgradeAction(self.controller, tower_position),
+                [UpgradeAction(self.controller, tower_position)],
             )
 
     def _paint_tower_info(self, selected_tower: ITower) -> None:

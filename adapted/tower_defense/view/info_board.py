@@ -1,4 +1,5 @@
 import tkinter as tk
+from typing import List
 
 from PIL import ImageTk, Image
 
@@ -15,17 +16,17 @@ class InfoBoard(GameObject):
         )
         self.canvas.grid(row=0, column=1)
         self.info_board_image = ImageTk.PhotoImage(Image.open("images/infoBoard.png"))
-        self._generic_info_board = GenericInfoBoard(self.canvas, selection)
-        self._specific_info_board = SpecificInfoBoard(
-            controller, self.canvas, selection
-        )
+        self.game_objects: List[GameObject] = [
+            GenericInfoBoard(self.canvas, selection),
+            SpecificInfoBoard(controller, self.canvas, selection),
+        ]
 
     def update(self) -> None:
-        self._generic_info_board.update()
-        self._specific_info_board.update()
+        for game_object in self.game_objects:
+            game_object.update()
 
     def paint(self) -> None:
         self.canvas.delete(tk.ALL)
         self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
-        self._generic_info_board.paint()
-        self._specific_info_board.paint()
+        for game_object in self.game_objects:
+            game_object.paint()
