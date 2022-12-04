@@ -61,11 +61,19 @@ class Selection:
         self._tower_position = None
 
     def get_selected_tower_position(self) -> Tuple[int, int]:
-        if self._tower_position is None:
-            raise ValueError("No tower position selected")
-        return self._tower_position
+        (
+            tower_position,
+            _,
+        ) = self.get_selected_tower()
+        return tower_position
 
     def get_selected_tower_view(self) -> ITowerView:
         if self._tower_view_name is not None:
             return self._controller.get_tower_view(self._tower_view_name)
         raise ValueError("No valid tower view selected")
+
+    def sell_selected_tower(self) -> None:
+        self._controller.sell_tower(self.get_selected_tower_position())
+
+    def upgrade_selected_tower(self) -> None:
+        self._controller.upgrade_tower(self.get_selected_tower_position())

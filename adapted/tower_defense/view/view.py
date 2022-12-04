@@ -35,7 +35,7 @@ class View(UpdatableObject):
         self.frame.grid(row=0, column=0)
         self.controller = controller
         selection = Selection(controller)
-        self.info_board = InfoBoard(controller, self.frame, selection)
+        self.info_board = InfoBoard(self.frame, selection)
         self.tower_box = TowerBox(self.frame, selection)
         map_generator = MapGenerator(controller)
         image = ImageTk.PhotoImage(map_generator.get_background())

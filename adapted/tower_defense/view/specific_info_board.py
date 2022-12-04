@@ -8,10 +8,8 @@ from tower_defense.interfaces.targeting_strategies import (
     TargetingStrategy,
 )
 from tower_defense.interfaces.tower import ITower
-from tower_defense.interfaces.tower_manager import ITowerManager
 from tower_defense.view.button import Button
 from tower_defense.view.image_cache import ImageCache
-from tower_defense.view.mouse import Mouse
 from tower_defense.view.rectangle import Rectangle
 from tower_defense.view.selection import Selection, InvalidSelectedTowerException
 from tower_defense.view.tower_actions import (
@@ -25,7 +23,6 @@ from tower_defense.view.tower_actions import (
 class SpecificInfoBoard:
     def __init__(
         self,
-        controller: ITowerManager,
         canvas: tk.Canvas,
         selection: Selection,
     ):
@@ -33,13 +30,10 @@ class SpecificInfoBoard:
         self.selection = selection
         self.tower_image: Optional[ImageTk.PhotoImage] = None
         self.current_buttons: List[Button] = []
-        self.controller = controller
-        self._mouse = Mouse()
-        self._mouse.bind_listeners(canvas)
         self.image_cache = ImageCache()
 
-    @staticmethod
     def _create_target_strategy_button(
+        self,
         position: Tuple[int, int],
     ) -> Button:
         button_size = 9
@@ -48,6 +42,7 @@ class SpecificInfoBoard:
         x, y = position
         button_x, button_y = x + button_x_offset, y + button_y_offset
         return Button(
+            self.canvas,
             Rectangle(
                 x_min=button_x,
                 y_min=button_y,
@@ -67,9 +62,7 @@ class SpecificInfoBoard:
             text_x, text_y, text=text, font=("times", 12), fill="white", anchor=tk.NW
         )
 
-    def _create_target_strategy_buttons(
-        self, tower_position: Tuple[int, int]
-    ) -> Iterable[Button]:
+    def _create_target_strategy_buttons(self) -> Iterable[Button]:
         for position, text, targeting_strategy in zip(
             [(26, 28), (26, 48), (92, 48), (92, 28)],
             ["> Health", "< Health", "> Distance", "< Distance"],
@@ -81,22 +74,19 @@ class SpecificInfoBoard:
             ],
         ):
             self._create_target_strategy_text(position, text)
-            action = SetTargetingStrategyAction(
-                self.controller, tower_position, targeting_strategy
-            )
+            action = SetTargetingStrategyAction(self.selection, targeting_strategy)
             button = self._create_target_strategy_button(position)
             button.actions.append(action)
             yield button
 
-    def _create_sticky_button(
-        self, tower_position: Tuple[int, int]
-    ) -> Iterable[Button]:
+    def _create_sticky_button(self) -> Iterable[Button]:
         yield Button(
+            self.canvas,
             Rectangle(x_min=10, y_min=40, x_max=19, y_max=49),
-            [ToggleStickyTargetAction(self.controller, tower_position)],
+            [ToggleStickyTargetAction(self.selection)],
         )
 
-    def _create_sell_button(self, tower_position: Tuple[int, int]) -> Iterable[Button]:
+    def _create_sell_button(self) -> Iterable[Button]:
         self.canvas.create_text(
             28,
             146,
@@ -106,13 +96,12 @@ class SpecificInfoBoard:
             anchor=tk.NW,
         )
         yield Button(
+            self.canvas,
             Rectangle(x_min=5, y_min=145, x_max=78, y_max=168),
-            [SellAction(self.controller, tower_position)],
+            [SellAction(self.selection)],
         )
 
-    def _create_upgrade_button(
-        self, tower_position: Tuple[int, int], upgrade_cost: Optional[int]
-    ) -> Iterable[Button]:
+    def _create_upgrade_button(self, upgrade_cost: Optional[int]) -> Iterable[Button]:
         if upgrade_cost is not None:
             self.canvas.create_text(
                 120,
@@ -123,13 +112,14 @@ class SpecificInfoBoard:
                 anchor=tk.CENTER,
             )
             yield Button(
+                self.canvas,
                 Rectangle(
                     x_min=82,
                     y_min=145,
                     x_max=155,
                     y_max=168,
                 ),
-                [UpgradeAction(self.controller, tower_position)],
+                [UpgradeAction(self.selection)],
             )
 
     def _paint_tower_info(self, selected_tower: ITower) -> None:
@@ -142,8 +132,8 @@ class SpecificInfoBoard:
         self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
 
     def update(self) -> None:
-        if self._mouse.position is not None and self._mouse.pressed:
-            self._click_at(self._mouse.position)
+        for button in self.current_buttons:
+            button.update()
 
     def paint(self) -> None:
         try:
@@ -153,18 +143,11 @@ class SpecificInfoBoard:
 
         self._paint_tower_info(selected_tower)
         self.current_buttons = [
-            *self._create_target_strategy_buttons(tower_position),
-            *self._create_sticky_button(tower_position),
-            *self._create_sell_button(tower_position),
-            *self._create_upgrade_button(
-                tower_position, selected_tower.get_upgrade_cost()
-            ),
+            *self._create_target_strategy_buttons(),
+            *self._create_sticky_button(),
+            *self._create_sell_button(),
+            *self._create_upgrade_button(selected_tower.get_upgrade_cost()),
         ]
 
         for button in self.current_buttons:
-            button.paint(self.canvas)
-
-    def _click_at(self, position: Tuple[int, int]):
-        for current_button in self.current_buttons:
-            if current_button.press(*position):
-                return
+            button.paint()

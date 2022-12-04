@@ -10,7 +10,7 @@ from tower_defense.view.specific_info_board import SpecificInfoBoard
 
 
 class InfoBoard(GameObject):
-    def __init__(self, controller, master_frame: tk.Frame, selection: Selection):
+    def __init__(self, master_frame: tk.Frame, selection: Selection):
         self.canvas = tk.Canvas(
             master=master_frame, width=162, height=174, bg="gray", highlightthickness=0
         )
@@ -18,7 +18,7 @@ class InfoBoard(GameObject):
         self.info_board_image = ImageTk.PhotoImage(Image.open("images/infoBoard.png"))
         self.game_objects: List[GameObject] = [
             GenericInfoBoard(self.canvas, selection),
-            SpecificInfoBoard(controller, self.canvas, selection),
+            SpecificInfoBoard(self.canvas, selection),
         ]
 
     def update(self) -> None:
