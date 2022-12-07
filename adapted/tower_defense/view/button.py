@@ -12,13 +12,13 @@ class Button(GameObject):
         self,
         canvas: tk.Canvas,
         rectangle: Rectangle,
+        mouse: Mouse,
         actions: Optional[List[IAction]] = None,
     ):
         self.canvas = canvas
         self.rectangle = rectangle
+        self._mouse = mouse
         self.actions = actions if actions is not None else []
-        self._mouse = Mouse()
-        self._mouse.bind_listeners(canvas)
 
     def _press(self, x: int, y: int) -> None:
         if self.rectangle.is_within_bounds(x, y):

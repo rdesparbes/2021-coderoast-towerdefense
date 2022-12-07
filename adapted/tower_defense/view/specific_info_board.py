@@ -11,6 +11,7 @@ from tower_defense.view.action import IAction
 from tower_defense.view.button import Button
 from tower_defense.view.game_object import GameObject
 from tower_defense.view.image_cache import ImageCache
+from tower_defense.view.mouse import Mouse
 from tower_defense.view.rectangle import Rectangle
 from tower_defense.view.selection import Selection, InvalidSelectedTowerException
 from tower_defense.view.tower_actions import (
@@ -36,17 +37,19 @@ class TowerInfo(GameObject):
             tower_position, selected_tower = self.selection.get_selected_tower()
         except InvalidSelectedTowerException:
             return
-        model_name = selected_tower.get_model_name()
-        image_path = f"images/towerImages/{model_name}/{selected_tower.get_level()}.png"
-        self.tower_image = ImageTk.PhotoImage(self.image_cache.get_image(image_path))
+
         self.canvas.create_text(
             80, 75, text=selected_tower.get_name(), font=("times", 20)
         )
+
+        model_name = selected_tower.get_model_name()
+        image_path = f"images/towerImages/{model_name}/{selected_tower.get_level()}.png"
+        self.tower_image = ImageTk.PhotoImage(self.image_cache.get_image(image_path))
         self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
 
 
 class UpgradeButton(GameObject):
-    def __init__(self, canvas: tk.Canvas, selection: Selection) -> None:
+    def __init__(self, canvas: tk.Canvas, selection: Selection, mouse: Mouse) -> None:
         self.canvas = canvas
         self.selection = selection
         self.button = Button(
@@ -57,6 +60,7 @@ class UpgradeButton(GameObject):
                 x_max=155,
                 y_max=168,
             ),
+            mouse,
             [UpgradeAction(self.selection)],
         )
 
@@ -81,13 +85,13 @@ class UpgradeButton(GameObject):
 
 
 class SellButton(GameObject):
-    def __init__(self, canvas: tk.Canvas, selection: Selection) -> None:
+    def __init__(self, canvas: tk.Canvas, selection: Selection, mouse: Mouse) -> None:
         self.canvas = canvas
-        self.selection = selection
         self.button = Button(
             self.canvas,
             Rectangle(x_min=5, y_min=145, x_max=78, y_max=168),
-            [SellAction(self.selection)],
+            mouse,
+            [SellAction(selection)],
         )
 
     def update(self) -> None:
@@ -108,13 +112,12 @@ class TargetingStrategyButton(GameObject):
     def __init__(
         self,
         canvas: tk.Canvas,
-        selection: Selection,
         position: Tuple[int, int],
         text: str,
         action: IAction,
+        mouse: Mouse,
     ) -> None:
         self.canvas = canvas
-        self.selection = selection
         self.text = text
         self.position = position
         button_size = 9
@@ -130,6 +133,7 @@ class TargetingStrategyButton(GameObject):
                 x_max=button_x + button_size,
                 y_max=button_y + button_size,
             ),
+            mouse,
             actions=[action],
         )
 
@@ -157,54 +161,56 @@ class SpecificInfoBoard(GameObject):
         self,
         canvas: tk.Canvas,
         selection: Selection,
+        mouse: Mouse,
     ):
         self.canvas = canvas
         self.selection = selection
         self.game_objects: List[GameObject] = [
             TargetingStrategyButton(
-                canvas,
-                selection,
+                self.canvas,
                 (26, 28),
                 "> Health",
                 SetTargetingStrategyAction(
                     selection, TargetingStrategy(SortingParam.HEALTH, reverse=True)
                 ),
+                mouse,
             ),
             TargetingStrategyButton(
-                canvas,
-                selection,
+                self.canvas,
                 (26, 48),
                 "< Health",
                 SetTargetingStrategyAction(
                     selection, TargetingStrategy(SortingParam.HEALTH, reverse=False)
                 ),
+                mouse,
             ),
             TargetingStrategyButton(
-                canvas,
-                selection,
+                self.canvas,
                 (92, 48),
                 "> Distance",
                 SetTargetingStrategyAction(
                     selection, TargetingStrategy(SortingParam.DISTANCE, reverse=True)
                 ),
+                mouse,
             ),
             TargetingStrategyButton(
-                canvas,
-                selection,
+                self.canvas,
                 (92, 28),
                 "< Distance",
                 SetTargetingStrategyAction(
                     selection, TargetingStrategy(SortingParam.DISTANCE, reverse=False)
                 ),
+                mouse,
             ),
             Button(
                 self.canvas,
                 Rectangle(x_min=10, y_min=40, x_max=19, y_max=49),
+                mouse,
                 [ToggleStickyTargetAction(self.selection)],
             ),
-            TowerInfo(canvas, selection),
-            UpgradeButton(canvas, selection),
-            SellButton(canvas, selection),
+            TowerInfo(self.canvas, selection),
+            UpgradeButton(self.canvas, selection, mouse),
+            SellButton(self.canvas, selection, mouse),
         ]
 
     def update(self) -> None:

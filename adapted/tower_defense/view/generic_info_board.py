@@ -27,8 +27,10 @@ class GenericInfoBoard:
             tower_view: ITowerView = self.selection.get_selected_tower_view()
         except ValueError:
             return
+
         text = f"{tower_view.get_name()} cost: {tower_view.get_cost()}"
+        self.canvas.create_text(80, 75, text=text)
+
         image_path = f"images/towerImages/{tower_view.get_model_name()}/1.png"
         self.tower_image = ImageTk.PhotoImage(self.image_cache.get_image(image_path))
-        self.canvas.create_text(80, 75, text=text)
         self.canvas.create_image(5, 5, image=self.tower_image, anchor=tk.NW)
