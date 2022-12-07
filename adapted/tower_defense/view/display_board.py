@@ -15,46 +15,44 @@ class DisplayBoard(GameObject):
             master=master_frame, width=600, height=80, bg="gray", highlightthickness=0
         )
         self.canvas.grid(row=2, column=0)
-        self.health_bar = HealthBar(controller)
-        self.money_bar = MoneyBar(controller)
-        self.next_wave_button = NextWaveButton(
+        next_wave_button = NextWaveButton(
             self.canvas, action=NextWaveAction(controller)
         )
-        self.next_wave_button.canvas.place(x=450, y=25)
+        next_wave_button.canvas.place(x=450, y=25)
+        self.game_objects = [
+            HealthBar(controller, self.canvas),
+            MoneyBar(controller, self.canvas),
+            next_wave_button,
+        ]
 
     def update(self) -> None:
-        self.health_bar.update()
-        self.money_bar.update()
+        for game_object in self.game_objects:
+            game_object.update()
 
     def paint(self):
-        self.canvas.delete(tk.ALL)  # clear the screen
-        self.health_bar.paint(self.canvas)
-        self.money_bar.paint(self.canvas)
-        self.next_wave_button.paint()
+        self.canvas.delete(tk.ALL)
+        for game_object in self.game_objects:
+            game_object.paint()
 
 
-class HealthBar:
-    def __init__(self, controller: IPlayer):
+class HealthBar(GameObject):
+    def __init__(self, controller: IPlayer, canvas: tk.Canvas):
         self.controller = controller
+        self.canvas = canvas
 
-    def update(self) -> None:
-        pass
-
-    def paint(self, canvas: tk.Canvas):
-        canvas.create_text(
+    def paint(self):
+        self.canvas.create_text(
             40, 40, text=f"Health: {self.controller.get_player_health()}", fill="black"
         )
 
 
-class MoneyBar:
-    def __init__(self, controller: IPlayer):
+class MoneyBar(GameObject):
+    def __init__(self, controller: IPlayer, canvas: tk.Canvas):
         self.controller = controller
+        self.canvas = canvas
 
-    def update(self) -> None:
-        pass
-
-    def paint(self, canvas: tk.Canvas):
-        canvas.create_text(
+    def paint(self):
+        self.canvas.create_text(
             240, 40, text=f"Money: {self.controller.get_player_money()}", fill="black"
         )
 
@@ -72,7 +70,7 @@ class NextWaveAction(IAction):
         self.controller.start_spawning_monsters()
 
 
-class NextWaveButton:
+class NextWaveButton(GameObject):
     def __init__(
         self, master: tk.Widget, action: IAction, width=100, height=25
     ) -> None:

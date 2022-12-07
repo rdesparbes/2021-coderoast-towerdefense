@@ -213,14 +213,19 @@ class SpecificInfoBoard(GameObject):
             SellButton(self.canvas, selection, mouse),
         ]
 
-    def update(self) -> None:
-        for game_object in self.game_objects:
-            game_object.update()
-
-    def paint(self) -> None:
+    def _tower_selected(self) -> bool:
         try:
             self.selection.get_selected_tower()
         except InvalidSelectedTowerException:
-            return
-        for game_object in self.game_objects:
-            game_object.paint()
+            return False
+        return True
+
+    def update(self) -> None:
+        if self._tower_selected():
+            for game_object in self.game_objects:
+                game_object.update()
+
+    def paint(self) -> None:
+        if self._tower_selected():
+            for game_object in self.game_objects:
+                game_object.paint()

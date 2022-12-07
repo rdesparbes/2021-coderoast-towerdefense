@@ -29,6 +29,7 @@ class InfoBoard(GameObject):
             game_object.update()
 
     def paint(self) -> None:
+        self.canvas.delete(tk.ALL)
         self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
         for game_object in self.game_objects:
             game_object.paint()

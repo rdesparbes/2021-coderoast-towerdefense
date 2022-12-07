@@ -4,11 +4,12 @@ from typing import Optional
 from PIL import ImageTk
 
 from tower_defense.interfaces.tower_view import ITowerView
+from tower_defense.view.game_object import GameObject
 from tower_defense.view.image_cache import ImageCache
 from tower_defense.view.selection import Selection
 
 
-class GenericInfoBoard:
+class GenericInfoBoard(GameObject):
     def __init__(
         self,
         canvas: tk.Canvas,
@@ -18,9 +19,6 @@ class GenericInfoBoard:
         self.tower_image: Optional[ImageTk.PhotoImage] = None
         self.selection = selection
         self.image_cache = ImageCache()
-
-    def update(self) -> None:
-        pass
 
     def paint(self) -> None:
         try:
