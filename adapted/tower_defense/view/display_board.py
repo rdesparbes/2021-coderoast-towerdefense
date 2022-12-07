@@ -36,38 +36,38 @@ class DisplayBoard(GameObject):
 
 
 class HealthBar(GameObject):
-    def __init__(self, controller: IPlayer, canvas: tk.Canvas):
-        self.controller = controller
+    def __init__(self, player: IPlayer, canvas: tk.Canvas):
+        self.player = player
         self.canvas = canvas
 
     def paint(self):
         self.canvas.create_text(
-            40, 40, text=f"Health: {self.controller.get_player_health()}", fill="black"
+            40, 40, text=f"Health: {self.player.get_player_health()}", fill="black"
         )
 
 
 class MoneyBar(GameObject):
-    def __init__(self, controller: IPlayer, canvas: tk.Canvas):
-        self.controller = controller
+    def __init__(self, player: IPlayer, canvas: tk.Canvas):
+        self.player = player
         self.canvas = canvas
 
     def paint(self):
         self.canvas.create_text(
-            240, 40, text=f"Money: {self.controller.get_player_money()}", fill="black"
+            240, 40, text=f"Money: {self.player.get_player_money()}", fill="black"
         )
 
 
 class NextWaveAction(IAction):
-    def __init__(self, controller: IMonsterSpawner):
-        self.controller = controller
+    def __init__(self, monster_spawner: IMonsterSpawner):
+        self.monster_spawner = monster_spawner
 
     def running(self) -> bool:
-        return not self.controller.can_start_spawning_monsters()
+        return not self.monster_spawner.can_start_spawning_monsters()
 
     def start(self) -> None:
         if self.running():
             return
-        self.controller.start_spawning_monsters()
+        self.monster_spawner.start_spawning_monsters()
 
 
 class NextWaveButton(GameObject):

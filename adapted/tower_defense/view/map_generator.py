@@ -49,8 +49,8 @@ def _load_block_images() -> BlockImages:
 
 
 class MapGenerator:
-    def __init__(self, controller: IBlockManager):
-        self.controller = controller
+    def __init__(self, block_manager: IBlockManager):
+        self.block_manager = block_manager
         block_images = _load_block_images()
         self.block_shape = _compute_block_size(iter(block_images.values()))
         self.block_images = _load_block_images()
@@ -59,13 +59,13 @@ class MapGenerator:
         return self.block_shape
 
     def get_background(self) -> Image.Image:
-        map_width, map_height = self.controller.map_shape()
+        map_width, map_height = self.block_manager.map_shape()
         image_width, image_height = (
             map_width * self.block_shape[0],
             map_height * self.block_shape[1],
         )
         return _paint_background(
-            self.controller.iter_blocks(),
+            self.block_manager.iter_blocks(),
             self.block_images,
             (image_width, image_height),
         )
