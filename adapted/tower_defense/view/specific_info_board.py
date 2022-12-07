@@ -53,7 +53,6 @@ class UpgradeButton(GameObject):
         self.canvas = canvas
         self.selection = selection
         self.button = Button(
-            self.canvas,
             Rectangle(
                 x_min=82,
                 y_min=145,
@@ -88,7 +87,6 @@ class SellButton(GameObject):
     def __init__(self, canvas: tk.Canvas, selection: Selection, mouse: Mouse) -> None:
         self.canvas = canvas
         self.button = Button(
-            self.canvas,
             Rectangle(x_min=5, y_min=145, x_max=78, y_max=168),
             mouse,
             [SellAction(selection)],
@@ -108,30 +106,26 @@ class SellButton(GameObject):
         )
 
 
-class TargetingStrategyButton(GameObject):
+class TowerCommandButton(GameObject):
     def __init__(
         self,
         canvas: tk.Canvas,
         position: Tuple[int, int],
-        text: str,
         action: IAction,
         mouse: Mouse,
+        text: Optional[str] = None,
     ) -> None:
         self.canvas = canvas
         self.text = text
         self.position = position
         button_size = 9
-        button_x_offset, button_y_offset = 0, 2
-
         x, y = position
-        button_x, button_y = x + button_x_offset, y + button_y_offset
         self.button = Button(
-            self.canvas,
             Rectangle(
-                x_min=button_x,
-                y_min=button_y,
-                x_max=button_x + button_size,
-                y_max=button_y + button_size,
+                x_min=x,
+                y_min=y,
+                x_max=x + button_size,
+                y_max=y + button_size,
             ),
             mouse,
             actions=[action],
@@ -140,10 +134,18 @@ class TargetingStrategyButton(GameObject):
     def update(self) -> None:
         self.button.update()
 
-    def paint(self) -> None:
-        self.button.paint()
-        text_x_offset, text_y_offset = 11, 0
+    def _paint_button(self) -> None:
+        if self.button.active():
+            self.canvas.create_rectangle(
+                *self.button.rectangle,
+                fill="red",
+                outline="black",
+            )
 
+    def _paint_text(self) -> None:
+        if self.text is None:
+            return
+        text_x_offset, text_y_offset = 11, -2
         x, y = self.position
         text_x, text_y = x + text_x_offset, y + text_y_offset
         self.canvas.create_text(
@@ -154,6 +156,10 @@ class TargetingStrategyButton(GameObject):
             fill="white",
             anchor=tk.NW,
         )
+
+    def paint(self) -> None:
+        self._paint_button()
+        self._paint_text()
 
 
 class SpecificInfoBoard(GameObject):
@@ -166,47 +172,47 @@ class SpecificInfoBoard(GameObject):
         self.canvas = canvas
         self.selection = selection
         self.game_objects: List[GameObject] = [
-            TargetingStrategyButton(
+            TowerCommandButton(
                 self.canvas,
-                (26, 28),
-                "> Health",
+                (26, 30),
                 SetTargetingStrategyAction(
                     selection, TargetingStrategy(SortingParam.HEALTH, reverse=True)
                 ),
                 mouse,
+                "> Health",
             ),
-            TargetingStrategyButton(
+            TowerCommandButton(
                 self.canvas,
-                (26, 48),
-                "< Health",
+                (26, 50),
                 SetTargetingStrategyAction(
                     selection, TargetingStrategy(SortingParam.HEALTH, reverse=False)
                 ),
                 mouse,
+                "< Health",
             ),
-            TargetingStrategyButton(
+            TowerCommandButton(
                 self.canvas,
-                (92, 48),
-                "> Distance",
+                (92, 50),
                 SetTargetingStrategyAction(
                     selection, TargetingStrategy(SortingParam.DISTANCE, reverse=True)
                 ),
                 mouse,
+                "> Distance",
             ),
-            TargetingStrategyButton(
+            TowerCommandButton(
                 self.canvas,
-                (92, 28),
-                "< Distance",
+                (92, 30),
                 SetTargetingStrategyAction(
                     selection, TargetingStrategy(SortingParam.DISTANCE, reverse=False)
                 ),
                 mouse,
+                "< Distance",
             ),
-            Button(
+            TowerCommandButton(
                 self.canvas,
-                Rectangle(x_min=10, y_min=40, x_max=19, y_max=49),
+                (10, 40),
+                ToggleStickyTargetAction(self.selection),
                 mouse,
-                [ToggleStickyTargetAction(self.selection)],
             ),
             TowerInfo(self.canvas, selection),
             UpgradeButton(self.canvas, selection, mouse),
