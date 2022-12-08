@@ -23,7 +23,7 @@ class Entities(UpdatableObject):
         to_remove = set()
         for projectile in self.projectiles:
             projectile.update_position()
-            if projectile.is_out_of_range():
+            if projectile.is_out_of_range() or projectile.get_target().is_dead():
                 to_remove.add(projectile)
                 continue
             for monster in projectile.get_hit_monsters(self.monsters):

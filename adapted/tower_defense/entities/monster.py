@@ -9,6 +9,9 @@ class IMonster(IMonsterView, ABC):
     health_: int
     distance_travelled_: float
 
+    def is_dead(self) -> bool:
+        return self.health_ <= 0
+
     @abstractmethod
     def get_value(self) -> int:
         ...
