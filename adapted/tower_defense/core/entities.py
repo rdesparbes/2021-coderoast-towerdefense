@@ -1,10 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Dict, Tuple, Set, List, Optional
 
-from tower_defense.entities.monster import IMonster, MonsterFactory
-from tower_defense.entities.projectile import IProjectile
-from tower_defense.entities.tower_entity import ITowerEntity
-from tower_defense.entities.tower_factory import ITowerFactory
+from tower_defense.core.monster.monster import IMonster, MonsterFactory
+from tower_defense.core.projectile.projectile import IProjectile
+from tower_defense.core.tower.tower_entity import ITowerEntity
+from tower_defense.interfaces.tower_factory import ITowerFactory
 from tower_defense.path import Path
 from tower_defense.player import Player
 from tower_defense.updatable_object import UpdatableObject

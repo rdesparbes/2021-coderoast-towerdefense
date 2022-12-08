@@ -2,21 +2,23 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Optional, Tuple, Iterable
 
-from tower_defense.entities.orientation_strategies import OrientationStrategy
-from tower_defense.entities.tower_entity import ITowerEntity
-from tower_defense.entities.tower_factory import ITowerFactory
-from tower_defense.entities.count_down import CountDown
-from tower_defense.entities.distance import distance
-from tower_defense.entities.monster import IMonster
-from tower_defense.entities.projectile import IProjectile
-from tower_defense.entities.projectile_factory import ProjectileFactory
-from tower_defense.entities.stats import TowerStats
-from tower_defense.entities.targeting_strategies import (
+from tower_defense.core.projectile.orientation_strategies import (
+    OrientationStrategy,
+)
+from tower_defense.core.tower.tower_entity import ITowerEntity
+from tower_defense.interfaces.tower_factory import ITowerFactory
+from tower_defense.core.count_down import CountDown
+from tower_defense.core.distance import distance
+from tower_defense.core.monster.monster import IMonster
+from tower_defense.core.projectile.projectile import IProjectile
+from tower_defense.core.projectile.projectile_factory import ProjectileFactory
+from tower_defense.core.tower.stats import TowerStats
+from tower_defense.core.tower.targeting_strategies import (
     TargetingStrategy,
     query_monsters,
     SortingParam,
 )
-from tower_defense.entities.upgradable import UpgradableData
+from tower_defense.core.upgradable import UpgradableData
 
 
 class Tower(ITowerEntity):

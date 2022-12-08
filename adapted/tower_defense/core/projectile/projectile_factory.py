@@ -1,12 +1,15 @@
 from copy import deepcopy
 from dataclasses import dataclass
 
-from tower_defense.entities.monster import IMonster
-from tower_defense.entities.projectile import IProjectile
-from tower_defense.entities.projectile_strategies import MovementStrategy, HitStrategy
-from tower_defense.entities.projectiles import Projectile
-from tower_defense.entities.stats import ProjectileStats
-from tower_defense.entities.upgradable import UpgradableData
+from tower_defense.core.monster.monster import IMonster
+from tower_defense.core.projectile.projectile import IProjectile
+from tower_defense.core.projectile.projectile_strategies import (
+    MovementStrategy,
+    HitStrategy,
+)
+from tower_defense.core.projectile.projectiles import Projectile
+from tower_defense.core.projectile.stats import ProjectileStats
+from tower_defense.core.upgradable import UpgradableData
 
 
 @dataclass

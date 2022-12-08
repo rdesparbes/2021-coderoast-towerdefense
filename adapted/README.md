@@ -22,5 +22,6 @@ Only the python files can be modified.
 - The monsters, the towers and the projectiles have been split in multiple concepts so that
   they are entirely customizable: effects, damages, fire rates, upgrades... New towers, 
   projectiles and monsters can be defined, and it would be possible to store those definitions 
-  in an external configuration file (see [](tower_defense/entities/default)).
+  in an external configuration file (see [](tower_defense/core/monster/default.py) and 
+  [](tower_defense/core/tower/default.py)).
 - The map view can now be composed of rectangular tiles of arbitrary size (see [](tower_defense/view/game_objects/map.py))

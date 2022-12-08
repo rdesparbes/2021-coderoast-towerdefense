@@ -3,8 +3,8 @@ from typing import List, Iterable
 
 from pathlib import Path
 
-from tower_defense.entities.default.monsters import MONSTER_MAPPING
-from tower_defense.entities.entities import Entities
+from tower_defense.core.monster.default import MONSTER_MAPPING
+from tower_defense.core.entities import Entities
 from tower_defense.grid import Grid
 from tower_defense.path import extract_path
 from tower_defense.tower_defense_controller import TowerDefenseController

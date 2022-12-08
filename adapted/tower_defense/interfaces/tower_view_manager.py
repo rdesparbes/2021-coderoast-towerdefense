@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Tuple, List
 
-from tower_defense.entities.tower_factory import ITowerFactory
+from tower_defense.interfaces.tower_factory import ITowerFactory
 
 
 class ITowerViewManager(ABC):

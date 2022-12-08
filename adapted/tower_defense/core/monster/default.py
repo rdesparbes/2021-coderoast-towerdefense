@@ -1,8 +1,8 @@
 from typing import List
 
-from tower_defense.entities.monster import MonsterFactory
-from tower_defense.entities.monster_stats import MonsterStats
-from tower_defense.entities.monsters import monster_factory
+from tower_defense.core.monster.monster import MonsterFactory
+from tower_defense.core.monster.monster_stats import MonsterStats
+from tower_defense.core.monster.monsters import monster_factory
 
 MONSTER_MAPPING: List[MonsterFactory] = [
     monster_factory(

@@ -2,9 +2,9 @@ import math
 from typing import Tuple, Set, Iterable, Callable
 
 from tower_defense.constants import FPS
-from tower_defense.entities.distance import distance
-from tower_defense.entities.monster import IMonster
-from tower_defense.entities.projectile import IProjectile
+from tower_defense.core.distance import distance
+from tower_defense.core.monster.monster import IMonster
+from tower_defense.core.projectile.projectile import IProjectile
 
 MovementStrategy = Callable[[IProjectile], Tuple[float, float]]
 HitStrategy = Callable[[IProjectile, Set[IMonster]], Iterable[IMonster]]

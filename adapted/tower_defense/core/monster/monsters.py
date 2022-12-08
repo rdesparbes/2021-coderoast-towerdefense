@@ -2,9 +2,9 @@ import random
 from typing import List, Tuple, Iterable
 
 from tower_defense.constants import FPS
-from tower_defense.entities.count_down import CountDown
-from tower_defense.entities.monster import IMonster, MonsterFactory
-from tower_defense.entities.monster_stats import MonsterStats
+from tower_defense.core.count_down import CountDown
+from tower_defense.core.monster.monster import IMonster, MonsterFactory
+from tower_defense.core.monster.monster_stats import MonsterStats
 from tower_defense.path import Path, has_arrived, compute_position
 
 

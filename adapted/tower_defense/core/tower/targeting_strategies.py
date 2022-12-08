@@ -1,6 +1,6 @@
 from typing import Iterable, Dict, Callable
 
-from tower_defense.entities.monster import IMonster
+from tower_defense.core.monster.monster import IMonster
 from tower_defense.interfaces.targeting_strategies import (
     TargetingStrategy,
     SortingParam,

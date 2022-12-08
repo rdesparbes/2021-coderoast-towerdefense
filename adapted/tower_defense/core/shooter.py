@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Optional, Iterable
 
 from tower_defense.interfaces.entity import IEntity
-from tower_defense.entities.monster import IMonster
-from tower_defense.entities.projectile import IProjectile
+from tower_defense.core.monster.monster import IMonster
+from tower_defense.core.projectile.projectile import IProjectile
 
 
 class IShooter(IEntity, ABC):

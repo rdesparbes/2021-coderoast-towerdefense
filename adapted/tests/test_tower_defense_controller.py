@@ -1,7 +1,7 @@
 import pytest
 
 from tower_defense.block import Block
-from tower_defense.entities.entities import Entities
+from tower_defense.core.entities import Entities
 from tower_defense.grid import Grid
 from tower_defense.path import extract_path
 from tower_defense.tower_defense_controller import TowerDefenseController

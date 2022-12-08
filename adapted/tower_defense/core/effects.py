@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
-from tower_defense.entities.monster import IMonster
-from tower_defense.entities.upgradable import Up, UpgradableData
+from tower_defense.core.monster.monster import IMonster
+from tower_defense.core.upgradable import Up, UpgradableData
 
 
 class IEffect(ABC):

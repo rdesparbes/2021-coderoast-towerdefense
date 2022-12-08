@@ -1,6 +1,6 @@
 from typing import List, NamedTuple, Optional
 
-from tower_defense.entities.count_down import CountDown
+from tower_defense.core.count_down import CountDown
 
 TICK_DURATION_SECONDS = 0.05
 

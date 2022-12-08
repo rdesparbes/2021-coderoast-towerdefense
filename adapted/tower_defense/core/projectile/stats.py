@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-from typing import Optional
 
-from tower_defense.entities.effects import IEffect
-from tower_defense.entities.upgradable import Up, UpgradableData, UpgradableList
+from tower_defense.core.effects import IEffect
+from tower_defense.core.upgradable import UpgradableData, Up, UpgradableList
 
 
 @dataclass
@@ -16,12 +15,3 @@ class ProjectileStats(UpgradableData):
         bool
     ]  # If set to True, the projectile dies after travelling more than its range
     effects: UpgradableList[IEffect]
-
-
-@dataclass
-class TowerStats(UpgradableData):
-    shots_per_second: Up[float]  # Number of shots in one second
-    projectile_count: Up[int]  # Number of projectiles sent in one shot
-    upgrade_cost: Optional[
-        Up[int]
-    ] = None  # Cost to upgrade the tower to the next level

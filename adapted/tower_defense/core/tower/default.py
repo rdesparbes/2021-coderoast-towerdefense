@@ -1,23 +1,21 @@
 from typing import Dict
 
-from tower_defense.entities.tower_factory import ITowerFactory
-from tower_defense.entities.effects import DamageEffect, SlowEffect, StunEffect
-from tower_defense.entities.projectile_factory import ProjectileFactory
-from tower_defense.entities.projectile_strategies import (
+from tower_defense.interfaces.tower_factory import ITowerFactory
+from tower_defense.core.effects import DamageEffect, SlowEffect, StunEffect
+from tower_defense.core.projectile.projectile_factory import ProjectileFactory
+from tower_defense.core.projectile.projectile_strategies import (
     constant_angle_movement_strategy,
     near_enough_hit_strategy,
     tracking_movement_strategy,
     tracking_hit_strategy,
 )
-from tower_defense.entities.stats import (
-    ProjectileStats,
-    TowerStats,
-)
-from tower_defense.entities.upgradable import Up, UpgradableList
-from tower_defense.entities.towers import (
+from tower_defense.core.projectile.stats import ProjectileStats
+from tower_defense.core.tower.stats import TowerStats
+from tower_defense.core.upgradable import Up, UpgradableList
+from tower_defense.core.tower.towers import (
     TowerFactory,
 )
-from tower_defense.entities.orientation_strategies import (
+from tower_defense.core.projectile.orientation_strategies import (
     target_orientation_strategy,
     null_orientation_strategy,
     concentric_orientation_strategy,

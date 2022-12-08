@@ -1,7 +1,7 @@
 import math
 from typing import Callable
 
-from tower_defense.entities.shooter import IShooter
+from tower_defense.core.shooter import IShooter
 
 OrientationStrategy = Callable[[IShooter, int], float]
 

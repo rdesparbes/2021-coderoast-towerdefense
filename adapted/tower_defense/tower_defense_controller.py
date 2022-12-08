@@ -1,10 +1,10 @@
 from typing import Optional, List, Tuple, Iterable
 
 from tower_defense.block import Block
-from tower_defense.entities.default.towers import TOWER_MAPPING, TowerMapping
-from tower_defense.entities.entities import Entities
-from tower_defense.entities.monster import IMonster
-from tower_defense.entities.tower_factory import ITowerFactory
+from tower_defense.core.tower.default import TOWER_MAPPING, TowerMapping
+from tower_defense.core.entities import Entities
+from tower_defense.core.monster.monster import IMonster
+from tower_defense.interfaces.tower_factory import ITowerFactory
 from tower_defense.grid import Grid
 from tower_defense.interfaces.entity import IEntity
 from tower_defense.interfaces.tower import ITower
