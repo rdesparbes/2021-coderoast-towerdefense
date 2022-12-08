@@ -129,7 +129,7 @@ class TowerRangeDisplayer(GameObject):
         )
 
 
-class MouseDisplayer(GameObject):
+class MouseCursor(GameObject):
     def __init__(
         self,
         canvas: tk.Canvas,
@@ -182,6 +182,27 @@ class MouseDisplayer(GameObject):
                 self._click_at(self._mouse.position)
 
 
+class BackgroundDisplayer(GameObject):
+    def __init__(
+        self,
+        master_frame: tk.Frame,
+        image: ImageTk.PhotoImage,
+    ):
+        self._image: ImageTk.PhotoImage = image
+        self.canvas = tk.Canvas(
+            master=master_frame,
+            width=self._image.width(),
+            height=self._image.height(),
+            bg="gray",
+            highlightthickness=0,
+        )
+        self.canvas.grid(row=0, column=0, rowspan=2, columnspan=1)
+
+    def paint(self):
+        self.canvas.delete(tk.ALL)
+        self.canvas.create_image(0, 0, image=self._image, anchor=tk.NW)
+
+
 class Map(GameObject):
     def __init__(
         self,
@@ -191,25 +212,17 @@ class Map(GameObject):
         image: ImageTk.PhotoImage,
         selection: Selection,
     ):
-        self.image: ImageTk.PhotoImage = image
-        self.canvas = tk.Canvas(
-            master=master_frame,
-            width=self.image.width(),
-            height=self.image.height(),
-            bg="gray",
-            highlightthickness=0,
-        )
-        self.canvas.grid(row=0, column=0, rowspan=2, columnspan=1)
+        background_displayer = BackgroundDisplayer(master_frame, image)
+        canvas = background_displayer.canvas
         self.game_objects: List[GameObject] = [
-            TowerDisplayer(self.canvas, controller, position_converter),
-            MonsterDisplayer(self.canvas, controller, position_converter),
-            ProjectileDisplayer(self.canvas, controller, position_converter),
-            TowerRangeDisplayer(self.canvas, position_converter, selection),
-            MouseDisplayer(self.canvas, controller, position_converter, selection),
+            background_displayer,
+            TowerDisplayer(canvas, controller, position_converter),
+            MonsterDisplayer(canvas, controller, position_converter),
+            ProjectileDisplayer(canvas, controller, position_converter),
+            TowerRangeDisplayer(canvas, position_converter, selection),
+            MouseCursor(canvas, controller, position_converter, selection),
         ]
 
     def paint(self):
-        self.canvas.delete(tk.ALL)
-        self.canvas.create_image(0, 0, image=self.image, anchor=tk.NW)
         for game_object in self.game_objects:
             game_object.paint()

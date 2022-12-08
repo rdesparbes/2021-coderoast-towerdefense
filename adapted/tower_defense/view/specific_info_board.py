@@ -169,11 +169,10 @@ class SpecificInfoBoard(GameObject):
         selection: Selection,
         mouse: Mouse,
     ):
-        self.canvas = canvas
         self.selection = selection
         self.game_objects: List[GameObject] = [
             TowerCommandButton(
-                self.canvas,
+                canvas,
                 (26, 30),
                 SetTargetingStrategyAction(
                     selection, TargetingStrategy(SortingParam.HEALTH, reverse=True)
@@ -182,7 +181,7 @@ class SpecificInfoBoard(GameObject):
                 "> Health",
             ),
             TowerCommandButton(
-                self.canvas,
+                canvas,
                 (26, 50),
                 SetTargetingStrategyAction(
                     selection, TargetingStrategy(SortingParam.HEALTH, reverse=False)
@@ -191,7 +190,7 @@ class SpecificInfoBoard(GameObject):
                 "< Health",
             ),
             TowerCommandButton(
-                self.canvas,
+                canvas,
                 (92, 50),
                 SetTargetingStrategyAction(
                     selection, TargetingStrategy(SortingParam.DISTANCE, reverse=True)
@@ -200,7 +199,7 @@ class SpecificInfoBoard(GameObject):
                 "> Distance",
             ),
             TowerCommandButton(
-                self.canvas,
+                canvas,
                 (92, 30),
                 SetTargetingStrategyAction(
                     selection, TargetingStrategy(SortingParam.DISTANCE, reverse=False)
@@ -209,14 +208,14 @@ class SpecificInfoBoard(GameObject):
                 "< Distance",
             ),
             TowerCommandButton(
-                self.canvas,
+                canvas,
                 (10, 40),
                 ToggleStickyTargetAction(self.selection),
                 mouse,
             ),
-            TowerInfo(self.canvas, selection),
-            UpgradeButton(self.canvas, selection, mouse),
-            SellButton(self.canvas, selection, mouse),
+            TowerInfo(canvas, selection),
+            UpgradeButton(canvas, selection, mouse),
+            SellButton(canvas, selection, mouse),
         ]
 
     def _tower_selected(self) -> bool:
