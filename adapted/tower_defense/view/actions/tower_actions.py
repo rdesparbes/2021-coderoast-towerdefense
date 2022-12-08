@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from tower_defense.interfaces.targeting_strategies import TargetingStrategy
 from tower_defense.interfaces.tower import ITower
-from tower_defense.view.action import IAction
+from tower_defense.view.actions.action import IAction
 from tower_defense.view.selection import Selection, InvalidSelectedTowerException
 
 

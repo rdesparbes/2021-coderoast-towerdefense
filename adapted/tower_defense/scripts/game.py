@@ -8,7 +8,7 @@ from tower_defense.entities.entities import Entities
 from tower_defense.grid import Grid
 from tower_defense.path import extract_path
 from tower_defense.tower_defense_controller import TowerDefenseController
-from tower_defense.view.view import View
+from tower_defense.view.game_objects.view import View
 from tower_defense.wave_generator import WaveGenerator
 
 

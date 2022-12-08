@@ -4,7 +4,7 @@ from typing import Optional
 from PIL import ImageTk
 
 from tower_defense.interfaces.tower_view import ITowerView
-from tower_defense.view.game_object import GameObject
+from tower_defense.view.game_objects.game_object import GameObject
 from tower_defense.view.image_cache import ImageCache
 from tower_defense.view.selection import Selection
 

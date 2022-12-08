@@ -9,7 +9,7 @@ from tower_defense.interfaces.tower_defense_controller import (
 )
 from tower_defense.interfaces.entity import IEntity
 from tower_defense.interfaces.monster_view import IMonsterView
-from tower_defense.view.game_object import GameObject
+from tower_defense.view.game_objects.game_object import GameObject
 from tower_defense.view.image_cache import ImageCache
 from tower_defense.view.mouse import Mouse
 from tower_defense.view.position_converter import PositionConverter

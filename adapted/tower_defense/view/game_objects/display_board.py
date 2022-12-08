@@ -1,12 +1,12 @@
 import tkinter as tk
 
-from tower_defense.interfaces.monster_spawner import IMonsterSpawner
 from tower_defense.interfaces.player import IPlayer
 from tower_defense.interfaces.tower_defense_controller import (
     ITowerDefenseController,
 )
-from tower_defense.view.action import IAction
-from tower_defense.view.game_object import GameObject
+from tower_defense.view.actions.action import IAction
+from tower_defense.view.actions.next_wave_action import NextWaveAction
+from tower_defense.view.game_objects.game_object import GameObject
 
 
 class DisplayBoard(GameObject):
@@ -55,19 +55,6 @@ class MoneyBar(GameObject):
         self.canvas.create_text(
             240, 40, text=f"Money: {self.player.get_player_money()}", fill="black"
         )
-
-
-class NextWaveAction(IAction):
-    def __init__(self, monster_spawner: IMonsterSpawner):
-        self.monster_spawner = monster_spawner
-
-    def running(self) -> bool:
-        return not self.monster_spawner.can_start_spawning_monsters()
-
-    def start(self) -> None:
-        if self.running():
-            return
-        self.monster_spawner.start_spawning_monsters()
 
 
 class NextWaveButton(GameObject):

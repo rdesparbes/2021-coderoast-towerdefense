@@ -7,14 +7,14 @@ from tower_defense.interfaces.targeting_strategies import (
     SortingParam,
     TargetingStrategy,
 )
-from tower_defense.view.action import IAction
+from tower_defense.view.actions.action import IAction
 from tower_defense.view.button import Button
-from tower_defense.view.game_object import GameObject
+from tower_defense.view.game_objects.game_object import GameObject
 from tower_defense.view.image_cache import ImageCache
 from tower_defense.view.mouse import Mouse
 from tower_defense.view.rectangle import Rectangle
 from tower_defense.view.selection import Selection, InvalidSelectedTowerException
-from tower_defense.view.tower_actions import (
+from tower_defense.view.actions.tower_actions import (
     SetTargetingStrategyAction,
     ToggleStickyTargetAction,
     SellAction,

@@ -3,11 +3,11 @@ from typing import List
 
 from PIL import ImageTk, Image
 
-from tower_defense.view.game_object import GameObject
-from tower_defense.view.generic_info_board import GenericInfoBoard
+from tower_defense.view.game_objects.game_object import GameObject
+from tower_defense.view.game_objects.generic_info_board import GenericInfoBoard
 from tower_defense.view.mouse import Mouse
 from tower_defense.view.selection import Selection
-from tower_defense.view.specific_info_board import SpecificInfoBoard
+from tower_defense.view.game_objects.specific_info_board import SpecificInfoBoard
 
 
 class InfoBoard(GameObject):

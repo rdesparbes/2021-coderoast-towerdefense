@@ -1,12 +1,12 @@
 from typing import Optional, List
 
-from tower_defense.view.action import IAction
-from tower_defense.view.game_object import GameObject
+from tower_defense.updatable_object import UpdatableObject
+from tower_defense.view.actions.action import IAction
 from tower_defense.view.mouse import Mouse
 from tower_defense.view.rectangle import Rectangle
 
 
-class Button(GameObject):
+class Button(UpdatableObject):
     def __init__(
         self,
         rectangle: Rectangle,
