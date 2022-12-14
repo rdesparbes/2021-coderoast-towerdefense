@@ -29,9 +29,6 @@ class TowerInfo(GameObject):
         self.tower_image: Optional[ImageTk.PhotoImage] = None
         self.image_cache = ImageCache()
 
-    def update(self) -> None:
-        pass
-
     def paint(self) -> None:
         try:
             tower_position, selected_tower = self.selection.get_selected_tower()
@@ -63,8 +60,8 @@ class UpgradeButton(GameObject):
             [UpgradeAction(self.selection)],
         )
 
-    def update(self) -> None:
-        self.button.update()
+    def update(self, timestep: int) -> None:
+        self.button.update(timestep)
 
     def paint(self) -> None:
         try:
@@ -92,8 +89,8 @@ class SellButton(GameObject):
             [SellAction(selection)],
         )
 
-    def update(self) -> None:
-        self.button.update()
+    def update(self, timestep: int) -> None:
+        self.button.update(timestep)
 
     def paint(self) -> None:
         self.canvas.create_text(
@@ -131,8 +128,8 @@ class TowerCommandButton(GameObject):
             actions=[action],
         )
 
-    def update(self) -> None:
-        self.button.update()
+    def update(self, timestep: int) -> None:
+        self.button.update(timestep)
 
     def _paint_button(self) -> None:
         if self.button.active():
@@ -225,10 +222,10 @@ class SpecificInfoBoard(GameObject):
             return False
         return True
 
-    def update(self) -> None:
+    def update(self, timestep: int) -> None:
         if self._tower_selected():
             for game_object in self.game_objects:
-                game_object.update()
+                game_object.update(timestep)
 
     def paint(self) -> None:
         if self._tower_selected():

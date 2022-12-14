@@ -18,7 +18,7 @@ Only the python files can be modified.
   (see [](tower_defense/tower_defense_controller.py)).
 - The desired FPS can be changed, and the speed at which the entities evolve is not dependent
   on the frame rate. The game can now be played at a higher FPS than the default of 20 FPS,
-  without changing the speed of the projectiles and monsters (see [](tower_defense/constants.py))
+  without changing the speed of the projectiles and monsters (see [](tower_defense/view/game_objects/view.py))
 - The monsters, the towers and the projectiles have been split in multiple concepts so that
   they are entirely customizable: effects, damages, fire rates, upgrades... New towers, 
   projectiles and monsters can be defined, and it would be possible to store those definitions 

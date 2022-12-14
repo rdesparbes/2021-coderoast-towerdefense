@@ -101,10 +101,11 @@ class Tower(ITowerEntity):
             and monster.alive
         )
 
-    def shoot(self) -> Iterable[IProjectile]:
-        self.countdown.update()
+    def shoot(self, timestep: int) -> Iterable[IProjectile]:
+        self.countdown.update(timestep)
         if self._is_valid_target(self.target) and self.countdown.ended():
-            self.countdown.start(1 / self.tower_stats.shots_per_second.value)
+            duration: int = int(1000 / self.tower_stats.shots_per_second.value)
+            self.countdown.start(duration)
             return self._shoot(self.target)
         return []
 

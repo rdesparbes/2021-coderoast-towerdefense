@@ -1,7 +1,6 @@
 import random
 from typing import List, Tuple, Iterable
 
-from tower_defense.constants import FPS
 from tower_defense.core.count_down import CountDown
 from tower_defense.core.monster.monster import IMonster, MonsterFactory
 from tower_defense.core.monster.monster_stats import MonsterStats
@@ -21,10 +20,10 @@ class Monster(IMonster):
     def get_value(self) -> int:
         return self._stats.value
 
-    def update_position(self, path: Path) -> None:
-        self.distance_travelled_ += self._speed / FPS
+    def update_position(self, path: Path, timestep: int) -> None:
+        self.distance_travelled_ += self._speed * timestep / 1000
         self._x, self._y = compute_position(path, self.distance_travelled_)
-        self._countdown.update()
+        self._countdown.update(timestep=timestep)
         if self._countdown.ended():
             self._speed = self._stats.speed
 
@@ -43,7 +42,7 @@ class Monster(IMonster):
     def slow_down(self, slow_factor: float, duration: float) -> None:
         if self._speed != self._stats.speed:
             return
-        self._countdown.start(duration)
+        self._countdown.start(int(duration * 1000))
         self._speed /= slow_factor
 
     def get_position(self) -> Tuple[float, float]:

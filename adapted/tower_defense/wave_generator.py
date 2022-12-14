@@ -36,7 +36,7 @@ class WaveGenerator:
         self.spawning = True
         return True
 
-    def get_monster_id(self) -> Optional[int]:
+    def get_monster_id(self, timestep: int) -> Optional[int]:
         if not self.spawning or self.current_wave_index == len(self.waves):
             return None
         current_wave = self.waves[self.current_wave_index]
@@ -45,10 +45,11 @@ class WaveGenerator:
             self.current_wave_index += 1
             self.current_monster_index = 0
             return None
-        self.countdown.update()
+        self.countdown.update(timestep)
         if not self.countdown.ended():
             return None
-        self.countdown.start(current_wave.max_ticks * TICK_DURATION_SECONDS)
+        duration: int = int(1000 * current_wave.max_ticks * TICK_DURATION_SECONDS)
+        self.countdown.start(duration)
         monster_id = current_wave.monster_ids[self.current_monster_index]
         self.current_monster_index += 1
         return monster_id

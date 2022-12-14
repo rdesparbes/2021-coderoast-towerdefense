@@ -49,8 +49,8 @@ class Projectile(IProjectile):
     def get_position(self) -> Tuple[float, float]:
         return self.x, self.y
 
-    def update_position(self) -> None:
-        new_position = self.movement_strategy(self)
+    def update_position(self, timestep: int) -> None:
+        new_position = self.movement_strategy(self, timestep)
         self._travelled_distance += math.dist(self.get_position(), new_position)
         self.x, self.y = new_position
 

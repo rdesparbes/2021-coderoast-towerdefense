@@ -19,10 +19,10 @@ class Entities(UpdatableObject):
     monsters: Set[IMonster] = field(default_factory=set)
     towers: Dict[Tuple[int, int], ITowerEntity] = field(default_factory=dict)
 
-    def _cleanup_projectiles(self) -> None:
+    def _cleanup_projectiles(self, timestep: int) -> None:
         to_remove = set()
         for projectile in self.projectiles:
-            projectile.update_position()
+            projectile.update_position(timestep)
             if projectile.is_out_of_range() or projectile.get_target().is_dead():
                 to_remove.add(projectile)
                 continue
@@ -31,7 +31,7 @@ class Entities(UpdatableObject):
                 to_remove.add(projectile)
         self.projectiles.difference_update(to_remove)
 
-    def _update_monsters(self) -> None:
+    def _update_monsters(self, timestep: int) -> None:
         to_remove = set()
         to_add = set()
         for monster in self.monsters:
@@ -39,19 +39,19 @@ class Entities(UpdatableObject):
                 to_remove.add(monster)
                 self.player.money += monster.get_value()
                 for child in monster.get_children(self._monster_factories):
-                    child.update_position(self._path)
+                    child.update_position(self._path, timestep)
                     to_add.add(child)
-            monster.update_position(self._path)
+            monster.update_position(self._path, timestep)
             if monster.has_arrived(self._path):
                 to_remove.add(monster)
                 self.player.health -= monster.get_damage()
         self.monsters.difference_update(to_remove)
         self.monsters.update(to_add)
 
-    def _generate_projectiles(self) -> None:
+    def _generate_projectiles(self, timestep: int) -> None:
         for tower in self.towers.values():
             tower.select_target(self.monsters)
-            self.projectiles.update(tower.shoot())
+            self.projectiles.update(tower.shoot(timestep))
 
     def spawn_monster(self, monster_type_id: int) -> None:
         monster_factory: MonsterFactory = self._monster_factories[monster_type_id]
@@ -79,7 +79,7 @@ class Entities(UpdatableObject):
         self.player.money -= upgrade_cost
         tower.upgrade()
 
-    def update(self) -> None:
-        self._cleanup_projectiles()
-        self._update_monsters()
-        self._generate_projectiles()
+    def update(self, timestep: int) -> None:
+        self._cleanup_projectiles(timestep)
+        self._update_monsters(timestep)
+        self._generate_projectiles(timestep)

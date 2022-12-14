@@ -1,16 +1,16 @@
 from typing import Optional, List, Tuple, Iterable
 
 from tower_defense.block import Block
-from tower_defense.core.tower.default import TOWER_MAPPING, TowerMapping
 from tower_defense.core.entities import Entities
 from tower_defense.core.monster.monster import IMonster
-from tower_defense.interfaces.tower_factory import ITowerFactory
+from tower_defense.core.tower.default import TOWER_MAPPING, TowerMapping
 from tower_defense.grid import Grid
 from tower_defense.interfaces.entity import IEntity
 from tower_defense.interfaces.tower import ITower
 from tower_defense.interfaces.tower_defense_controller import (
     ITowerDefenseController,
 )
+from tower_defense.interfaces.tower_factory import ITowerFactory
 from tower_defense.wave_generator import WaveGenerator
 
 
@@ -68,8 +68,8 @@ class TowerDefenseController(ITowerDefenseController):
         self.wave_generator.start_spawning()
         return True
 
-    def _try_spawn_monster(self) -> None:
-        monster_type_id: Optional[int] = self.wave_generator.get_monster_id()
+    def _try_spawn_monster(self, timestep: int) -> None:
+        monster_type_id: Optional[int] = self.wave_generator.get_monster_id(timestep)
         if monster_type_id is None:
             return None
         self.entities.spawn_monster(monster_type_id)
@@ -91,9 +91,9 @@ class TowerDefenseController(ITowerDefenseController):
     def sell_tower(self, tower_position: Tuple[int, int]) -> None:
         self.entities.towers.pop(tower_position, None)
 
-    def update(self) -> None:
-        self._try_spawn_monster()
-        self.entities.update()
+    def update(self, timestep: int) -> None:
+        self._try_spawn_monster(timestep)
+        self.entities.update(timestep)
 
     def iter_towers(self) -> Iterable[ITower]:
         return iter(self.entities.towers.values())

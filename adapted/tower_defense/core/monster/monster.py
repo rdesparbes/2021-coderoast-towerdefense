@@ -32,7 +32,7 @@ class IMonster(IMonsterView, ABC):
         ...
 
     @abstractmethod
-    def update_position(self, path: Path) -> None:
+    def update_position(self, path: Path, timestep: int) -> None:
         ...
 
     @abstractmethod

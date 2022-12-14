@@ -2,6 +2,5 @@ from typing import Protocol
 
 
 class UpdatableObject(Protocol):
-    # TODO: Pass the duration since the last update as an argument
-    def update(self) -> None:
+    def update(self, timestep: int) -> None:
         """Updates the game."""

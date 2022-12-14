@@ -1,9 +1,9 @@
 import tkinter as tk
-from typing import Optional, List
+from typing import List
+import time
 
 from PIL import ImageTk
 
-from tower_defense.constants import TIME_STEP
 from tower_defense.interfaces.tower_defense_controller import (
     ITowerDefenseController,
 )
@@ -22,17 +22,17 @@ class View(GameObject):
         self,
         controller: ITowerDefenseController,
         title: str = "Tower Defense Ultra Mode",
-        timestep: int = TIME_STEP,
+        timestep: int = 50,
     ):
         self.root = tk.Tk()
         self.root.title(title)
         self.running = False
         self.root.protocol("WM_DELETE_WINDOW", self.end)
-        self.timer_id: Optional[str] = None
         self.timestep = timestep
         self.frame = tk.Frame(master=self.root)
         self.frame.grid(row=0, column=0)
         self.controller = controller
+        self._start_time: int = 0
         selection = Selection(controller)
         self.info_board = InfoBoard(self.frame, selection)
         self.tower_box = TowerBox(self.frame, selection)
@@ -52,10 +52,10 @@ class View(GameObject):
             self.info_board,
         ]
 
-    def update(self) -> None:
-        self.controller.update()
+    def update(self, timestep: int) -> None:
+        self.controller.update(timestep)
         for game_object in self.game_objects:
-            game_object.update()
+            game_object.update(timestep)
 
     def paint(self) -> None:
         for game_object in self.game_objects:
@@ -63,13 +63,16 @@ class View(GameObject):
 
     def run(self):
         self.running = True
+        self._start_time = time.time_ns()
         self._run()
         self.root.mainloop()
 
     def _run(self):
         if self.running:
-            self.timer_id = self.root.after(self.timestep, self._run)
-        self.update()
+            self.root.after(self.timestep, self._run)
+        elapsed_time: int = (time.time_ns() - self._start_time) // 1_000_000
+        self._start_time = time.time_ns()
+        self.update(elapsed_time)
         self.paint()
 
     def end(self):

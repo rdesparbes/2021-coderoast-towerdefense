@@ -20,5 +20,5 @@ class IShooter(IEntity, ABC):
         ...
 
     @abstractmethod
-    def shoot(self) -> Iterable[IProjectile]:
+    def shoot(self, timestep: int) -> Iterable[IProjectile]:
         ...

@@ -25,6 +25,6 @@ class Button(UpdatableObject):
     def active(self) -> bool:
         return any(action.running() for action in self.actions)
 
-    def update(self) -> None:
+    def update(self, timestep: int) -> None:
         if self._mouse.position is not None and self._mouse.pressed:
             self._press(*self._mouse.position)

@@ -25,9 +25,9 @@ class DisplayBoard(GameObject):
             next_wave_button,
         ]
 
-    def update(self) -> None:
+    def update(self, timestep: int) -> None:
         for game_object in self.game_objects:
-            game_object.update()
+            game_object.update(timestep)
 
     def paint(self):
         self.canvas.delete(tk.ALL)

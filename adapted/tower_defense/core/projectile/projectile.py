@@ -7,7 +7,7 @@ from tower_defense.core.monster.monster import IMonster
 
 class IProjectile(IEntity, ABC):
     @abstractmethod
-    def update_position(self) -> None:
+    def update_position(self, timestep: int) -> None:
         ...
 
     @abstractmethod
