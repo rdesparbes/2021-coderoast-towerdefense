@@ -12,13 +12,16 @@ from tower_defense.view.game_objects.specific_info_board import SpecificInfoBoar
 
 class InfoBoard(GameObject):
     def __init__(self, master_frame: tk.Frame, selection: Selection):
+        self.info_board_image = ImageTk.PhotoImage(Image.open("images/infoBoard.png"))
         self.canvas = tk.Canvas(
-            master=master_frame, width=162, height=174, bg="gray", highlightthickness=0
+            master=master_frame,
+            width=self.info_board_image.width(),
+            height=self.info_board_image.height(),
+            highlightthickness=0,
         )
         mouse = Mouse()
         mouse.bind_listeners(self.canvas)
-        self.canvas.grid(row=0, column=1)
-        self.info_board_image = ImageTk.PhotoImage(Image.open("images/infoBoard.png"))
+        self.canvas.grid(row=0, column=1, sticky="NW")
         self.game_objects: List[GameObject] = [
             GenericInfoBoard(self.canvas, selection),
             SpecificInfoBoard(self.canvas, selection, mouse),
