@@ -20,7 +20,7 @@ class GenericInfoBoard(GameObject):
         self.selection = selection
         self.image_cache = ImageCache()
 
-    def paint(self) -> None:
+    def refresh(self) -> None:
         try:
             tower_view: ITowerView = self.selection.get_selected_tower_view()
         except ValueError:

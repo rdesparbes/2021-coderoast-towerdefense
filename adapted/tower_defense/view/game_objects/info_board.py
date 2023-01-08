@@ -27,12 +27,8 @@ class InfoBoard(GameObject):
             SpecificInfoBoard(self.canvas, selection, mouse),
         ]
 
-    def update(self, timestep: int) -> None:
-        for game_object in self.game_objects:
-            game_object.update(timestep)
-
-    def paint(self) -> None:
+    def refresh(self) -> None:
         self.canvas.delete(tk.ALL)
         self.canvas.create_image(0, 0, image=self.info_board_image, anchor=tk.NW)
         for game_object in self.game_objects:
-            game_object.paint()
+            game_object.refresh()

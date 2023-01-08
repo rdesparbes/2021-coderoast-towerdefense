@@ -25,14 +25,10 @@ class DisplayBoard(GameObject):
             next_wave_button,
         ]
 
-    def update(self, timestep: int) -> None:
-        for game_object in self.game_objects:
-            game_object.update(timestep)
-
-    def paint(self):
+    def refresh(self) -> None:
         self.canvas.delete(tk.ALL)
         for game_object in self.game_objects:
-            game_object.paint()
+            game_object.refresh()
 
 
 class HealthBar(GameObject):
@@ -40,7 +36,7 @@ class HealthBar(GameObject):
         self.player = player
         self.canvas = canvas
 
-    def paint(self):
+    def refresh(self) -> None:
         self.canvas.create_text(
             40, 40, text=f"Health: {self.player.get_player_health()}", fill="black"
         )
@@ -51,7 +47,7 @@ class MoneyBar(GameObject):
         self.player = player
         self.canvas = canvas
 
-    def paint(self):
+    def refresh(self) -> None:
         self.canvas.create_text(
             240, 40, text=f"Money: {self.player.get_player_money()}", fill="black"
         )
@@ -73,6 +69,6 @@ class NextWaveButton(GameObject):
     def _callback(self, _event: tk.Event) -> None:
         self.action.start()
 
-    def paint(self):
+    def refresh(self) -> None:
         color = "red" if self.action.running() else "blue"
         self.canvas.configure(background=color)

@@ -39,12 +39,12 @@ class EntityDisplayer(GameObject):
         self.image_cache.add_reference(tk_image)
         self.canvas.create_image(x, y, image=tk_image, anchor=tk.CENTER)
 
-    def _paint(self) -> None:
+    def _refresh(self) -> None:
         ...
 
-    def paint(self) -> None:
+    def refresh(self) -> None:
         self.image_cache.clear_references()
-        self._paint()
+        self._refresh()
 
 
 class MonsterDisplayer(EntityDisplayer):
@@ -70,7 +70,7 @@ class MonsterDisplayer(EntityDisplayer):
             outline="green",
         )
 
-    def _paint(self):
+    def _refresh(self):
         for monster in self.controller.iter_monsters():
             image_path = f"images/monsterImages/{monster.get_model_name()}.png"
             self._paint_entity(monster, image_path)
@@ -78,7 +78,7 @@ class MonsterDisplayer(EntityDisplayer):
 
 
 class TowerDisplayer(EntityDisplayer):
-    def _paint(self):
+    def _refresh(self):
         for tower in self.controller.iter_towers():
             level: int = tower.get_level()
             image_path: str = f"images/towerImages/{tower.get_model_name()}/{level}.png"
@@ -86,7 +86,7 @@ class TowerDisplayer(EntityDisplayer):
 
 
 class ProjectileDisplayer(EntityDisplayer):
-    def _paint(self):
+    def _refresh(self):
         for projectile in self.controller.iter_projectiles():
             image_path: str = (
                 f"images/projectileImages/{projectile.get_model_name()}.png"
@@ -105,7 +105,7 @@ class TowerRangeDisplayer(GameObject):
         self.canvas = canvas
         self.selection = selection
 
-    def paint(self):
+    def refresh(self) -> None:
         try:
             tower_position, tower = self.selection.get_selected_tower()
         except InvalidSelectedTowerException:
@@ -175,7 +175,7 @@ class MouseCursor(GameObject):
             anchor=tk.CENTER,
         )
 
-    def paint(self):
+    def refresh(self) -> None:
         if self._mouse.position is not None:
             self._paint_at(self._mouse.position, self._mouse.pressed)
             if self._mouse.pressed:
@@ -198,7 +198,7 @@ class BackgroundDisplayer(GameObject):
         )
         self.canvas.grid(row=0, column=0, rowspan=2, columnspan=1)
 
-    def paint(self):
+    def refresh(self) -> None:
         self.canvas.delete(tk.ALL)
         self.canvas.create_image(0, 0, image=self._image, anchor=tk.NW)
 
@@ -223,6 +223,6 @@ class Map(GameObject):
             MouseCursor(canvas, controller, position_converter, selection),
         ]
 
-    def paint(self):
+    def refresh(self) -> None:
         for game_object in self.game_objects:
-            game_object.paint()
+            game_object.refresh()

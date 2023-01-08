@@ -1,12 +1,12 @@
 from typing import Optional, List
 
-from tower_defense.updatable_object import UpdatableObject
 from tower_defense.view.actions.action import IAction
+from tower_defense.view.game_objects.game_object import GameObject
 from tower_defense.view.mouse import Mouse
 from tower_defense.view.rectangle import Rectangle
 
 
-class Button(UpdatableObject):
+class Button(GameObject):
     def __init__(
         self,
         rectangle: Rectangle,
@@ -25,6 +25,6 @@ class Button(UpdatableObject):
     def active(self) -> bool:
         return any(action.running() for action in self.actions)
 
-    def update(self, timestep: int) -> None:
+    def refresh(self) -> None:
         if self._mouse.position is not None and self._mouse.pressed:
             self._press(*self._mouse.position)

@@ -52,14 +52,9 @@ class View(GameObject):
             self.info_board,
         ]
 
-    def update(self, timestep: int) -> None:
-        self.controller.update(timestep)
+    def refresh(self) -> None:
         for game_object in self.game_objects:
-            game_object.update(timestep)
-
-    def paint(self) -> None:
-        for game_object in self.game_objects:
-            game_object.paint()
+            game_object.refresh()
 
     def run(self):
         self.running = True
@@ -72,8 +67,8 @@ class View(GameObject):
             self.root.after(self.timestep, self._run)
         elapsed_time: int = (time.time_ns() - self._start_time) // 1_000_000
         self._start_time = time.time_ns()
-        self.update(elapsed_time)
-        self.paint()
+        self.controller.update(elapsed_time)
+        self.refresh()
 
     def end(self):
         self.running = False

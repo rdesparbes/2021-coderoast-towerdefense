@@ -60,8 +60,8 @@ class UpgradeButton(GameObject):
             [UpgradeAction(self.selection)],
         )
 
-    def update(self, timestep: int) -> None:
-        self.button.update(timestep)
+    def refresh(self) -> None:
+        self.button.refresh()
 
     def paint(self) -> None:
         try:
@@ -89,10 +89,8 @@ class SellButton(GameObject):
             [SellAction(selection)],
         )
 
-    def update(self, timestep: int) -> None:
-        self.button.update(timestep)
-
-    def paint(self) -> None:
+    def refresh(self) -> None:
+        self.button.refresh()
         self.canvas.create_text(
             28,
             146,
@@ -128,8 +126,10 @@ class TowerCommandButton(GameObject):
             actions=[action],
         )
 
-    def update(self, timestep: int) -> None:
-        self.button.update(timestep)
+    def refresh(self) -> None:
+        self.button.refresh()
+        self._paint_button()
+        self._paint_text()
 
     def _paint_button(self) -> None:
         if self.button.active():
@@ -153,10 +153,6 @@ class TowerCommandButton(GameObject):
             fill="white",
             anchor=tk.NW,
         )
-
-    def paint(self) -> None:
-        self._paint_button()
-        self._paint_text()
 
 
 class SpecificInfoBoard(GameObject):
@@ -222,12 +218,7 @@ class SpecificInfoBoard(GameObject):
             return False
         return True
 
-    def update(self, timestep: int) -> None:
+    def refresh(self) -> None:
         if self._tower_selected():
             for game_object in self.game_objects:
-                game_object.update(timestep)
-
-    def paint(self) -> None:
-        if self._tower_selected():
-            for game_object in self.game_objects:
-                game_object.paint()
+                game_object.refresh()
