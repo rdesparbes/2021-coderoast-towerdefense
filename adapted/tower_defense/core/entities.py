@@ -7,11 +7,11 @@ from tower_defense.core.tower.tower_entity import ITowerEntity
 from tower_defense.interfaces.tower_factory import ITowerFactory
 from tower_defense.path import Path
 from tower_defense.player import Player
-from tower_defense.updatable_object import UpdatableObject
+from tower_defense.interfaces.updatable import Updatable
 
 
 @dataclass
-class Entities(UpdatableObject):
+class Entities(Updatable):
     _path: Path = field(default_factory=list)
     _monster_factories: List[MonsterFactory] = field(default_factory=list)
     player: Player = field(default_factory=Player)

@@ -1,7 +1,7 @@
-from tower_defense.updatable_object import UpdatableObject
+from tower_defense.interfaces.updatable import Updatable
 
 
-class CountDown(UpdatableObject):
+class CountDown(Updatable):
     def __init__(self):
         self._duration: int = 0
         self._time: int = 0
