@@ -1,6 +1,5 @@
 import tkinter as tk
 from typing import List
-import time
 
 from PIL import ImageTk
 
@@ -26,13 +25,10 @@ class View(GameObject):
     ):
         self.root = tk.Tk()
         self.root.title(title)
-        self.running = False
-        self.root.protocol("WM_DELETE_WINDOW", self.end)
         self.timestep = timestep
         self.frame = tk.Frame(master=self.root)
         self.frame.grid(row=0, column=0)
         self.controller = controller
-        self._start_time: int = 0
         selection = Selection(controller)
         self.info_board = InfoBoard(self.frame, selection)
         self.tower_box = TowerBox(self.frame, selection)
@@ -56,20 +52,10 @@ class View(GameObject):
         for game_object in self.game_objects:
             game_object.refresh()
 
-    def run(self):
-        self.running = True
-        self._start_time = time.time_ns()
+    def start(self) -> None:
         self._run()
         self.root.mainloop()
 
-    def _run(self):
-        if self.running:
-            self.root.after(self.timestep, self._run)
-        elapsed_time: int = (time.time_ns() - self._start_time) // 1_000_000
-        self._start_time = time.time_ns()
-        self.controller.update(elapsed_time)
+    def _run(self) -> None:
+        self.root.after(self.timestep, self._run)
         self.refresh()
-
-    def end(self):
-        self.running = False
-        self.root.destroy()

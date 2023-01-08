@@ -8,11 +8,9 @@ from tower_defense.interfaces.monster_view import IMonsterView
 from tower_defense.interfaces.player import IPlayer
 from tower_defense.interfaces.tower_manager import ITowerManager
 from tower_defense.interfaces.tower_view_manager import ITowerViewManager
-from tower_defense.interfaces.updatable import Updatable
 
 
 class ITowerDefenseController(
-    Updatable,
     IPlayer,
     ITowerManager,
     ITowerViewManager,

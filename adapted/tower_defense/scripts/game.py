@@ -1,11 +1,14 @@
+import time
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from typing import List, Iterable
-
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from typing import List, Iterable, Sequence, Callable
 
-from tower_defense.core.monster.default import MONSTER_MAPPING
 from tower_defense.core.entities import Entities
+from tower_defense.core.monster.default import MONSTER_MAPPING
 from tower_defense.grid import Grid
+from tower_defense.interfaces.tower_defense_controller import ITowerDefenseController
+from tower_defense.interfaces.updatable import Updatable
 from tower_defense.path import extract_path
 from tower_defense.tower_defense_controller import TowerDefenseController
 from tower_defense.view.game_objects.view import View
@@ -31,6 +34,33 @@ def add_arguments(
     )
 
 
+ViewLauncher = Callable[[ITowerDefenseController], None]
+
+
+def run_controller(controller: Updatable, timestep: int = 50) -> None:
+    previous_time = time.time_ns()
+    while True:
+        now = time.time_ns()
+        elapsed_time: int = (now - previous_time) // 1_000_000
+        previous_time = now
+        controller.update(elapsed_time)
+        time.sleep(timestep / 1000)
+
+
+def tkinter_view_launcher(controller: ITowerDefenseController) -> None:
+    view = View(controller)
+    view.start()
+
+
+def run(
+    view_launchers: Sequence[ViewLauncher], controller: TowerDefenseController
+) -> None:
+    with ThreadPoolExecutor() as executor:
+        executor.submit(run_controller, controller)
+        for view_launcher in view_launchers:
+            executor.submit(view_launcher, controller)
+
+
 def main() -> None:
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     map_names = get_file_stems("texts/mapTexts")
@@ -41,8 +71,8 @@ def main() -> None:
     wave_generator = WaveGenerator.load(args.scenario)
     entities = Entities(_path=extract_path(grid), _monster_factories=MONSTER_MAPPING)
     controller = TowerDefenseController(grid, wave_generator, entities)
-    view = View(controller)
-    view.run()
+    view_launchers: List[ViewLauncher] = [tkinter_view_launcher]
+    run(view_launchers, controller)
 
 
 if __name__ == "__main__":
