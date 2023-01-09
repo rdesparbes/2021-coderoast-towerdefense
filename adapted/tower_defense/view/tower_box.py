@@ -1,8 +1,9 @@
 import tkinter as tk
+from typing import List
 
 from tower_defense.view.selection import Selection
 
-ADDITIONAL_EMPTY_SLOTS = 50
+INITIAL_TOWER_FACTORY_NAMES: List[str] = ["<None>"] * 55
 
 
 class TowerBox:
@@ -22,11 +23,11 @@ class TowerBox:
             bd=1,
             highlightthickness=0,
         )
-        self.box.insert(tk.END, "<None>")
-        for tower_name in selection.get_tower_view_names():
-            self.box.insert(tk.END, tower_name)
-        for i in range(ADDITIONAL_EMPTY_SLOTS):
-            self.box.insert(tk.END, "<None>")
+        tower_factory_names: List[str] = list(INITIAL_TOWER_FACTORY_NAMES)
+        queried_names: List[str] = selection.get_tower_view_names()
+        tower_factory_names[1 : len(queried_names)] = queried_names
+        for tower_factory_name in tower_factory_names:
+            self.box.insert(tk.END, tower_factory_name)
         self.box.grid(row=1, column=1, rowspan=2)
         self.box.bind("<<ListboxSelect>>", self._on_select)
         self.selection = selection
