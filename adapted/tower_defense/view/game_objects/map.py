@@ -4,6 +4,7 @@ from typing import Tuple, List
 
 from PIL import ImageTk, Image
 
+from tower_defense.block import Block
 from tower_defense.interfaces.tower_defense_controller import (
     ITowerDefenseController,
 )
@@ -153,21 +154,15 @@ class MouseCursor(GameObject):
         self._mouse = Mouse()
         self._mouse.bind_listeners(self.canvas)
 
-    def _click_at(self, position: Tuple[int, int]) -> None:
-        world_position = self.position_converter.pixel_to_position(position)
-        self.selection.interact(world_position)
+    def _get_cursor_image(self, block: Block) -> ImageTk.PhotoImage:
+        if block.is_constructible:
+            return self.pressed_image if self._mouse.pressed else self.can_press_image
+        return self.cannot_press_image
 
-    def _paint_at(self, position: Tuple[int, int], press: bool) -> None:
-        world_position = self.position_converter.pixel_to_position(position)
+    def _refresh(self, world_position: Tuple[float, float]) -> None:
         block_position, block = self.controller.get_block(world_position)
         block_col, block_row = self.position_converter.position_to_pixel(block_position)
-        if block.is_constructible:
-            if press:
-                image = self.pressed_image
-            else:
-                image = self.can_press_image
-        else:
-            image = self.cannot_press_image
+        image: ImageTk.PhotoImage = self._get_cursor_image(block)
         self.canvas.create_image(
             block_col,
             block_row,
@@ -176,10 +171,14 @@ class MouseCursor(GameObject):
         )
 
     def refresh(self) -> None:
-        if self._mouse.position is not None:
-            self._paint_at(self._mouse.position, self._mouse.pressed)
-            if self._mouse.pressed:
-                self._click_at(self._mouse.position)
+        if self._mouse.position is None:
+            return
+        world_position: Tuple[float, float] = self.position_converter.pixel_to_position(
+            self._mouse.position
+        )
+        self._refresh(world_position)
+        if self._mouse.pressed:
+            self.selection.interact(world_position)
 
 
 class BackgroundDisplayer(GameObject):
@@ -193,7 +192,6 @@ class BackgroundDisplayer(GameObject):
             master=master_frame,
             width=self._image.width(),
             height=self._image.height(),
-            bg="gray",
             highlightthickness=0,
         )
         self.canvas.grid(row=0, column=0, rowspan=2, columnspan=1)
