@@ -49,7 +49,7 @@ class EntityDisplayer(GameObject):
 
 
 class MonsterDisplayer(EntityDisplayer):
-    def _paint_monster_health(self, monster: IMonsterView):
+    def _paint_health(self, monster: IMonsterView):
         x, y = self.position_converter.position_to_pixel(monster.get_position())
         image_path = f"images/monsterImages/{monster.get_model_name()}.png"
         image = self.image_cache.get_image(image_path)
@@ -75,7 +75,7 @@ class MonsterDisplayer(EntityDisplayer):
         for monster in self.controller.iter_monsters():
             image_path = f"images/monsterImages/{monster.get_model_name()}.png"
             self._paint_entity(monster, image_path)
-            self._paint_monster_health(monster)
+            self._paint_health(monster)
 
 
 class TowerDisplayer(EntityDisplayer):
@@ -95,7 +95,7 @@ class ProjectileDisplayer(EntityDisplayer):
             self._paint_entity(projectile, image_path)
 
 
-class TowerRangeDisplayer(GameObject):
+class RangeDisplayer(GameObject):
     def __init__(
         self,
         canvas: tk.Canvas,
@@ -217,7 +217,7 @@ class Map(GameObject):
             TowerDisplayer(canvas, controller, position_converter),
             MonsterDisplayer(canvas, controller, position_converter),
             ProjectileDisplayer(canvas, controller, position_converter),
-            TowerRangeDisplayer(canvas, position_converter, selection),
+            RangeDisplayer(canvas, position_converter, selection),
             MouseCursor(canvas, controller, position_converter, selection),
         ]
 

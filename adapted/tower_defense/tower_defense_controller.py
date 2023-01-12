@@ -102,4 +102,4 @@ class TowerDefenseController(ITowerDefenseController):
         return sorted(self.entities.monsters, key=lambda m: m.distance_travelled_)
 
     def iter_projectiles(self) -> Iterable[IEntity]:
-        return iter(self.entities.projectiles)
+        return list(self.entities.projectiles)
