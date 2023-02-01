@@ -2,18 +2,20 @@ import time
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import List, Iterable, Sequence, Callable
+from typing import List, Iterable, Sequence
 
 from tower_defense.core.entities import Entities
 from tower_defense.core.monster.default import MONSTER_MAPPING
 from tower_defense.grid import Grid
-from tower_defense.interfaces.tower_defense_controller import ITowerDefenseController
 from tower_defense.interfaces.updatable import Updatable
+from tower_defense.interfaces.views import ViewLauncher, retrieve_view_launchers
 from tower_defense.path import extract_path
 from tower_defense.tower_defense_controller import TowerDefenseController
-from tower_defense.view.game_objects.view import View
+
 from tower_defense.wave_generator import WaveGenerator
 
+# Imports to make sure view register themselves:
+from tower_defense.view import view_launcher as tkinter_view_launcher
 
 TIMESTEP: int = 50
 
@@ -37,9 +39,6 @@ def add_arguments(
     )
 
 
-ViewLauncher = Callable[[ITowerDefenseController], None]
-
-
 def run_controller(controller: Updatable, timestep: int = TIMESTEP) -> None:
     previous_time = time.time_ns()
     while True:
@@ -48,11 +47,6 @@ def run_controller(controller: Updatable, timestep: int = TIMESTEP) -> None:
         previous_time = now
         controller.update(elapsed_time)
         time.sleep(timestep / 1000)
-
-
-def tkinter_view_launcher(controller: ITowerDefenseController) -> None:
-    view = View(controller, timestep=TIMESTEP)
-    view.start()
 
 
 def run(
@@ -74,8 +68,7 @@ def main() -> None:
     wave_generator = WaveGenerator.load(args.scenario)
     entities = Entities(_path=extract_path(grid), _monster_factories=MONSTER_MAPPING)
     controller = TowerDefenseController(grid, wave_generator, entities)
-    view_launchers: List[ViewLauncher] = [tkinter_view_launcher]
-    run(view_launchers, controller)
+    run(retrieve_view_launchers(), controller)
 
 
 if __name__ == "__main__":
