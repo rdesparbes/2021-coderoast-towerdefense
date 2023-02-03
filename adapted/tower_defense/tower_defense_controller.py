@@ -96,7 +96,7 @@ class TowerDefenseController(ITowerDefenseController):
         self.entities.update(timestep)
 
     def iter_towers(self) -> Iterable[ITower]:
-        return iter(self.entities.towers.values())
+        return list(self.entities.towers.values())
 
     def iter_monsters(self) -> Iterable[IMonster]:
         return sorted(self.entities.monsters, key=lambda m: m.distance_travelled_)
