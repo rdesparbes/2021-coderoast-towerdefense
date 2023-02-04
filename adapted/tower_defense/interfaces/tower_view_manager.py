@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import Tuple, List
 
-from tower_defense.interfaces.tower_factory import ITowerFactory
+from tower_defense.interfaces.tower_view import ITowerView
 
 
 class ITowerViewManager(ABC):
     @abstractmethod
-    def get_tower_view(self, tower_view_name: str) -> ITowerFactory:
+    def get_tower_view(self, tower_view_name: str) -> ITowerView:
         ...
 
     @abstractmethod

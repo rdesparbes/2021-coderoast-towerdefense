@@ -11,6 +11,7 @@ from tower_defense.interfaces.tower_defense_controller import (
     ITowerDefenseController,
 )
 from tower_defense.interfaces.tower_factory import ITowerFactory
+from tower_defense.interfaces.tower_view import ITowerView
 from tower_defense.wave_generator import WaveGenerator
 
 
@@ -47,7 +48,7 @@ class TowerDefenseController(ITowerDefenseController):
     def get_tower_view_names(self) -> List[str]:
         return list(self.tower_mapping)
 
-    def get_tower_view(self, tower_view_name: str) -> ITowerFactory:
+    def get_tower_view(self, tower_view_name: str) -> ITowerView:
         return self.tower_mapping[tower_view_name]
 
     def iter_blocks(self) -> Iterable[Tuple[Tuple[int, int], Block]]:
@@ -77,7 +78,7 @@ class TowerDefenseController(ITowerDefenseController):
     def try_build_tower(
         self, tower_view_name: str, world_position: Tuple[float, float]
     ) -> bool:
-        tower_factory: ITowerFactory = self.get_tower_view(tower_view_name)
+        tower_factory: ITowerFactory = self.tower_mapping[tower_view_name]
         block_position, block = self.get_block(world_position)
         return (
             self.entities.try_build_tower(tower_factory, block_position)
