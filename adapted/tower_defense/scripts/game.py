@@ -4,6 +4,8 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import List, Iterable, Sequence
 
+import pkg_resources
+
 from tower_defense.core.entities import Entities
 from tower_defense.core.monster.default import MONSTER_MAPPING
 from tower_defense.grid import Grid
@@ -11,11 +13,7 @@ from tower_defense.interfaces.updatable import Updatable
 from tower_defense.interfaces.views import ViewLauncher, retrieve_view_launchers
 from tower_defense.path import extract_path
 from tower_defense.tower_defense_controller import TowerDefenseController
-
 from tower_defense.wave_generator import WaveGenerator
-
-# Imports to make sure view register themselves:
-from tower_defense.view import view_launcher as tkinter_view_launcher
 
 TIMESTEP: int = 50
 
@@ -59,6 +57,9 @@ def run(
 
 
 def main() -> None:
+    for entry_point in pkg_resources.iter_entry_points("tower_defense.views"):
+        print(f"Loading {entry_point.name} plugin")
+        entry_point.load()
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     map_names = get_file_stems("texts/mapTexts")
     wave_names = get_file_stems("texts/waveTexts")
