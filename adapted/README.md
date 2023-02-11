@@ -1,5 +1,12 @@
 # Tower Defense: Refactored
 
+## Install
+
+```shell
+pip install -e .[tk]
+TowerDefense
+```
+
 ## Rules
 
 For this refactor, a certain number of rules have been followed.

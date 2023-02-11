@@ -19,6 +19,6 @@ setup(
             "black",
             "types-pillow",
             "types-setuptools",
-        ]
+        ],
     },
 )

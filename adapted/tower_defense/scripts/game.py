@@ -38,12 +38,12 @@ def add_arguments(
 
 
 def run_controller(controller: Updatable, timestep: int = TIMESTEP) -> None:
-    previous_time = time.time_ns()
+    previous_ns: int = time.time_ns()
     while True:
-        now = time.time_ns()
-        elapsed_time: int = (now - previous_time) // 1_000_000
-        previous_time = now
-        controller.update(elapsed_time)
+        now_ns: int = time.time_ns()
+        elapsed_ms: int = (now_ns - previous_ns) // 1_000_000
+        previous_ns = now_ns
+        controller.update(elapsed_ms)
         time.sleep(timestep / 1000)
 
 
@@ -51,9 +51,9 @@ def run(
     view_launchers: Sequence[ViewLauncher], controller: TowerDefenseController
 ) -> None:
     with ThreadPoolExecutor() as executor:
-        executor.submit(run_controller, controller)
         for view_launcher in view_launchers:
             executor.submit(view_launcher, controller)
+        run_controller(controller)
 
 
 def main() -> None:
