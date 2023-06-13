@@ -9,7 +9,6 @@ import pkg_resources
 from tower_defense.core.entities import Entities
 from tower_defense.core.monster.default import MONSTER_MAPPING
 from tower_defense.grid import Grid
-from tower_defense.interfaces.updatable import Updatable
 from tower_defense.interfaces.views import ViewLauncher, retrieve_view_launchers
 from tower_defense.path import extract_path
 from tower_defense.tower_defense_controller import TowerDefenseController
@@ -37,23 +36,36 @@ def add_arguments(
     )
 
 
-def run_controller(controller: Updatable, timestep: int = TIMESTEP) -> None:
-    previous_ns: int = time.time_ns()
-    while True:
-        now_ns: int = time.time_ns()
-        elapsed_ms: int = (now_ns - previous_ns) // 1_000_000
-        previous_ns = now_ns
-        controller.update(elapsed_ms)
-        time.sleep(timestep / 1000)
+class Runner:
+    def __init__(
+        self,
+        controller: TowerDefenseController,
+        view_launchers: Sequence[ViewLauncher] = (),
+        timestep: int = TIMESTEP,
+    ):
+        self._controller = controller
+        self._view_launchers = view_launchers
+        self._timestep = timestep
+        self._running = False
 
+    def _run_controller(self) -> None:
+        previous_ns: int = time.time_ns()
+        while self._running:
+            now_ns: int = time.time_ns()
+            elapsed_ms: int = (now_ns - previous_ns) // 1_000_000
+            previous_ns = now_ns
+            self._controller.update(elapsed_ms)
+            time.sleep(self._timestep / 1000)
 
-def run(
-    view_launchers: Sequence[ViewLauncher], controller: TowerDefenseController
-) -> None:
-    with ThreadPoolExecutor() as executor:
-        for view_launcher in view_launchers:
-            executor.submit(view_launcher, controller)
-        run_controller(controller)
+    def start(self) -> None:
+        self._running = True
+        with ThreadPoolExecutor() as executor:
+            for view_launcher in self._view_launchers:
+                executor.submit(view_launcher, self._controller)
+            self._run_controller()
+
+    def stop(self) -> None:
+        self._running = False
 
 
 def main() -> None:
@@ -69,7 +81,8 @@ def main() -> None:
     wave_generator = WaveGenerator.load(args.scenario)
     entities = Entities(_path=extract_path(grid), _monster_factories=MONSTER_MAPPING)
     controller = TowerDefenseController(grid, wave_generator, entities)
-    run(retrieve_view_launchers(), controller)
+    runner = Runner(controller, retrieve_view_launchers())
+    runner.start()
 
 
 if __name__ == "__main__":
