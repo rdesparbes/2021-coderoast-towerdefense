@@ -12,10 +12,11 @@ from tower_defense.interfaces.tower_defense_controller import (
 )
 from tower_defense.interfaces.tower_factory import ITowerFactory
 from tower_defense.interfaces.tower_view import ITowerView
+from tower_defense.interfaces.updatable import Updatable
 from tower_defense.wave_generator import WaveGenerator
 
 
-class TowerDefenseController(ITowerDefenseController):
+class TowerDefenseController(ITowerDefenseController, Updatable):
     def __init__(
         self,
         grid: Grid,
