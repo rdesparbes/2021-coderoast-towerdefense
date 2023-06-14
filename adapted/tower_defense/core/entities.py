@@ -20,7 +20,7 @@ class Entities(Updatable):
     towers: Dict[Tuple[int, int], ITowerEntity] = field(default_factory=dict)
 
     def _cleanup_projectiles(self, timestep: int) -> None:
-        to_remove = set()
+        to_remove: Set[IProjectile] = set()
         for projectile in self.projectiles:
             projectile.update_position(timestep)
             if projectile.is_out_of_range() or projectile.get_target().is_dead():
@@ -32,8 +32,8 @@ class Entities(Updatable):
         self.projectiles.difference_update(to_remove)
 
     def _update_monsters(self, timestep: int) -> None:
-        to_remove = set()
-        to_add = set()
+        to_remove: Set[IMonster] = set()
+        to_add: Set[IMonster] = set()
         for monster in self.monsters:
             if not monster.alive:
                 to_remove.add(monster)
