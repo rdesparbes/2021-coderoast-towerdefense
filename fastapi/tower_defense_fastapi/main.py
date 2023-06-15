@@ -7,7 +7,7 @@ from tower_defense.core.entities import Entities
 from tower_defense.core.monster.default import MONSTER_MAPPING
 from tower_defense.grid import Grid
 from tower_defense.path import extract_path
-from tower_defense.scripts.game import Runner
+from tower_defense.runner import Runner
 from tower_defense.tower_defense_controller import TowerDefenseController
 from tower_defense.view.view_launcher import tkinter_view_launcher
 from tower_defense.wave_generator import WaveGenerator
