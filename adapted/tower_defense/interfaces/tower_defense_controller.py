@@ -18,6 +18,10 @@ class ITowerDefenseController(
     IMonsterSpawner,
     ABC,
 ):
+    """A class that describes an interface to get data from a tower defense game,
+    and to act on it
+    """
+
     @abstractmethod
     def iter_monsters(self) -> Iterable[IMonsterView]:
         ...
