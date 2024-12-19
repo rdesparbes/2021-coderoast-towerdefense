@@ -29,6 +29,9 @@ class TowerInfo(GameObject):
         self.tower_image: Optional[ImageTk.PhotoImage] = None
         self.image_cache = ImageCache()
 
+    def refresh(self) -> None:
+        return
+
     def paint(self) -> None:
         try:
             tower_position, selected_tower = self.selection.get_selected_tower()

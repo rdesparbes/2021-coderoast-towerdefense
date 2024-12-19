@@ -70,7 +70,10 @@ class Tower(ITowerEntity):
         return self.tower_stats.projectile_count.value
 
     def get_upgrade_cost(self) -> Optional[int]:
-        return self.tower_stats.upgrade_cost.value if self.is_upgradable() else None
+        upgrade_cost = self.tower_stats.upgrade_cost
+        if upgrade_cost is None or not self.is_upgradable():
+            return None
+        return upgrade_cost.value
 
     def is_upgradable(self) -> bool:
         return (
@@ -86,7 +89,7 @@ class Tower(ITowerEntity):
         return distance(self, monster) <= self.projectile_factory.get_range()
 
     def select_target(self, monsters: Iterable[IMonster]):
-        if self._is_valid_target(self.target) and self.sticky_target:
+        if self._valid_target is not None and self.sticky_target:
             return
         for monster in query_monsters(monsters, self.targeting_strategy):
             if self._is_valid_target(monster):
@@ -94,19 +97,24 @@ class Tower(ITowerEntity):
                 return
         self.target = None
 
-    def _is_valid_target(self, monster: Optional[IMonster]) -> bool:
+    @property
+    def _valid_target(self) -> Optional[IMonster]:
         return (
-            monster is not None
-            and self._monster_is_close_enough(monster)
-            and monster.alive
+            self.target
+            if self.target is not None and self._is_valid_target(self.target)
+            else None
         )
+
+    def _is_valid_target(self, monster: IMonster) -> bool:
+        return self._monster_is_close_enough(monster) and monster.alive
 
     def shoot(self, timestep: int) -> Iterable[IProjectile]:
         self.countdown.update(timestep)
-        if self._is_valid_target(self.target) and self.countdown.ended():
+        valid_target = self._valid_target
+        if valid_target is not None and self.countdown.ended():
             duration: int = int(1000 / self.tower_stats.shots_per_second.value)
             self.countdown.start(duration)
-            return self._shoot(self.target)
+            return self._shoot(valid_target)
         return []
 
     def get_name(self) -> str:

@@ -13,10 +13,6 @@ class IUpgradable(ABC):
         ...
 
 
-def _is_upgradable(value: Any) -> bool:
-    return isinstance(value, IUpgradable) and value.is_upgradable()
-
-
 class _UpgradableCollection(IUpgradable):
     @abstractmethod
     def _upgradable_values(self) -> Iterable[IUpgradable]:
@@ -35,7 +31,7 @@ class UpgradableData(_UpgradableCollection):
     def _upgradable_values(self) -> Iterable[IUpgradable]:
         for stat_field in fields(self):
             value: Any = getattr(self, stat_field.name)
-            if _is_upgradable(value):
+            if isinstance(value, IUpgradable) and value.is_upgradable():
                 yield value
 
 
@@ -44,7 +40,11 @@ T = TypeVar("T")
 
 class UpgradableList(_UpgradableCollection, List[T]):
     def _upgradable_values(self) -> Iterable[IUpgradable]:
-        return (value for value in self if _is_upgradable(value))
+        return (
+            value
+            for value in self
+            if isinstance(value, IUpgradable) and value.is_upgradable()
+        )
 
 
 class Up(Generic[T], IUpgradable):

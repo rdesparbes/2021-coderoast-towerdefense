@@ -54,8 +54,8 @@ def test_try_build_tower_raises_key_error_when_providing_invalid_tower_view_name
 
 
 def test_try_build_tower_returns_false_when_trying_to_build_on_an_invalid_position(
-    minimal_controller,
-):
+    minimal_controller: TowerDefenseController,
+) -> None:
     invalid_positions = {
         "non constructible block": (0, 0),
         "position outside of the map": (-1, -1),

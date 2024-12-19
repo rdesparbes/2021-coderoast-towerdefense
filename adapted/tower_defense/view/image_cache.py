@@ -4,7 +4,7 @@ from PIL import ImageTk, Image
 
 
 class ImageCache:
-    def __init__(self):
+    def __init__(self) -> None:
         # The image_cache limits disk accesses at runtime
         self._images_cache: Dict[str, Image.Image] = {}
         # The next attribute's goal is to keep a reference to the images in the object,

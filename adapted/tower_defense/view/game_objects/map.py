@@ -79,7 +79,7 @@ class MonsterDisplayer(EntityDisplayer):
 
 
 class TowerDisplayer(EntityDisplayer):
-    def _refresh(self):
+    def _refresh(self) -> None:
         for tower in self.controller.iter_towers():
             level: int = tower.get_level()
             image_path: str = f"images/towerImages/{tower.get_model_name()}/{level}.png"
@@ -87,7 +87,7 @@ class TowerDisplayer(EntityDisplayer):
 
 
 class ProjectileDisplayer(EntityDisplayer):
-    def _refresh(self):
+    def _refresh(self) -> None:
         for projectile in self.controller.iter_projectiles():
             image_path: str = (
                 f"images/projectileImages/{projectile.get_model_name()}.png"
@@ -101,7 +101,7 @@ class RangeDisplayer(GameObject):
         canvas: tk.Canvas,
         position_converter: PositionConverter,
         selection: Selection,
-    ):
+    ) -> None:
         self.position_converter = position_converter
         self.canvas = canvas
         self.selection = selection
